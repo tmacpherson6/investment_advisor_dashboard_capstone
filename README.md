@@ -24,7 +24,7 @@
 2. Create and activate virtual environment:
 ```bash
    python -m venv capstone
-   source capstone/bin/activate  # On Windows: venv\Scripts\activate
+   source capstone/bin/activate  # Or on Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
