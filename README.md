@@ -35,7 +35,7 @@
 ## Project Structure
 ```
 project/
-├── venv/
+├── capstone/
 ├── requirements.txt
 └── README.md
 ```
