@@ -45,7 +45,11 @@ Details about environment variables, API keys, etc.
 
 ## Technologies Used
 - Python
+- yfinance
+- fredapi
+- numpy
 - pandas
+- altair
 - (add others as we build)
 
 ## License
