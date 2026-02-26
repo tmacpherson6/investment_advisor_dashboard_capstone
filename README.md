@@ -1,12 +1,12 @@
-# Investment Advisor Dashoard - MADS Capstone Project
+# Investment Portfolio Generator - MADS Capstone Project
 
 ## Overview
-*REPLACE Brief description of what this project does and its purpose.
+*The Portfolio Generator forms an integrated decision framework that connects heterogeneous investor characteristics to a data-driven investment strategy.*
 
 ## Features
-- Feature 1
-- Feature 2
-- Feature 3
+- Investor Risk Tolerance Estimate: We use machine learning model to provide an estimate of investor risk tolerance, based on a brief questionnaire.
+- Market Sector Forecast: We use a deep learning model (LSTM) to forecast six-month future return and volatility for selected market sectors.
+- Portfolio Generation: We combine the outputs (above) to construct an optimal investment portfolio that maximizes returns while respecting an investor's risk tolerance.
 
 ## Installation
 
@@ -17,8 +17,7 @@
 ### Setup
 1. Clone the repository:
 ```bash
-   git clone investment_advisor_dashboard_capstone
-   cd 
+   git clone https://github.com/tmacpherson6/investment_advisor_dashboard_capstone capstone
 ```
 
 2. Create and activate virtual environment:
@@ -35,7 +34,10 @@
 ## Project Structure
 ```
 project/
-├── capstone/
+├── src/
+├── resources/
+├── notebooks/
+├── documentation/
 ├── requirements.txt
 └── README.md
 ```
@@ -46,10 +48,12 @@ Details about environment variables, API keys, etc.
 ## Technologies Used
 - Python
 - yfinance
-- fredapi
-- numpy
-- pandas
-- altair
+- FRED® API
+- NumPy
+- Pandas
+- Matplotlib
+- Altair
+- PyTorch
 - (add others as we build)
 
 ## License
