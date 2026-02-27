@@ -2,3 +2,4 @@ capstone/
 .vscode/
 SCFP2022.csv
 fred_data.csv
+yfinance_data.csv
