@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}PortfolioIQ — Client Assessment{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Hero -->
+  <div style="margin-bottom: 3rem; padding-top: 1rem;">
+    <span class="card-label">Risk-Optimized Portfolio Construction</span>
+    <h1 style="font-family: var(--font-serif); font-size: 2.6rem; font-weight: 400; line-height: 1.2; margin-bottom: 0.8rem;">
+      Build your optimal<br><em style="color: var(--gold);">risk-adjusted</em> portfolio
+    </h1>
+    <p style="color: var(--muted); max-width: 520px; font-size: 0.95rem; line-height: 1.7;">
+      Enter client demographics and financial profile. Our model scores risk tolerance using
+      Survey of Consumer Finances data, then constructs an optimal ETF allocation via
+      constrained mean-variance optimization.
+    </p>
+  </div>
+
+  <!-- Form -->
+  <form action="/analyze" method="POST">
+    <div class="card">
+      <span class="card-label">Personal Profile</span>
+      <h2>Demographics</h2>
+      <hr class="divider">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Age</label>
+          <input type="number" name="age" placeholder="e.g. 42" min="18" max="90" required>
+        </div>
+
+        <div class="form-group">
+          <label>Annual Household Income ($)</label>
+          <input type="number" name="income" placeholder="e.g. 150000" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Net Worth ($)</label>
+          <input type="number" name="net_worth" placeholder="e.g. 500000" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Education Level</label>
+          <select name="education" required>
+            <option value="" disabled selected>Select level</option>
+            <option value="1">High School or Less</option>
+            <option value="2">Some College</option>
+            <option value="3">Bachelor's Degree</option>
+            <option value="4">Graduate Degree</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Investment Experience</label>
+          <select name="investment_experience" required>
+            <option value="" disabled selected>Select experience</option>
+            <option value="1">None</option>
+            <option value="2">Limited (1–3 years)</option>
+            <option value="3">Moderate (3–10 years)</option>
+            <option value="4">Experienced (10+ years)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Investment Horizon</label>
+          <select name="horizon" required>
+            <option value="" disabled selected>Select horizon</option>
+            <option value="short">Short-term (< 2 years)</option>
+            <option value="medium">Medium-term (2–7 years)</option>
+            <option value="long">Long-term (7+ years)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Employment Status</label>
+          <select name="employment" required>
+            <option value="" disabled selected>Select status</option>
+            <option value="1">Employed (salaried)</option>
+            <option value="2">Self-employed</option>
+            <option value="3">Retired</option>
+            <option value="4">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Initial Investment Amount ($)</label>
+          <input type="number" name="investment_amount" placeholder="e.g. 100000" min="1000" required>
+        </div>
+
+        <div class="form-group">
+          <label>Simulation Horizon</label>
+          <select name="horizon_years" required>
+            <option value="1" selected>1 Year</option>
+            <option value="2">2 Years</option>
+            <option value="5">5 Years</option>
+            <option value="10">10 Years</option>
+            <option value="20">20 Years</option>
+            <option value="30">30 Years</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-full">
+      Run Analysis &nbsp;→
+    </button>
+  </form>
+
+  <!-- Method note -->
+  <div style="margin-top: 2.5rem; padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold-dim);">
+    <p style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); line-height: 1.8; letter-spacing: 0.03em;">
+      <strong style="color: var(--gold-dim);">Methodology</strong> &nbsp;·&nbsp;
+      Risk scores derived from an ordered logistic regression trained on 2022 Survey of Consumer Finances microdata.
+      Portfolio weights optimized via constrained Markowitz mean-variance framework using 6-month forward return
+      estimates and a historical correlation matrix. Monte Carlo simulation uses block bootstrap (20-day blocks)
+      to preserve short-run return dependence.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

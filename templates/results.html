@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+{% block title %}PortfolioIQ — Results{% endblock %}
+
+{% block head %}
+<style>
+  input[type=range] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; border-radius: 2px;
+    background: linear-gradient(to right, #4CAF82, #C9A84C, #CF6679);
+    outline: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 20px; height: 20px; border-radius: 50%; background: white;
+    box-shadow: 0 0 0 3px var(--gold), 0 2px 8px rgba(0,0,0,0.4);
+    cursor: grab; transition: box-shadow 0.2s;
+  }
+  input[type=range]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    box-shadow: 0 0 0 5px rgba(201,168,76,0.3), 0 0 0 3px var(--gold);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: white; border: 3px solid var(--gold); cursor: grab;
+  }
+
+  .results-section { transition: opacity 0.25s ease; }
+  .results-section.loading { opacity: 0.35; pointer-events: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block; width: 12px; height: 12px;
+    border: 2px solid var(--gold-dim); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 0.4rem;
+  }
+
+  /* ── Stat cards ── */
+  .dist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .dist-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.2rem 1.4rem;
+  }
+  .dist-card .dc-label {
+    font-family: var(--font-mono); font-size: 0.62rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: 0.5rem;
+  }
+  .dist-card .dc-median {
+    font-family: var(--font-serif); font-size: 1.9rem; line-height: 1; margin-bottom: 0.45rem;
+  }
+  .dist-card .dc-std {
+    font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); line-height: 1.7;
+  }
+  .dist-card .dc-std span { color: var(--text); }
+  .dist-card .dc-note {
+    font-family: var(--font-mono); font-size: 0.62rem;
+    color: var(--muted); margin-top: 0.35rem; line-height: 1.5;
+    border-top: 1px solid var(--border); padding-top: 0.35rem;
+  }
+
+  /* Terminal value grid */
+  .tv-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8rem; margin-top: 0.6rem;
+  }
+  .tv-cell { text-align: center; }
+  .tv-cell .tv-label {
+    font-family: var(--font-mono); font-size: 0.6rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); display: block; margin-bottom: 0.3rem;
+  }
+  .tv-cell .tv-val {
+    font-family: var(--font-serif); font-size: 1.1rem;
+  }
+
+  /* Horizon pill selector */
+  .horizon-pills {
+    display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;
+  }
+  .horizon-pill {
+    font-family: var(--font-mono); font-size: 0.68rem;
+    letter-spacing: 0.08em; padding: 0.3rem 0.8rem;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: none; color: var(--muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .horizon-pill:hover { border-color: var(--gold-dim); color: var(--text); }
+  .horizon-pill.active {
+    border-color: var(--gold); color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Header -->
+  <div style="margin-bottom:2.5rem; padding-top:1rem; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="card-label">Analysis Complete</span>
+      <h1 style="font-family:var(--font-serif); font-size:2.2rem; font-weight:400;">Portfolio Recommendation</h1>
+    </div>
+    <a href="/" class="btn" style="align-self:flex-end;">← New Analysis</a>
+  </div>
+
+  <!-- ── RISK SCORE CARD ── -->
+  <div class="card">
+    <span class="card-label">Step 1 — Risk Profiling</span>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.5rem;">
+      <h2>Risk Tolerance Score</h2>
+      <span id="override-badge" class="badge"
+        style="display:none; background:rgba(201,168,76,0.12); color:var(--gold); border:1px solid rgba(201,168,76,0.3);">
+        ✎ Client Override
+      </span>
+    </div>
+    <hr class="divider">
+
+    <div style="display:flex; align-items:baseline; gap:1rem; margin-bottom:1.2rem;">
+      <span id="score-display"
+        style="font-family:var(--font-serif); font-size:4rem; color:var(--gold); line-height:1; transition:color 0.3s;">
+        {{ risk.score }}
+      </span>
+      <div>
+        <div>
+          <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--muted);">/ 10</span>
+          <span id="model-tag" style="font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); margin-left:0.6rem;">
+            model prediction
+          </span>
+        </div>
+        <div style="margin-top:0.2rem;">
+          <span style="font-family:var(--font-mono); font-size:0.75rem; color:var(--muted);">
+            Vol ceiling: <strong id="vol-display" style="color:var(--text);">{{ "%.0f"|format(risk.vol_ceiling * 100) }}% annualized</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:0.6rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.7rem;">
+        <span style="font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted);">
+          Adjust Risk Tolerance
+        </span>
+        <span id="model-score-note" style="font-family:var(--font-mono); font-size:0.65rem; color:var(--gold-dim);">
+          Model score: {{ risk.score }}
+        </span>
+      </div>
+      <input type="range" id="risk-slider" min="1" max="10" step="0.5" value="{{ risk.score }}" />
+      <div style="display:flex; justify-content:space-between; margin-top:0.5rem; font-family:var(--font-mono); font-size:0.6rem; color:var(--muted);">
+        <span>1 — Conservative</span><span>5 — Moderate</span><span>10 — Aggressive</span>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.8rem; margin-top:1.2rem; align-items:center; flex-wrap:wrap;">
+      <button id="recalc-btn" class="btn" onclick="recalculate()" style="padding:0.6rem 1.4rem; font-size:0.72rem;">
+        Recalculate Portfolio →
+      </button>
+      <button id="reset-btn" onclick="resetToModel()"
+        style="display:none; background:none; border:none; font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:3px;">
+        Reset to model score
+      </button>
+      <span id="loading-msg" style="display:none; font-family:var(--font-mono); font-size:0.7rem; color:var(--gold-dim); align-items:center;">
+        <span class="spinner"></span>Recalculating...
+      </span>
+    </div>
+
+    <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-top:1rem; line-height:1.7;">
+      Predicted from ordered logistic regression on SCF 2022 microdata.
+      Slide to explore how a different risk tolerance changes the allocation.
+    </p>
+  </div>
+
+  <!-- ── LIVE RESULTS WRAPPER ── -->
+  <div id="results-sections" class="results-section">
+
+    <!-- ── PORTFOLIO STATISTICS ── -->
+    <div class="card">
+      <span class="card-label">Step 2 — Monte Carlo Portfolio Statistics</span>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.8rem;">
+        <h2>Simulated Outcomes</h2>
+        <span id="constraint-badge"
+          class="badge {% if stats.constraint_status == 'green' %}badge-green{% elif stats.constraint_status == 'amber' %}badge-amber{% else %}badge-red{% endif %}">
+          {% if stats.constraint_status == 'green' %}✓ Within Risk Constraint{% elif stats.constraint_status == 'amber' %}⚠ Near Risk Ceiling{% else %}✕ Exceeds Risk Constraint{% endif %}
+        </span>
+      </div>
+      <hr class="divider">
+
+      <!-- Horizon pill selector -->
+      <div style="margin-bottom:1rem;">
+        <span style="font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:0.6rem;">
+          Simulation Horizon
+        </span>
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:0.6rem;">
+          <div class="horizon-pills" style="margin-bottom:0;">
+            {% for yr in [1, 2, 5, 10, 20, 30] %}
+            <button class="horizon-pill {% if yr == horizon_years %}active{% endif %}"
+              onclick="setHorizon({{ yr }})" data-yr="{{ yr }}">
+              {{ yr }}yr
+            </button>
+            {% endfor %}
+          </div>
+          <button id="horizon-recalc-btn" class="btn"
+            onclick="recalculate()"
+            style="padding:0.35rem 1rem; font-size:0.68rem; letter-spacing:0.1em; white-space:nowrap;">
+            Update Simulation →
+          </button>
+          <span id="horizon-loading-msg" style="display:none; font-family:var(--font-mono); font-size:0.7rem; color:var(--gold-dim); align-items:center;">
+            <span class="spinner"></span>Running...
+          </span>
+        </div>
+      </div>
+
+      <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); line-height:1.7; margin-bottom:1rem;">
+        Based on <strong style="color:var(--text);">1000 simulated paths</strong> over a
+        <strong id="horizon-label" style="color:var(--text);">{{ horizon_years }}-year horizon</strong>.
+        The <em>typical range</em> shown is median ± 1 standard deviation across paths —
+        roughly the middle two-thirds of outcomes.
+      </p>
+
+      <div class="dist-grid" id="dist-grid">
+
+        <!-- Annualised Return -->
+        <div class="dist-card">
+          <span class="dc-label">Annualised Return</span>
+          <div class="dc-median" style="color:var(--green);" id="dc-ret-median">{{ stats.ret_median }}%</div>
+          <div class="dc-std" id="dc-ret-std">
+            Typical range<br>
+            <span>{{ stats.ret_lo }}% &nbsp;→&nbsp; {{ stats.ret_hi }}%</span>
+          </div>
+          <div class="dc-note">median ± 1 std dev across paths</div>
+        </div>
+
+        <!-- Annualised Volatility -->
+        <div class="dist-card">
+          <span class="dc-label">Annualised Volatility</span>
+          <div class="dc-median" id="dc-vol-median"
+            style="color:{% if stats.constraint_status == 'green' %}var(--green){% elif stats.constraint_status == 'amber' %}var(--amber){% else %}var(--red){% endif %}">
+            {{ stats.vol_median }}%
+          </div>
+          <div class="dc-std" id="dc-vol-std">
+            Typical range<br>
+            <span>{{ stats.vol_lo }}% &nbsp;→&nbsp; {{ stats.vol_hi }}%</span>
+          </div>
+          <div class="dc-note">ceiling: <span id="dc-vol-ceil" style="color:var(--gold);">{{ stats.vol_ceiling_ann }}%</span></div>
+        </div>
+
+        <!-- Sharpe Ratio -->
+        <div class="dist-card">
+          <span class="dc-label">Sharpe Ratio</span>
+          <div class="dc-median" id="dc-sharpe-median"
+            style="color:{% if stats.sharpe_median >= 0.5 %}var(--green){% elif stats.sharpe_median >= 0 %}var(--gold){% else %}var(--red){% endif %}">
+            {{ stats.sharpe_median }}
+          </div>
+          <div class="dc-std" id="dc-sharpe-std">
+            Typical range<br>
+            <span>{{ stats.sharpe_lo }} &nbsp;→&nbsp; {{ stats.sharpe_hi }}</span>
+          </div>
+          <div class="dc-note">excess return per unit of risk</div>
+        </div>
+
+        <!-- Max Drawdown -->
+        <div class="dist-card">
+          <span class="dc-label">Max Drawdown</span>
+          <div class="dc-median" style="color:var(--red);" id="dc-dd-median">{{ stats.dd_p50 }}%</div>
+          <div class="dc-std" id="dc-dd-std">
+            Worst 10% of paths<br>
+            <span style="color:var(--red);">{{ stats.dd_p10 }}%</span>
+          </div>
+          <div class="dc-note">peak-to-trough decline within horizon</div>
+        </div>
+
+        <!-- Terminal Value — spans full width -->
+        <div class="dist-card" style="grid-column: 1 / -1;">
+          <span class="dc-label">Terminal Portfolio Value &nbsp;·&nbsp; Starting: ${{ "{:,.0f}".format(form_data.investment_amount | float) }} &nbsp;·&nbsp; <span id="tv-horizon-label">{{ horizon_years }}-year horizon</span></span>
+          <div class="tv-grid" id="dc-tv-grid">
+            <div class="tv-cell">
+              <span class="tv-label">Pessimistic (P10)</span>
+              <span class="tv-val" style="color:var(--red);" id="dc-tv-p10">${{ "{:,.0f}".format(stats.tv_p10) }}</span>
+            </div>
+            <div class="tv-cell">
+              <span class="tv-label">Median (P50)</span>
+              <span class="tv-val" style="color:var(--gold); font-size:1.5rem;" id="dc-tv-p50">${{ "{:,.0f}".format(stats.tv_p50) }}</span>
+            </div>
+            <div class="tv-cell">
+              <span class="tv-label">Optimistic (P90)</span>
+              <span class="tv-val" style="color:var(--green);" id="dc-tv-p90">${{ "{:,.0f}".format(stats.tv_p90) }}</span>
+            </div>
+          </div>
+          <div style="margin-top:0.8rem; font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); line-height:1.6; border-top:1px solid var(--border); padding-top:0.6rem;">
+            P10 = 1-in-10 chance the portfolio ends below this value &nbsp;·&nbsp;
+            P90 = 1-in-10 chance it ends above this value &nbsp;·&nbsp;
+            Assumes no contributions or withdrawals
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Portfolio Weights -->
+    <div class="card">
+      <span class="card-label">Step 3 — Allocation</span>
+      <h2>Recommended ETF Weights</h2>
+      <hr class="divider">
+      <div id="weight-bars">
+        {% for etf in etfs %}
+          {% set pct = (weights[etf] * 100) | round(1) %}
+          {% if pct > 0 %}
+          <div class="weight-row">
+            <span class="weight-label">{{ etf }}</span>
+            <div class="weight-bar-bg"><div class="weight-bar-fill" style="width:{{ pct }}%"></div></div>
+            <span class="weight-pct">{{ pct }}%</span>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div id="weight-summary" style="margin-top:1.2rem; padding:0.8rem 1rem; background:var(--bg); border-radius:3px; border:1px solid var(--border);">
+        <p style="font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); line-height:1.9;">
+          {% for etf in etfs %}{% set pct = (weights[etf] * 100) | round(1) %}{% if pct >= 1 %}<span style="color:var(--text);">{{ etf }}</span> {{ pct }}%{% if not loop.last %} &nbsp;·&nbsp; {% endif %}{% endif %}{% endfor %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Monte Carlo GIF -->
+    <div class="card">
+      <span class="card-label">Step 4 — Forward Simulation</span>
+      <h2>Monte Carlo Path Simulation</h2>
+      <hr class="divider">
+      <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
+        1000 simulated portfolio paths over a <strong id="gif-horizon-label" style="color:var(--text);">{{ horizon_years }}-year horizon</strong>.
+        Dashed line = median (P50). Shaded band = P5–P95 range. Each path is a plausible outcome — the spread is the point.
+      </p>
+      <div style="text-align:center; border:1px solid var(--border); border-radius:3px; overflow:hidden; background:#0D1117; position:relative;">
+        <img id="mc-gif" src="data:image/gif;base64,{{ gif_b64 }}"
+          alt="Monte Carlo simulation" style="max-width:100%; display:block; margin:0 auto;" />
+        <div id="gif-overlay" style="display:none; position:absolute; inset:0; background:rgba(10,14,20,0.78); align-items:center; justify-content:center;">
+          <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--gold);">
+            <span class="spinner"></span>Generating simulation...
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end results-sections -->
+
+  <!-- Disclaimer -->
+  <div style="padding:1rem 1.2rem; border:1px solid var(--border); border-radius:3px; margin-top:0.5rem;">
+    <p style="font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); line-height:1.8;">
+      <strong style="color:var(--gold-dim);">Disclaimer</strong> &nbsp;·&nbsp;
+      Mock model predictions for development and testing. Not financial advice.
+      Simulation does not guarantee future results. All distributional estimates subject to model uncertainty.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const MODEL_SCORE  = {{ risk.score }};
+  const ETF_UNIVERSE = {{ etfs | tojson }};
+  const START_VALUE  = {{ form_data.investment_amount | default(100000) | float }};
+  let   HORIZON_YRS  = {{ horizon_years }};
+
+  function volCeiling(score) {
+    if      (score <= 2.0) return 0.05;
+    else if (score <= 4.0) return 0.08;
+    else if (score <= 6.0) return 0.13;
+    else if (score <= 8.0) return 0.18;
+    else                   return 0.24;
+  }
+  function fmt(n) { return '$' + Number(n).toLocaleString('en-US', {maximumFractionDigits:0}); }
+
+  // ── Slider ──
+  const slider   = document.getElementById('risk-slider');
+  const scoreEl  = document.getElementById('score-display');
+  const volEl    = document.getElementById('vol-display');
+  const badge    = document.getElementById('override-badge');
+  const resetBtn = document.getElementById('reset-btn');
+  const modelTag = document.getElementById('model-tag');
+
+  slider.addEventListener('input', () => {
+    const s  = parseFloat(slider.value);
+    scoreEl.textContent = s;
+    volEl.textContent   = Math.round(volCeiling(s) * 100) + '% annualized';
+    const ov = s !== MODEL_SCORE;
+    badge.style.display    = ov ? 'inline-block' : 'none';
+    resetBtn.style.display = ov ? 'inline-block' : 'none';
+    modelTag.textContent   = ov ? '(overridden)' : 'model prediction';
+    modelTag.style.color   = ov ? 'var(--gold-dim)' : 'var(--muted)';
+    scoreEl.style.color    = ov ? '#E8A84C' : 'var(--gold)';
+  });
+
+  function resetToModel() {
+    slider.value = MODEL_SCORE;
+    slider.dispatchEvent(new Event('input'));
+  }
+
+  // ── Horizon pills ──
+  function setHorizon(yr) {
+    HORIZON_YRS = yr;
+    document.querySelectorAll('.horizon-pill').forEach(p => {
+      p.classList.toggle('active', parseInt(p.dataset.yr) === yr);
+    });
+  }
+
+  // ── Update stats cards ──
+  function updateStats(s) {
+    const yrLabel = HORIZON_YRS + '-year horizon';
+    document.getElementById('horizon-label').textContent    = yrLabel;
+    document.getElementById('tv-horizon-label').textContent = yrLabel;
+    document.getElementById('gif-horizon-label').textContent = yrLabel;
+
+    // Return
+    document.getElementById('dc-ret-median').textContent = s.ret_median + '%';
+    document.getElementById('dc-ret-std').innerHTML =
+      `Typical range<br><span>${s.ret_lo}% &nbsp;→&nbsp; ${s.ret_hi}%</span>`;
+
+    // Vol
+    const vm = document.getElementById('dc-vol-median');
+    vm.textContent = s.vol_median + '%';
+    vm.style.color = s.constraint_status === 'green' ? 'var(--green)'
+                   : s.constraint_status === 'amber' ? 'var(--amber)'
+                   : 'var(--red)';
+    document.getElementById('dc-vol-std').innerHTML =
+      `Typical range<br><span>${s.vol_lo}% &nbsp;→&nbsp; ${s.vol_hi}%</span>`;
+    document.getElementById('dc-vol-ceil').textContent = s.vol_ceiling_ann + '%';
+
+    // Sharpe
+    const sm = document.getElementById('dc-sharpe-median');
+    sm.textContent = s.sharpe_median;
+    sm.style.color = s.sharpe_median >= 0.5 ? 'var(--green)' : s.sharpe_median >= 0 ? 'var(--gold)' : 'var(--red)';
+    document.getElementById('dc-sharpe-std').innerHTML =
+      `Typical range<br><span>${s.sharpe_lo} &nbsp;→&nbsp; ${s.sharpe_hi}</span>`;
+
+    // Drawdown
+    document.getElementById('dc-dd-median').textContent = s.dd_p50 + '%';
+    document.getElementById('dc-dd-std').innerHTML =
+      `Worst 10% of paths<br><span style="color:var(--red);">${s.dd_p10}%</span>`;
+
+    // Terminal value
+    document.getElementById('dc-tv-p10').textContent = fmt(s.tv_p10);
+    document.getElementById('dc-tv-p50').textContent = fmt(s.tv_p50);
+    document.getElementById('dc-tv-p90').textContent = fmt(s.tv_p90);
+
+    // Constraint badge
+    const cb = document.getElementById('constraint-badge');
+    const statusMap = {
+      green: ['✓ Within Risk Constraint', 'badge-green'],
+      amber: ['⚠ Near Risk Ceiling',      'badge-amber'],
+      red:   ['✕ Exceeds Risk Constraint','badge-red'],
+    };
+    const [cbText, cbClass] = statusMap[s.constraint_status] || statusMap.red;
+    cb.textContent = cbText;
+    cb.className   = 'badge ' + cbClass;
+  }
+
+  // ── Recalculate ──
+  async function recalculate() {
+    const score = parseFloat(slider.value);
+    const vc    = volCeiling(score);
+
+    document.getElementById('loading-msg').style.display        = 'inline-flex';
+    document.getElementById('horizon-loading-msg').style.display = 'inline-flex';
+    document.getElementById('recalc-btn').disabled               = true;
+    document.getElementById('horizon-recalc-btn').disabled       = true;
+    document.getElementById('results-sections').classList.add('loading');
+    document.getElementById('gif-overlay').style.display         = 'flex';
+
+    try {
+      const res  = await fetch('/api/recalculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vol_ceiling: vc, risk_score: score, start_value: START_VALUE, horizon_years: HORIZON_YRS })
+      });
+      const data = await res.json();
+      if (data.error) { alert('Error: ' + data.error); return; }
+
+      updateStats(data.stats);
+
+      // Rebuild weight bars
+      const barsDiv    = document.getElementById('weight-bars');
+      const summaryDiv = document.getElementById('weight-summary');
+      let bars = '', parts = [];
+      for (const etf of ETF_UNIVERSE) {
+        const pct = Math.round(data.weights[etf] * 1000) / 10;
+        if (pct > 0) {
+          bars += `<div class="weight-row">
+            <span class="weight-label">${etf}</span>
+            <div class="weight-bar-bg"><div class="weight-bar-fill" style="width:0%; transition:width 0.6s ease;"></div></div>
+            <span class="weight-pct">${pct}%</span></div>`;
+        }
+        if (pct >= 1) parts.push(`<span style="color:var(--text);">${etf}</span> ${pct}%`);
+      }
+      barsDiv.innerHTML = bars;
+      requestAnimationFrame(() => {
+        barsDiv.querySelectorAll('.weight-bar-fill').forEach((el, i) => {
+          el.style.width = parseFloat(barsDiv.querySelectorAll('.weight-pct')[i].textContent) + '%';
+        });
+      });
+      summaryDiv.innerHTML = `<p style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);line-height:1.9;">${parts.join(' &nbsp;·&nbsp; ')}</p>`;
+
+      document.getElementById('mc-gif').src = 'data:image/gif;base64,' + data.gif_b64;
+
+    } catch(err) {
+      console.error(err);
+      alert('Something went wrong — check the Flask console.');
+    } finally {
+      document.getElementById('loading-msg').style.display        = 'none';
+      document.getElementById('horizon-loading-msg').style.display = 'none';
+      document.getElementById('recalc-btn').disabled               = false;
+      document.getElementById('horizon-recalc-btn').disabled       = false;
+      document.getElementById('results-sections').classList.remove('loading');
+      document.getElementById('gif-overlay').style.display         = 'none';
+    }
+  }
+</script>
+
+{% endblock %}

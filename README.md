@@ -31,6 +31,30 @@
    pip install -r requirements.txt
 ```
 
+## Usage
+
+### Running the App Locally
+
+1. Make sure your virtual environment is activated (see Setup above).
+
+2. Navigate to the project folder:
+```bash
+cd path/to/capstone
+```
+
+3. Run the Flask app:
+```bash
+python app.py
+```
+
+4. Once the server starts, you'll see output in the terminal similar to:
+```
+ * Running on http://127.0.0.1:5000
+```
+Open that URL in your browser to use the dashboard. To stop the server, press `Ctrl+C` in the terminal.
+
+> **Note:** The app is currently configured for local development only (`debug=True`). Do not expose it to the public internet in this state.
+
 ## Project Structure
 ```
 project/
