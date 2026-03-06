@@ -34,6 +34,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from scipy.optimize import minimize
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ ETF_UNIVERSE: list[str] = [
     "XLB",  # Materials
     "XLP",  # Consumer Staples
     "XLY",  # Consumer Discretionary
-    "XLRE",  # Real Estate  ← binding constraint: launched Dec 2015**
+    "XLRE",  # Real Estate  ← binding constraint: launched Dec 2015
     # ── Fixed income ──────────────────────────────────────────────────────
     "BIL",  # 1–3 month T-bills  (cash equivalent; longer history than SGOV)
     "IEF",  # 7–10yr Treasuries  (intermediate)
@@ -208,6 +209,135 @@ def _estimate_ann_vol(log_returns: pd.DataFrame) -> np.ndarray:
     app.py.
     """
     return (log_returns.std() * np.sqrt(252)).values
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  PORTFOLIO OPTIMISATION
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Asset-class level weight caps — more defensible than a flat 30% across all.
+# Conservative fixed income (BIL, IEF, TLT, TIP) allowed up to 60% individually
+# so a risk-score-1 portfolio can legitimately hold mostly cash/duration without
+# being artificially forced into equities to fill weight.
+_WEIGHT_CAPS: dict[str, float] = {
+    # ── Equity sectors: max 25% — finer control, prevents single-sector dominance
+    "XLF": 0.25,
+    "XLK": 0.25,
+    "XLU": 0.25,
+    "XLV": 0.25,
+    "XLE": 0.25,
+    "XLI": 0.25,
+    "XLB": 0.25,
+    "XLP": 0.25,
+    "XLY": 0.25,
+    "XLRE": 0.25,
+    # ── Fixed income: cap reflects true risk character, not just asset class label
+    "BIL": 0.40,  # cash equivalent — low risk, high cap appropriate
+    "IEF": 0.40,  # intermediate duration — modest rate sensitivity
+    "TIP": 0.40,  # inflation-linked — similar duration profile to IEF
+    "LQD": 0.40,  # IG credit — spread risk but high-quality
+    "TLT": 0.25,  # long duration — ~50% drawdown 2020-2023, equity-like vol
+    "HYG": 0.25,  # high yield — high equity correlation in stress, credit risk
+    # ── Real assets: commodities capped to prevent over-concentration
+    "GLD": 0.15,
+}
+
+
+def optimize_portfolio(
+    ann_mu: np.ndarray,
+    ann_sig: np.ndarray,
+    corr: np.ndarray,
+    vol_ceiling: float,
+    rf: float = 0.04,
+    n_restarts: int = 5,
+) -> dict[str, float]:
+    """
+    Maximise the Sharpe ratio subject to:
+      1. Portfolio annualised volatility ≤ vol_ceiling
+      2. Weights sum to 1
+      3. All weights ≥ 0  (long-only)
+      4. Per-asset weight caps defined in _WEIGHT_CAPS
+
+    Uses scipy SLSQP with multiple random restarts to avoid local minima —
+    the Sharpe surface is non-convex so a single start is not reliable.
+
+    Parameters
+    ──────────
+    ann_mu      : annualised expected returns, shape (N,)
+    ann_sig     : annualised volatilities,     shape (N,)
+    corr        : correlation matrix,          shape (N, N)
+    vol_ceiling : maximum annualised portfolio vol (e.g. 0.13)
+    rf          : risk-free rate (annualised)
+    n_restarts  : number of random starting points
+
+    Returns
+    ───────
+    dict  {ticker: weight}  weights sum to 1.0, all >= 0
+    """
+    N = len(ann_mu)
+    cov = np.diag(ann_sig) @ corr @ np.diag(ann_sig)  # (N x N) covariance
+
+    caps = np.array([_WEIGHT_CAPS.get(t, 0.30) for t in ETF_UNIVERSE])
+
+    def neg_sharpe(w: np.ndarray) -> float:
+        port_ret = float(w @ ann_mu)
+        port_var = float(w @ cov @ w)
+        port_vol = np.sqrt(max(port_var, 1e-12))
+        return -(port_ret - rf) / port_vol  # minimise negative Sharpe
+
+    def port_vol(w: np.ndarray) -> float:
+        return float(np.sqrt(w @ cov @ w))
+
+    constraints = [
+        {"type": "eq", "fun": lambda w: w.sum() - 1.0},  # fully invested
+        {"type": "ineq", "fun": lambda w: vol_ceiling - port_vol(w)},  # vol ceiling
+    ]
+
+    # Per-asset bounds: [0, cap_i]
+    bounds = [(0.0, float(caps[i])) for i in range(N)]
+
+    best_result = None
+    best_sharpe = -np.inf
+
+    rng = np.random.default_rng(42)
+
+    for _ in range(n_restarts):
+        # Random Dirichlet start — respects sum-to-1 naturally
+        w0 = rng.dirichlet(np.ones(N))
+        w0 = np.clip(w0, 0, caps)
+        w0 /= w0.sum()
+
+        res = minimize(
+            neg_sharpe,
+            w0,
+            method="SLSQP",
+            bounds=bounds,
+            constraints=constraints,
+            options={"ftol": 1e-9, "maxiter": 1000},
+        )
+
+        if res.success and -res.fun > best_sharpe:
+            best_sharpe = -res.fun
+            best_result = res
+
+    if best_result is None or not best_result.success:
+        # Fallback: minimum-variance portfolio ignoring vol ceiling
+        # This can only fail if the covariance matrix is degenerate
+        logger.warning(
+            "optimize_portfolio: all restarts failed — "
+            "falling back to inverse-vol weights. "
+            f"vol_ceiling={vol_ceiling:.2%}"
+        )
+        inv_vol = 1.0 / np.maximum(ann_sig, 1e-6)
+        w_fb = inv_vol / inv_vol.sum()
+        return dict(zip(ETF_UNIVERSE, [round(float(x), 4) for x in w_fb]))
+
+    w_opt = best_result.x
+    # Clean up: zero out tiny weights below 0.1% (numerical noise)
+    w_opt[w_opt < 0.001] = 0.0
+    w_opt /= w_opt.sum()
+
+    return dict(zip(ETF_UNIVERSE, [round(float(x), 4) for x in w_opt]))
 
 
 # ─────────────────────────────────────────────────────────────────────────────

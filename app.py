@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Let's import some of our functions from logic.py
-from logic import get_market_params, ETF_UNIVERSE
+from logic import get_market_params, ETF_UNIVERSE, optimize_portfolio
 
 app = Flask(__name__)
 
@@ -89,24 +89,24 @@ def mock_risk_score(form_data):
     return {"score": score, "vol_ceiling": vol_ceiling}
 
 
-def mock_portfolio_weights(vol_ceiling: float) -> dict:
-    """
-    STUB: Equal-weight across instruments whose individual historical vol
-    is at or below the portfolio vol ceiling (with a 20% buffer).
-    This is a placeholder until real Markowitz optimisation is wired in.
-    Replace with: scipy.optimize.minimize(neg_sharpe, constraints=[vol<=ceiling])
-    """
-    eligible = [
-        ticker
-        for ticker, sig in zip(ETF_UNIVERSE, ANN_SIG)
-        if sig <= vol_ceiling * 1.20  # 20% buffer — avoids excluding everything
-    ]
-    if not eligible:
-        eligible = ETF_UNIVERSE  # fallback: include all if ceiling is too tight
+# ─────────────────────────────────────────────
+#  PORTFOLIO OPTIMISATION
+# ─────────────────────────────────────────────
 
-    n = len(eligible)
-    raw = {t: (1.0 / n) for t in eligible}
-    return {t: (raw[t] if t in raw else 0.0) for t in ETF_UNIVERSE}
+
+def get_portfolio_weights(vol_ceiling: float) -> dict[str, float]:
+    """
+    Returns optimal portfolio weights for a given vol ceiling.
+    Calls the real Markowitz optimizer in logic.py.
+    ANN_MU is still a stub in app.py — passed through to the optimizer.
+    """
+    return optimize_portfolio(
+        ann_mu=ANN_MU,  # stub in app.py until models ready
+        ann_sig=ANN_SIG,  # real historical vol from logic.py
+        corr=CORR,  # real historical correlation from logic.py
+        vol_ceiling=vol_ceiling,
+        rf=RF_ANN,
+    )
 
 
 # ─────────────────────────────────────────────
