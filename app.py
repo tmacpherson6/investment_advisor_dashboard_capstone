@@ -310,6 +310,7 @@ def analyze():
     form_data = request.form.to_dict()
     start_value = float(form_data.get("investment_amount", 100_000))
     horizon_years = int(form_data.get("horizon_years", 1))
+    age = int(form_data.get("age", 45))
 
     risk = mock_risk_score(form_data)
     weights = optimize_portfolio(
@@ -317,11 +318,10 @@ def analyze():
         ann_sig=ANN_SIG,
         corr=CORR,
         vol_ceiling=risk["vol_ceiling"],
-        age=int(form_data.get("age", 45)),
+        age=age,
         risk_score=risk["score"],
         rf=RF_ANN,
     )
-
     stats, gif = build_results(weights, risk["vol_ceiling"], start_value, horizon_years)
 
     return render_template(

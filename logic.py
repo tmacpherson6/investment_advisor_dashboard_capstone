@@ -212,12 +212,26 @@ def _estimate_ann_vol(log_returns: pd.DataFrame) -> np.ndarray:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  PORTFOLIO OPTIMISATION
+#  PORTFOLIO OPTIMISATION — TWO-TIER CONSTRAINT SYSTEM
+#
+#  Tier 1 — Asset class buckets (absolute portfolio weights):
+#    • Equity ceiling:     compute_equity_ceiling(age, risk_score)
+#    • GLD absolute cap:   15%
+#    • Vol band:           [vol_floor, vol_ceiling]
+#
+#  Tier 2 — Intra-bucket concentration (relative to bucket size):
+#    • Any single GICS sector ≤ 30% of the equity bucket
+#    • Any single IG fixed income ETF ≤ 50% of the FI bucket
+#    • HYG ≤ (risk_score/10)² × 35% of the FI bucket  (quadratic scaling)
+#
+#  Design rationale:
+#    Tier-2 constraints prevent the optimizer exploiting a single instrument
+#    within a bucket while respecting the bucket-level risk budget.
+#    HYG scaling encodes the fiduciary view that high-yield credit is only
+#    appropriate in proportion to demonstrated risk tolerance.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── Asset-class classification for equity ceiling constraint ─────────────────
-# HYG is classified as equity due to high equity correlation during stress
-# periods — this is intentional and documented in the methodology.
+# ── Asset-class classification ───────────────────────────────────────────────
 _EQUITY_TICKERS: set[str] = {
     "XLF",
     "XLK",
@@ -229,65 +243,82 @@ _EQUITY_TICKERS: set[str] = {
     "XLP",
     "XLY",
     "XLRE",
-    "HYG",  # high-yield: equity-like tail risk, classified with equity
 }
 
-# Boolean mask aligned to ETF_UNIVERSE order — used in constraint function
+_FI_TICKERS: set[str] = {
+    "BIL",
+    "IEF",
+    "TLT",
+    "LQD",
+    "HYG",
+    "TIP",
+}
+
+_IG_FI_TICKERS: set[str] = {  # investment-grade only — HYG excluded
+    "BIL",
+    "IEF",
+    "TLT",
+    "LQD",
+    "TIP",
+}
+
+# Index masks aligned to ETF_UNIVERSE order
 _EQUITY_MASK: np.ndarray = np.array(
     [1.0 if t in _EQUITY_TICKERS else 0.0 for t in ETF_UNIVERSE]
 )
+_FI_MASK: np.ndarray = np.array(
+    [1.0 if t in _FI_TICKERS else 0.0 for t in ETF_UNIVERSE]
+)
 
-_WEIGHT_CAPS: dict[str, float] = {
-    # ── Equity sectors: max 25% per position
-    "XLF": 0.25,
-    "XLK": 0.25,
-    "XLU": 0.25,
-    "XLV": 0.25,
-    "XLE": 0.25,
-    "XLI": 0.25,
-    "XLB": 0.25,
-    "XLP": 0.25,
-    "XLY": 0.25,
-    "XLRE": 0.25,
-    # ── Fixed income: cap reflects true risk character
-    "BIL": 0.40,  # cash equivalent
-    "IEF": 0.40,  # intermediate duration
-    "TIP": 0.40,  # inflation-linked
-    "LQD": 0.40,  # IG credit
-    "TLT": 0.25,  # long duration — equity-like drawdown profile
-    "HYG": 0.25,  # high yield — classified as equity for ceiling purposes
-    # ── Real assets
-    "GLD": 0.15,
+# Per-instrument index lookups for intra-bucket constraints
+_EQUITY_INDICES: list[int] = [
+    i for i, t in enumerate(ETF_UNIVERSE) if t in _EQUITY_TICKERS
+]
+_IG_FI_INDICES: list[int] = [
+    i for i, t in enumerate(ETF_UNIVERSE) if t in _IG_FI_TICKERS
+]
+_HYG_IDX: int = ETF_UNIVERSE.index("HYG")
+_GLD_IDX: int = ETF_UNIVERSE.index("GLD")
+
+# Absolute per-instrument upper bounds (used as scipy bounds, not constraints)
+# These are loose safety rails — the intra-bucket constraints do the real work
+_ABS_CAPS: dict[str, float] = {
+    "XLF": 0.40,
+    "XLK": 0.40,
+    "XLU": 0.40,
+    "XLV": 0.40,
+    "XLE": 0.40,
+    "XLI": 0.40,
+    "XLB": 0.40,
+    "XLP": 0.40,
+    "XLY": 0.40,
+    "XLRE": 0.40,
+    "BIL": 0.60,
+    "IEF": 0.60,
+    "TLT": 0.50,
+    "LQD": 0.60,
+    "HYG": 0.40,
+    "TIP": 0.60,
+    "GLD": 0.15,  # loose bound — dynamic cap enforced via constraint in _build_constraints
 }
+
+# Keep _WEIGHT_CAPS as public alias for any external references
+_WEIGHT_CAPS = _ABS_CAPS
 
 
 def compute_equity_ceiling(age: int, risk_score: float) -> float:
     """
-    Computes the maximum equity allocation (as a decimal) for a client.
+    Tier-1 equity ceiling as a fraction of total portfolio.
 
     Formula: (110 - age) + (risk_score - 5) * 3
 
     Design rationale
     ────────────────
-    - 110-age baseline: updated life-expectancy rule vs classic 100-age,
-      appropriate for HNW clients with longer planning horizons.
+    - 110-age baseline: updated life-expectancy rule vs classic 100-age.
     - Risk score adjustment: ±15% swing around the age baseline.
-      Score 5 (neutral) adds nothing. Score 10 adds +15%. Score 1 subtracts -12%.
-    - Hard ceiling: 90% for risk_score < 9 (fiduciary conservatism — the cost
-      of being too aggressive is permanent capital loss, asymmetric to the
-      cost of underperformance from being too conservative).
-    - Risk score >= 9: no hard cap, formula runs freely up to 100%.
-    - Floor: 10% minimum equity regardless of age/score — avoids
-      degenerate all-cash portfolios for very old conservative clients.
-
-    Parameters
-    ──────────
-    age        : client age in years
-    risk_score : float in [1, 10]
-
-    Returns
-    ───────
-    float : equity ceiling as decimal (e.g. 0.65 = 65%)
+    - Hard ceiling: 90% for risk_score < 9 (fiduciary conservatism).
+    - Risk score >= 9: formula runs freely up to 100%.
+    - Floor: 10% minimum equity regardless of age/score.
     """
     raw = (110 - age) + (risk_score - 5) * 3
     if risk_score >= 9:
@@ -295,6 +326,63 @@ def compute_equity_ceiling(age: int, risk_score: float) -> float:
     else:
         ceiling_pct = float(np.clip(raw, 10, 90))
     return ceiling_pct / 100.0
+
+
+def _build_constraints(
+    eq_ceiling: float,
+    vol_floor: float,
+    vol_ceiling: float,
+    fi_bucket: float,
+    risk_score: float,
+    cov: np.ndarray,
+    gld_cap: float,
+) -> list[dict]:
+    """
+    Builds the full two-tier constraint list for scipy.optimize.minimize.
+
+    Tier-1 constraints (absolute portfolio weights):
+      1. Weights sum to 1
+      2. vol_floor ≤ portfolio vol ≤ vol_ceiling
+      3. Equity bucket ≤ eq_ceiling
+      4. GLD ≤ gld_cap  (inverse risk-score scaled: 15% → 5%)
+
+    Tier-2 constraints (intra-bucket concentration):
+      5. Each GICS sector ≤ 30% of equity bucket
+      6. Each IG FI instrument ≤ 50% of FI bucket
+      7. HYG ≤ (risk_score/10)² × 35% of FI bucket  (quadratic)
+    """
+    # ── Tier-2 derived limits ─────────────────────────────────────────────
+    sector_cap = eq_ceiling * 0.30  # 30% of equity bucket
+    ig_fi_cap = fi_bucket * 0.50  # 50% of FI bucket
+    hyg_cap = fi_bucket * (risk_score / 10) ** 2 * 0.35  # quadratic
+
+    def port_vol(w):
+        return float(np.sqrt(w @ cov @ w))
+
+    def equity_sum(w):
+        return float(w @ _EQUITY_MASK)
+
+    constraints = [
+        # ── Tier 1 ───────────────────────────────────────────────────────
+        {"type": "eq", "fun": lambda w: w.sum() - 1.0},
+        {"type": "ineq", "fun": lambda w: vol_ceiling - port_vol(w)},
+        {"type": "ineq", "fun": lambda w: port_vol(w) - vol_floor},
+        {"type": "ineq", "fun": lambda w: eq_ceiling - equity_sum(w)},
+        {"type": "ineq", "fun": lambda w: gld_cap - w[_GLD_IDX]},  # GLD inverse-scaled
+        # ── Tier 2: intra-equity sector caps ─────────────────────────────
+        *[
+            {"type": "ineq", "fun": lambda w, i=i: sector_cap - w[i]}
+            for i in _EQUITY_INDICES
+        ],
+        # ── Tier 2: intra-FI IG caps ─────────────────────────────────────
+        *[
+            {"type": "ineq", "fun": lambda w, i=i: ig_fi_cap - w[i]}
+            for i in _IG_FI_INDICES
+        ],
+        # ── Tier 2: HYG quadratic risk-scaled cap ────────────────────────
+        {"type": "ineq", "fun": lambda w: hyg_cap - w[_HYG_IDX]},
+    ]
+    return constraints
 
 
 def optimize_portfolio(
@@ -308,43 +396,54 @@ def optimize_portfolio(
     n_restarts: int = 5,
 ) -> dict[str, float]:
     """
-    Maximise the Sharpe ratio subject to:
-      1. Portfolio annualised volatility ≤ vol_ceiling
-      2. Equity allocation (including HYG) ≤ equity_ceiling(age, risk_score)
-      3. Weights sum to 1
-      4. All weights ≥ 0  (long-only)
-      5. Per-asset weight caps defined in _WEIGHT_CAPS
+    Maximise Sharpe ratio subject to the two-tier constraint system.
 
-    The equity ceiling is the primary fiduciary guardrail. The vol ceiling
-    provides a secondary risk constraint. Both must be satisfied simultaneously.
+    Tier 1 — Asset class:
+      vol_floor ≤ portfolio vol ≤ vol_ceiling
+      Equity ≤ compute_equity_ceiling(age, risk_score)
+      GLD ≤ 15% - (risk_score-1)/9 * 10%  (inverse-scaled: score 1→15%, score 10→5%)
 
-    Uses scipy SLSQP with multiple random restarts to avoid local minima —
-    the Sharpe surface is non-convex so a single start is not reliable.
+    Tier 2 — Intra-bucket:
+      Any GICS sector ≤ 30% of equity bucket
+      Any IG FI instrument ≤ 50% of FI bucket
+      HYG ≤ (risk_score/10)² × 35% of FI bucket
 
-    Parameters
-    ──────────
-    ann_mu      : annualised expected returns, shape (N,)
-    ann_sig     : annualised volatilities,     shape (N,)
-    corr        : correlation matrix,          shape (N, N)
-    vol_ceiling : maximum annualised portfolio vol (e.g. 0.13)
-    age         : client age — drives age-based equity ceiling baseline
-    risk_score  : float in [1, 10] — adjusts ceiling around age baseline
-    rf          : risk-free rate (annualised)
-    n_restarts  : number of random starting points
-
-    Returns
-    ───────
-    dict  {ticker: weight}  weights sum to 1.0, all >= 0
+    Vol floor scaling (fraction of vol_ceiling):
+      risk_score ≤ 4 → 25%  |  ≤ 7 → 35%  |  > 7 → 45%
     """
     N = len(ann_mu)
     cov = np.diag(ann_sig) @ corr @ np.diag(ann_sig)
-    caps = np.array([_WEIGHT_CAPS.get(t, 0.25) for t in ETF_UNIVERSE])
+    abs_caps = np.array([_ABS_CAPS.get(t, 0.40) for t in ETF_UNIVERSE])
     eq_ceiling = compute_equity_ceiling(age, risk_score)
 
+    # ── GLD cap: inverse risk-score scaling ──────────────────────────────
+    # Conservative clients benefit most from gold as safe haven/inflation hedge.
+    # Aggressive clients should deploy that capital into growth equity instead.
+    # Score 1 → 15%  |  Score 5 → 10.6%  |  Score 10 → 5%
+    gld_cap = 0.15 - (risk_score - 1) / 9 * 0.10
+
+    fi_bucket = max(1.0 - eq_ceiling - gld_cap, 0.05)
+
+    # ── Vol floor ─────────────────────────────────────────────────────────
+    if risk_score <= 4:
+        floor_pct = 0.25
+    elif risk_score <= 7:
+        floor_pct = 0.35
+    else:
+        floor_pct = 0.45
+    vol_floor = vol_ceiling * floor_pct
+
     logger.info(
-        f"optimize_portfolio: age={age}, risk_score={risk_score}, "
-        f"eq_ceiling={eq_ceiling:.1%}, vol_ceiling={vol_ceiling:.1%}"
+        f"optimize_portfolio: age={age}, risk_score={risk_score} | "
+        f"eq_ceiling={eq_ceiling:.1%}, fi_bucket≈{fi_bucket:.1%}, gld_cap={gld_cap:.1%} | "
+        f"vol=[{vol_floor:.1%}, {vol_ceiling:.1%}] | "
+        f"HYG_cap={fi_bucket * (risk_score / 10) ** 2 * 0.35:.1%}"
     )
+
+    constraints = _build_constraints(
+        eq_ceiling, vol_floor, vol_ceiling, fi_bucket, risk_score, cov, gld_cap
+    )
+    bounds = [(0.0, float(abs_caps[i])) for i in range(N)]
 
     def neg_sharpe(w: np.ndarray) -> float:
         port_ret = float(w @ ann_mu)
@@ -352,29 +451,13 @@ def optimize_portfolio(
         port_vol = np.sqrt(max(port_var, 1e-12))
         return -(port_ret - rf) / port_vol
 
-    def port_vol(w: np.ndarray) -> float:
-        return float(np.sqrt(w @ cov @ w))
-
-    def equity_sum(w: np.ndarray) -> float:
-        return float(w @ _EQUITY_MASK)
-
-    constraints = [
-        {"type": "eq", "fun": lambda w: w.sum() - 1.0},
-        {"type": "ineq", "fun": lambda w: vol_ceiling - port_vol(w)},  # vol ceiling
-        {"type": "ineq", "fun": lambda w: eq_ceiling - equity_sum(w)},  # equity ceiling
-    ]
-
-    bounds = [(0.0, float(caps[i])) for i in range(N)]
-
     best_result = None
     best_sharpe = -np.inf
-
     rng = np.random.default_rng(42)
 
     for _ in range(n_restarts):
-        # Random Dirichlet start — respects sum-to-1 naturally
         w0 = rng.dirichlet(np.ones(N))
-        w0 = np.clip(w0, 0, caps)
+        w0 = np.clip(w0, 0, abs_caps)
         w0 /= w0.sum()
 
         res = minimize(
@@ -392,17 +475,15 @@ def optimize_portfolio(
 
     if best_result is None or not best_result.success:
         logger.warning(
-            "optimize_portfolio: all restarts failed — "
-            "falling back to inverse-vol weights. "
-            f"vol_ceiling={vol_ceiling:.2%}, eq_ceiling={eq_ceiling:.2%}, "
-            f"age={age}, risk_score={risk_score}"
+            f"optimize_portfolio: all restarts failed — falling back to "
+            f"inverse-vol weights. vol=[{vol_floor:.2%},{vol_ceiling:.2%}], "
+            f"eq_ceiling={eq_ceiling:.2%}, age={age}, risk_score={risk_score}"
         )
         inv_vol = 1.0 / np.maximum(ann_sig, 1e-6)
         w_fb = inv_vol / inv_vol.sum()
         return dict(zip(ETF_UNIVERSE, [round(float(x), 4) for x in w_fb]))
 
     w_opt = best_result.x
-    # Clean up: zero out tiny weights below 0.1% (numerical noise)
     w_opt[w_opt < 0.001] = 0.0
     w_opt /= w_opt.sum()
 
