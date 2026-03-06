@@ -195,7 +195,7 @@ project/
 ## Known Limitations
 
 - **Correlation history starts December 2015** due to XLRE launch date. The 2008 GFC and 2011 European debt crisis are not represented in covariance estimates.
-- **Expected returns are stubs.** Portfolio weights are sensitive to return assumptions; current allocations are illustrative until LSTM models are integrated.
+- **Expected returns are stubs.** Portfolio weights are sensitive to return assumptions; current allocations are illustrative until models are integrated.
 - **Normality assumption.** The Monte Carlo simulation uses multivariate normal shocks. Fat tails and skewness in actual sector returns are not captured.
 - **Static correlation matrix.** Full-history Pearson correlation is used rather than time-varying (DCC-GARCH) estimation. Regime shifts in correlation structure are not reflected.
 
