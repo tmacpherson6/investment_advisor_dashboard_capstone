@@ -27,23 +27,23 @@ ANN_SIG = _mp["ann_sig"]
 # Order must match ETF_UNIVERSE defined in logic.py.
 ANN_MU = np.array(
     [
-        0.10,  # XLF  Financials
-        0.14,  # XLK  Technology
-        0.07,  # XLU  Utilities
-        0.09,  # XLV  Health Care
-        0.08,  # XLE  Energy
-        0.09,  # XLI  Industrials
-        0.08,  # XLB  Materials
-        0.07,  # XLP  Consumer Staples
-        0.10,  # XLY  Consumer Discretionary
-        0.08,  # XLRE Real Estate
-        0.05,  # BIL  T-Bills
-        0.04,  # IEF  Intermediate Treasury
-        0.04,  # TLT  Long Treasury
-        0.05,  # LQD  IG Credit
-        0.07,  # HYG  High Yield
-        0.05,  # TIP  TIPS
-        0.06,  # GLD  Gold
+        0.11,  # XLF  Financials       Sharpe ~0.45
+        0.15,  # XLK  Technology       Sharpe ~0.50
+        0.07,  # XLU  Utilities        Sharpe ~0.20
+        0.10,  # XLV  Health Care      Sharpe ~0.40
+        0.09,  # XLE  Energy           Sharpe ~0.28
+        0.10,  # XLI  Industrials      Sharpe ~0.38
+        0.09,  # XLB  Materials        Sharpe ~0.32
+        0.08,  # XLP  Consumer Staples Sharpe ~0.27
+        0.11,  # XLY  Consumer Disc.   Sharpe ~0.40
+        0.09,  # XLRE Real Estate      Sharpe ~0.28
+        0.051,  # BIL  T-Bills  ← CRITICAL: just barely above RF so Sharpe ~0.2
+        0.05,  # IEF  Intermediate     Sharpe ~0.17
+        0.055,  # TLT  Long Treasury    Sharpe ~0.11
+        0.06,  # LQD  IG Credit        Sharpe ~0.29
+        0.08,  # HYG  High Yield       Sharpe ~0.26
+        0.055,  # TIP  TIPS             Sharpe ~0.22
+        0.07,  # GLD  Gold             Sharpe ~0.25
     ]
 )
 
