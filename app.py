@@ -9,7 +9,12 @@ import matplotlib.pyplot as plt
 from PIL import Image
 
 # Let's import some of our functions from logic.py
-from logic import get_market_params, ETF_UNIVERSE, optimize_portfolio
+from logic import (
+    get_market_params,
+    ETF_UNIVERSE,
+    optimize_portfolio,
+    compute_equity_ceiling,
+)
 
 app = Flask(__name__)
 
@@ -94,19 +99,33 @@ def mock_risk_score(form_data):
 # ─────────────────────────────────────────────
 
 
-def get_portfolio_weights(vol_ceiling: float) -> dict[str, float]:
-    """
-    Returns optimal portfolio weights for a given vol ceiling.
-    Calls the real Markowitz optimizer in logic.py.
-    ANN_MU is still a stub in app.py — passed through to the optimizer.
-    """
-    return optimize_portfolio(
-        ann_mu=ANN_MU,  # stub in app.py until models ready
-        ann_sig=ANN_SIG,  # real historical vol from logic.py
-        corr=CORR,  # real historical correlation from logic.py
-        vol_ceiling=vol_ceiling,
-        rf=RF_ANN,
-    )
+# In analyze() and api_recalculate() routes, call the optimizer like this:
+#
+# analyze() route — age and risk_score come from form_data:
+weights = optimize_portfolio(
+    ann_mu=ANN_MU,
+    ann_sig=ANN_SIG,
+    corr=CORR,
+    vol_ceiling=risk["vol_ceiling"],
+    age=int(form_data.get("age", 45)),
+    risk_score=risk["score"],
+    rf=RF_ANN,
+)
+
+# api_recalculate() route — add age and risk_score to the JSON payload:
+# data = request.get_json()
+weights = optimize_portfolio(
+    ann_mu=ANN_MU,
+    ann_sig=ANN_SIG,
+    corr=CORR,
+    vol_ceiling=float(data.get("vol_ceiling", 0.13)),
+    age=int(data.get("age", 45)),
+    risk_score=float(data.get("risk_score", 5.0)),
+    rf=RF_ANN,
+)
+
+# Optionally expose equity_ceiling in the results template for transparency:
+eq_ceiling = compute_equity_ceiling(int(form_data.get("age", 45)), risk["score"])
 
 
 # ─────────────────────────────────────────────
@@ -327,7 +346,7 @@ def analyze():
     horizon_years = int(form_data.get("horizon_years", 1))
 
     risk = mock_risk_score(form_data)
-    weights = mock_portfolio_weights(risk["vol_ceiling"])
+    weights = get_portfolio_weights(risk["vol_ceiling"])
     stats, gif = build_results(weights, risk["vol_ceiling"], start_value, horizon_years)
 
     return render_template(
@@ -348,7 +367,7 @@ def api_recalculate():
     vol_ceiling = float(data.get("vol_ceiling", 0.13))
     start_value = float(data.get("start_value", 100_000))
     horizon_years = int(data.get("horizon_years", 1))
-    weights = mock_portfolio_weights(vol_ceiling)
+    weights = get_portfolio_weights(vol_ceiling)
     stats, gif = build_results(weights, vol_ceiling, start_value, horizon_years)
     return jsonify({"weights": weights, "stats": stats, "gif_b64": gif})
 
