@@ -25,6 +25,16 @@ Caching
   Cache is valid for the calendar day it was computed.
   On the next day's first import the cache is stale and recomputed automatically.
 ────────────────────────────────────────────────────────────────────────────────
+
+How we have constrained so far:
+
+Real historical covariance and vol from yfinance
+Two-tier constraint system with fiduciary rationale
+Age-based equity ceiling with risk score adjustment
+Vol band enforcing risk delivery obligation
+HYG quadratic scaling within FI bucket
+GLD inverse risk-score scaling
+
 """
 
 import logging
