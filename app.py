@@ -95,26 +95,6 @@ def mock_risk_score(form_data):
 
 
 # ─────────────────────────────────────────────
-#  PORTFOLIO OPTIMISATION
-# ─────────────────────────────────────────────
-
-
-def get_portfolio_weights(vol_ceiling: float) -> dict[str, float]:
-    """
-    Returns optimal portfolio weights for a given vol ceiling.
-    Calls the real Markowitz optimizer in logic.py.
-    ANN_MU is still a stub in app.py — passed through to the optimizer.
-    """
-    return optimize_portfolio(
-        ann_mu=ANN_MU,  # stub in app.py until models ready
-        ann_sig=ANN_SIG,  # real historical vol from logic.py
-        corr=CORR,  # real historical correlation from logic.py
-        vol_ceiling=vol_ceiling,
-        rf=RF_ANN,
-    )
-
-
-# ─────────────────────────────────────────────
 #  SIMULATION
 # ─────────────────────────────────────────────
 
