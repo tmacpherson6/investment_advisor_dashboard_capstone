@@ -3,3 +3,4 @@ capstone/
 SCFP2022.csv
 fred_data.csv
 yfinance_data.csv
+raw_data_prediction_dataset.csv
