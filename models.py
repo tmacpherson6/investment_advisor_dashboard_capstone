@@ -66,10 +66,11 @@ class FinancialLSTM(nn.Module):
 def train_model(dataloader, model, loss_fn, optimizer, batch_first=True):
     """Generic training steps for any PyTorch deep learning model.
     
-    Copied nearly verbatim from the PyTorch tutorial.
+    Modeled after the example from the PyTorch tutorial.
     """
     model.train()
-    for X, y in dataloader:
+    for batch, (X, y) in enumerate(dataloader):
+        optimizer.zero_grad()
         # Compute prediction and loss; permute input (X) if necessary
         if batch_first == True:
             pred = model(X)
@@ -79,13 +80,13 @@ def train_model(dataloader, model, loss_fn, optimizer, batch_first=True):
         # Backpropagation
         loss.backward()
         optimizer.step()
-        optimizer.zero_grad()
+    return loss.item()
 
 
 def evaluate_model(dataloader, model, loss_fn, batch_first=True):
     """Generic evaluation steps for any PyTorch deep learning model.
 
-    Copied nearly verbatim from the PyTorch tutorial.
+    Modeled after the example from the PyTorch tutorial.
     """
     model.eval()
     preds = []
@@ -98,5 +99,5 @@ def evaluate_model(dataloader, model, loss_fn, batch_first=True):
             else:
                 pred = model(X.permute(1, 0, 2))
             loss = loss_fn(pred, y)
-            preds.append(pred)
-    return preds, loss
+            preds = preds + list(pred.flatten())
+    return loss.item(), torch.tensor(preds)
