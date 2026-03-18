@@ -2,6 +2,9 @@ from flask import Flask, render_template, request, jsonify
 import numpy as np
 import io
 import base64
+import os
+import json
+import datetime
 import matplotlib
 
 matplotlib.use("Agg")
@@ -22,6 +25,10 @@ app = Flask(__name__)
 _mp = get_market_params()
 CORR = _mp["corr"]
 ANN_SIG = _mp["ann_sig"]
+
+# Initialise feedback table (no-op if already exists or no DB configured)
+with app.app_context():
+    pass  # init_feedback_db() called below after routes are defined
 
 # STUB: forward-looking expected returns which we need to replace when models are ready.
 # Order must match ETF_UNIVERSE defined in logic.py.
@@ -336,6 +343,137 @@ def analyze():
     )
 
 
+# ─────────────────────────────────────────────
+#  FEEDBACK — Schema + Route
+# ─────────────────────────────────────────────
+
+FEEDBACK_DDL = """
+CREATE TABLE IF NOT EXISTS risk_feedback (
+    id               SERIAL PRIMARY KEY,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- Model output
+    model_score      NUMERIC(4,1) NOT NULL,
+    override_score   NUMERIC(4,1),
+    preferred_score  NUMERIC(4,1) NOT NULL,
+    direction        VARCHAR(10)  NOT NULL CHECK (direction IN ('too_high','too_low')),
+    notes            TEXT,
+
+    -- Feature snapshot for retraining (mirrors mock_risk_score inputs)
+    age              SMALLINT,
+    income           NUMERIC(14,2),
+    net_worth        NUMERIC(14,2),
+    education        SMALLINT,
+    investment_experience SMALLINT,
+
+    -- Signed error: positive => model over-predicted, negative => under-predicted
+    score_delta      NUMERIC(4,1) GENERATED ALWAYS AS (model_score - preferred_score) STORED
+);
+CREATE INDEX IF NOT EXISTS idx_rf_created   ON risk_feedback (created_at);
+CREATE INDEX IF NOT EXISTS idx_rf_direction ON risk_feedback (direction);
+"""
+
+
+def get_db_conn():
+    """Return a psycopg2 connection from DATABASE_URL. Returns None if unavailable."""
+    try:
+        import psycopg2
+
+        db_url = os.environ.get("DATABASE_URL", "")
+        if not db_url:
+            return None
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        return psycopg2.connect(db_url)
+    except Exception:
+        return None
+
+
+def init_feedback_db():
+    """Idempotently create the risk_feedback table. Call once at startup."""
+    conn = get_db_conn()
+    if conn is None:
+        app.logger.warning(
+            "feedback_db: no DATABASE_URL — feedback falls back to JSONL log."
+        )
+        return
+    with conn:
+        with conn.cursor() as cur:
+            cur.execute(FEEDBACK_DDL)
+    conn.close()
+
+
+FEEDBACK_LOG = os.path.join(os.path.dirname(__file__), "feedback_log.jsonl")
+
+
+@app.route("/api/feedback", methods=["POST"])
+def api_feedback():
+    data = request.get_json(silent=True) or {}
+
+    for field in ("model_score", "preferred_score", "direction"):
+        if field not in data:
+            return jsonify({"ok": False, "error": f"Missing field: {field}"}), 400
+    if data["direction"] not in ("too_high", "too_low"):
+        return jsonify(
+            {"ok": False, "error": "direction must be 'too_high' or 'too_low'"}
+        ), 400
+
+    record = {
+        "model_score": float(data["model_score"]),
+        "override_score": float(data["override_score"])
+        if data.get("override_score") is not None
+        else None,
+        "preferred_score": float(data["preferred_score"]),
+        "direction": data["direction"],
+        "notes": str(data["notes"])[:1000] if data.get("notes") else None,
+        "age": int(data["age"]) if data.get("age") is not None else None,
+        "income": float(data["income"]) if data.get("income") is not None else None,
+        "net_worth": float(data["net_worth"])
+        if data.get("net_worth") is not None
+        else None,
+        "education": int(data["education"])
+        if data.get("education") is not None
+        else None,
+        "investment_experience": int(data["investment_experience"])
+        if data.get("investment_experience") is not None
+        else None,
+        "score_delta": round(
+            float(data["model_score"]) - float(data["preferred_score"]), 1
+        ),
+    }
+
+    conn = get_db_conn()
+    if conn:
+        try:
+            with conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """INSERT INTO risk_feedback
+                             (model_score, override_score, preferred_score, direction, notes,
+                              age, income, net_worth, education, investment_experience)
+                           VALUES
+                             (%(model_score)s, %(override_score)s, %(preferred_score)s,
+                              %(direction)s, %(notes)s, %(age)s, %(income)s, %(net_worth)s,
+                              %(education)s, %(investment_experience)s)""",
+                        record,
+                    )
+            conn.close()
+            return jsonify({"ok": True, "storage": "postgres"})
+        except Exception as e:
+            app.logger.error(f"Feedback DB write failed: {e}")
+            conn.close()
+
+    # JSONL fallback (dev / no DB configured)
+    try:
+        record["created_at"] = datetime.datetime.utcnow().isoformat()
+        with open(FEEDBACK_LOG, "a") as f:
+            f.write(json.dumps(record) + "\n")
+        return jsonify({"ok": True, "storage": "jsonl_fallback"})
+    except Exception as e:
+        app.logger.error(f"Feedback JSONL fallback failed: {e}")
+        return jsonify({"ok": False, "error": "Storage unavailable"}), 500
+
+
 @app.route("/api/recalculate", methods=["POST"])
 def api_recalculate():
     data = request.get_json()
@@ -356,4 +494,5 @@ def api_recalculate():
 
 
 if __name__ == "__main__":
+    init_feedback_db()
     app.run(debug=True)

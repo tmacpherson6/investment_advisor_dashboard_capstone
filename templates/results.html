@@ -81,6 +81,82 @@
     font-family: var(--font-serif); font-size: 1.1rem;
   }
 
+  /* ── Feedback panel ── */
+  .feedback-panel {
+    margin-top: 1.4rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.1rem;
+  }
+  .feedback-trigger {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: rgba(201,168,76,0.06); 
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 3px; padding: 0.42rem 0.9rem;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  letter-spacing: 0.06em; color: var(--gold-dim); cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.feedback-trigger:hover { 
+  border-color: var(--gold); 
+  color: var(--gold); 
+  background: rgba(201,168,76,0.12); 
+}
+.feedback-trigger svg { flex-shrink: 0; }
+
+  .feedback-form {
+    display: none; margin-top: 1rem;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 1.2rem 1.4rem;
+    animation: fadeSlideIn 0.18s ease;
+  }
+  .feedback-form.open { display: block; }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fb-direction-btns { display: flex; gap: 0.5rem; margin: 0.7rem 0 1rem; flex-wrap: wrap; }
+  .fb-dir-btn {
+    flex: 1; min-width: 130px;
+    border: 1px solid var(--border); border-radius: 3px;
+    background: none; padding: 0.55rem 0.8rem;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    letter-spacing: 0.06em; color: var(--muted); cursor: pointer;
+    transition: all 0.15s; text-align: center;
+  }
+  .fb-dir-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+  .fb-dir-btn.selected-low  { border-color: #4CAF82; color: #4CAF82; background: rgba(76,175,130,0.07); }
+  .fb-dir-btn.selected-high { border-color: #CF6679; color: #CF6679; background: rgba(207,102,121,0.07); }
+
+  .fb-label {
+    font-family: var(--font-mono); font-size: 0.62rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); display: block; margin-bottom: 0.45rem;
+  }
+  .fb-textarea {
+    width: 100%; box-sizing: border-box;
+    background: var(--surface, #1A2433); border: 1px solid var(--border);
+    border-radius: 3px; color: var(--text);
+    font-family: var(--font-mono); font-size: 0.72rem; line-height: 1.6;
+    padding: 0.6rem 0.8rem; resize: vertical; min-height: 70px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .fb-textarea:focus { border-color: var(--gold-dim); }
+
+  .fb-submit {
+    margin-top: 0.8rem; padding: 0.5rem 1.2rem;
+    font-size: 0.7rem; letter-spacing: 0.1em;
+  }
+  .fb-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .fb-success {
+    display: none; align-items: center; gap: 0.5rem;
+    font-family: var(--font-mono); font-size: 0.72rem; color: #4CAF82;
+    margin-top: 0.7rem;
+  }
+  .fb-success.show { display: inline-flex; }
+
   /* Horizon pill selector */
   .horizon-pills {
     display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem;
@@ -176,6 +252,78 @@
       Predicted from ordered logistic regression on SCF 2022 microdata.
       Slide to explore how a different risk tolerance changes the allocation.
     </p>
+
+    <!-- ── FEEDBACK PANEL ── -->
+    <div class="feedback-panel">
+      <button class="feedback-trigger" onclick="toggleFeedback()" id="feedback-trigger-btn">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8s2.91 6.5 6.5 6.5S14.5 11.59 14.5 8 11.59 1.5 8 1.5zm.75 9.75h-1.5v-4.5h1.5v4.5zm0-6h-1.5v-1.5h1.5v1.5z" fill="currentColor"/>
+        </svg>
+        Does this risk score feel inaccurate?
+      </button>
+
+      <div class="feedback-form" id="feedback-form">
+        <span class="fb-label">Risk Assessment Feedback</span>
+        <p style="font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); line-height:1.7; margin-bottom:0.2rem;">
+          Your input helps improve the prediction model. The model assigned a score of
+          <strong id="fb-model-score-display" style="color:var(--gold);">{{ risk.score }}</strong> / 10.
+          How does that compare to your actual risk tolerance?
+        </p>
+
+        <div class="fb-direction-btns">
+          <button class="fb-dir-btn" id="fb-btn-low" onclick="selectDirection('too_high')">
+            ↓ &nbsp;Score is too high<br>
+            <span style="font-size:0.6rem; opacity:0.7;">(I'm more conservative)</span>
+          </button>
+          <button class="fb-dir-btn" id="fb-btn-high" onclick="selectDirection('too_low')">
+            ↑ &nbsp;Score is too low<br>
+            <span style="font-size:0.6rem; opacity:0.7;">(I'm more aggressive)</span>
+          </button>
+        </div>
+
+        <div style="margin-bottom:0.9rem;">
+          <span class="fb-label">Preferred score (optional)</span>
+          <div style="display:flex; align-items:center; gap:1rem;">
+            <input type="range" id="fb-preferred-slider" min="1" max="10" step="0.5"
+              value="{{ risk.score }}"
+              style="flex:1; margin:0;"
+              oninput="document.getElementById('fb-preferred-val').textContent = this.value" />
+            <span id="fb-preferred-val"
+              style="font-family:var(--font-mono); font-size:1rem; color:var(--gold); min-width:2rem; text-align:right;">
+              {{ risk.score }}
+            </span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:0.35rem; font-family:var(--font-mono); font-size:0.58rem; color:var(--muted);">
+            <span>1 — Conservative</span><span>10 — Aggressive</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="fb-label">Additional context <span style="opacity:0.5;">(optional)</span></span>
+          <textarea class="fb-textarea" id="fb-notes" placeholder="e.g. I have a longer time horizon than indicated, or my income is more stable than the model assumes…"></textarea>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap;">
+          <button class="btn fb-submit" id="fb-submit-btn" onclick="submitFeedback()" disabled>
+            Submit Feedback →
+          </button>
+          <button onclick="toggleFeedback()"
+            style="background:none; border:none; font-family:var(--font-mono); font-size:0.68rem; color:var(--muted); cursor:pointer; text-decoration:underline; text-underline-offset:3px;">
+            Cancel
+          </button>
+          <span id="fb-loading" style="display:none; font-family:var(--font-mono); font-size:0.7rem; color:var(--gold-dim);">
+            <span class="spinner"></span>Saving...
+          </span>
+        </div>
+
+        <div class="fb-success" id="fb-success">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.5 4L6.5 11 2.5 7" stroke="#4CAF82" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Feedback recorded — thank you. This will improve future predictions.
+        </div>
+      </div>
+    </div>
+    <!-- ── END FEEDBACK PANEL ── -->
+
   </div>
 
   <!-- ── LIVE RESULTS WRAPPER ── -->
@@ -458,6 +606,78 @@
     const [cbText, cbClass] = statusMap[s.constraint_status] || statusMap.red;
     cb.textContent = cbText;
     cb.className   = 'badge ' + cbClass;
+  }
+
+  // ── Feedback panel ──
+  let fbDirection = null;
+
+  function toggleFeedback() {
+    const form = document.getElementById('feedback-form');
+    const isOpen = form.classList.contains('open');
+    form.classList.toggle('open', !isOpen);
+    document.getElementById('feedback-trigger-btn').style.opacity = isOpen ? '1' : '0.5';
+    if (!isOpen) {
+      // Reset state when opening fresh
+      fbDirection = null;
+      document.getElementById('fb-btn-low').className  = 'fb-dir-btn';
+      document.getElementById('fb-btn-high').className = 'fb-dir-btn';
+      document.getElementById('fb-submit-btn').disabled = true;
+      document.getElementById('fb-success').classList.remove('show');
+      document.getElementById('fb-notes').value = '';
+      document.getElementById('fb-preferred-slider').value = MODEL_SCORE;
+      document.getElementById('fb-preferred-val').textContent = MODEL_SCORE;
+      document.getElementById('fb-model-score-display').textContent = MODEL_SCORE;
+    }
+  }
+
+  function selectDirection(dir) {
+    fbDirection = dir;
+    document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-low'  : '');
+    document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-high' : '');
+    document.getElementById('fb-submit-btn').disabled = false;
+  }
+
+  async function submitFeedback() {
+    const preferredScore = parseFloat(document.getElementById('fb-preferred-slider').value);
+    const notes          = document.getElementById('fb-notes').value.trim();
+    const currentScore   = parseFloat(slider.value);  // current slider value at time of feedback
+
+    document.getElementById('fb-loading').style.display    = 'inline-flex';
+    document.getElementById('fb-submit-btn').disabled       = true;
+
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model_score:      MODEL_SCORE,
+          override_score:   currentScore !== MODEL_SCORE ? currentScore : null,
+          preferred_score:  preferredScore,
+          direction:        fbDirection,
+          notes:            notes || null,
+          // Form inputs for model retraining
+          age:              {{ form_data.age | default(45) | int }},
+          income:           {{ form_data.income | default(100000) | float }},
+          net_worth:        {{ form_data.net_worth | default(300000) | float }},
+          education:        {{ form_data.education | default(3) | int }},
+          investment_experience: {{ form_data.investment_experience | default(2) | int }},
+        })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        document.getElementById('fb-success').classList.add('show');
+        document.getElementById('fb-loading').style.display = 'none';
+      } else {
+        alert('Could not save feedback: ' + (data.error || 'unknown error'));
+        document.getElementById('fb-submit-btn').disabled = false;
+        document.getElementById('fb-loading').style.display = 'none';
+      }
+    } catch(err) {
+      console.error(err);
+      alert('Network error — feedback not saved.');
+      document.getElementById('fb-submit-btn').disabled = false;
+      document.getElementById('fb-loading').style.display = 'none';
+    }
   }
 
   // ── Recalculate ──
