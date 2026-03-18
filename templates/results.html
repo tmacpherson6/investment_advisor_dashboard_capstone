@@ -632,8 +632,8 @@
 
 function selectDirection(dir) {
   fbDirection = dir;
-  document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-high' : '');
-  document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-low'  : '');
+  document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-low'  : '');
+  document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-high' : '');
   document.getElementById('fb-submit-btn').disabled = false;
 }
 
