@@ -126,8 +126,8 @@
     transition: all 0.15s; text-align: center;
   }
   .fb-dir-btn:hover { border-color: var(--gold-dim); color: var(--text); }
-  .fb-dir-btn.selected-low  { border-color: #4CAF82; color: #4CAF82; background: rgba(76,175,130,0.07); }
-  .fb-dir-btn.selected-high { border-color: #CF6679; color: #CF6679; background: rgba(207,102,121,0.07); }
+  .fb-dir-btn.selected-high  { border-color: #4CAF82; color: #4CAF82; background: rgba(76,175,130,0.07); }
+  .fb-dir-btn.selected-low { border-color: #CF6679; color: #CF6679; background: rgba(207,102,121,0.07); }
 
   .fb-label {
     font-family: var(--font-mono); font-size: 0.62rem;
@@ -630,12 +630,12 @@
     }
   }
 
-  function selectDirection(dir) {
-    fbDirection = dir;
-    document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-low'  : '');
-    document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-high' : '');
-    document.getElementById('fb-submit-btn').disabled = false;
-  }
+function selectDirection(dir) {
+  fbDirection = dir;
+  document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-high' : '');
+  document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-low'  : '');
+  document.getElementById('fb-submit-btn').disabled = false;
+}
 
   async function submitFeedback() {
     const preferredScore = parseFloat(document.getElementById('fb-preferred-slider').value);
