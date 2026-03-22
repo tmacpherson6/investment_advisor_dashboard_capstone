@@ -6,6 +6,7 @@ import re
 
 import numpy as np
 import pandas as pd
+from pandas.tseries.offsets import BusinessDay
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -27,29 +28,32 @@ def view_nan(df):
     return fig
 
 
-def time_series_split(df, test_start_date, buffer_size, date_col='date'):
-    """Splits DataFrame into train/test splits with buffer in between.
+def get_start_dates(df):
+    """Retrieves the starting date for each column of time-series data."""
+    start_date = {}
+    for column in df.columns:
+        start_date[column] = df[column].dropna().index[0]
+    return sorted([(k, v) for k, v in start_date.items()], key=lambda i:i[1])
+
+
+def time_series_split(df, start_date, buffer_size, date_col='date'):
+    """Splits DataFrame into train/test splits with a buffer in between.
 
     Keyword arguments:
       df -- Pandas DataFrame
-      test_start_date -- str for start date of test split: 'YYYY-MM-DD'
-      buffer_size -- number of business days between end of train split and 
-                     beginning of test split
+      start_date -- str for start date of test/validation split: 'YYYY-MM-DD'
+      buffer_size -- number of business days between splits
     """
+    start_date = pd.to_datetime(start_date)
+    buffer = BusinessDay(buffer_size)
     # Sometimes we move the datetime index to a column
     if date_col in df.columns:
-        test_df = df[df[date_col] >= test_start_date]
-        if buffer_size > 0:
-            train_df = df[df[date_col] < test_start_date][:-buffer_size]
-        else:
-            train_df = df[df[date_col] < test_start_date]
+        test_df = df[df[date_col] >= start_date]
+        train_df = df[df[date_col] < start_date - buffer]
     # Otherwise, assume the index has the timestamp
     else:
-        test_df = df[df.index >= test_start_date]
-        if buffer_size > 0:
-            train_df = df[df.index < test_start_date][:-buffer_size]
-        else:
-            train_df = df[df.index < test_start_date]
+        test_df = df[df.index >= start_date]
+        train_df = df[df.index < start_date - buffer]
     return train_df.copy(), test_df.copy()
 
 
@@ -159,7 +163,7 @@ class UnivariateTimeSeriesDataset(Dataset):
 class FinancialDataset(Dataset):
     """Dataset for time series financial data."""
     
-    def __init__(self, data, labels, sequence_length=5):
+    def __init__(self, data, labels, sequence_length=21):
         """Create a Dataset from time series data (X) and labels (y).
 
         Keyword arguments:
@@ -179,25 +183,24 @@ class FinancialDataset(Dataset):
         return len(self.data) - self.sequence_length
 
     def __getitem__(self, idx):
-        """Retreive a sample (X_i) and its label (y_i).
+        """Retreive a sample sequence (X_i) and its label (y_i).
         
-        We rely on a (slightly flawed) financial theory that historical
-        observations are useful in predicting future values of return 
-        and volatility.
-         - Therefore, each data sample (X_i) is a matrix consisting of a
-           series (length of series = window_size) of past observations,
-           where each observation is a row vector of dimension (X_dim).
-         - Each label (y_i) is a row vector containing the computed
-           future values of (return, volatility) for each ETF in the data
-           sample, as of the timestamp at the end of the rolling window.
+        We rely on a financial theory that historical observations are useful
+        in predicting future values of return and volatility.
+         - Each data sample is a sequence from a vector-valued time series, 
+           which we can think of as a matrix (X_i) where each row is a past
+           observation vector of dimension (X_dim).
+         - Each label (y_i) is a scalar value representing the target, either
+           return or volatility over a future outlook defined by a number of
+           business days.
         ------------------
         Keyword arguments:
           idx -- starting index for the data sample
         Returns:
-          X_i -- PyTorch tensor of shape (window_size, X_dim)
-          y_i -- PyTorch tensor of shape (y_dim)
+          X_i -- PyTorch tensor of shape (sequence_length, X_dim)
+          y_i -- PyTorch tensor of shape (1)
         """
         X_i = self.data[idx : idx + self.sequence_length]
-        y_i = self.labels[idx + self.sequence_length - 1]
+        y_i = self.labels[idx]
         return X_i, y_i
         

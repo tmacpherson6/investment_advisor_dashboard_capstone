@@ -51,19 +51,22 @@ class FinancialLSTM(nn.Module):
             bidirectional=bidirectional,
             proj_size=proj_size
         )
-        self.fc = nn.Linear(hidden_size, label_size)
+        self.fc = nn.Linear(self.H_out, label_size)
 
     def forward(self, x):
         """Make a prediction based on input x."""
         # Final hidden state h_n has shape=(D * num_layers, N, H_out)
-        output, (h_n, c_n) = self.lstm(x)
-        # Change the shape of h_n's activation to (N, H_out)
-        out = h_n.view(-1, self.hidden_size)
+        if self.batch_first == True:
+            output, (h_n, c_n) = self.lstm(x)
+        else:
+            output, (h_n, c_n) = self.lstm(x.permute(1, 0, 2))
+        # Change the shape of h_n's activation to (N, H_out) for FC layer
+        out = h_n .view(-1, self.H_out)
         pred = self.fc(out)
         return pred
 
     
-def train_model(dataloader, model, loss_fn, optimizer, batch_first=True):
+def train_model(dataloader, model, loss_fn, optimizer):
     """Generic training steps for any PyTorch deep learning model.
     
     Modeled after the example from the PyTorch tutorial.
@@ -71,19 +74,16 @@ def train_model(dataloader, model, loss_fn, optimizer, batch_first=True):
     model.train()
     for batch, (X, y) in enumerate(dataloader):
         optimizer.zero_grad()
-        # Compute prediction and loss; permute input (X) if necessary
-        if batch_first == True:
-            pred = model(X)
-        else:
-            pred = model(X.permute(1, 0, 2))
+        # Compute prediction and loss
+        pred = model(X)
         loss = loss_fn(pred, y)
         # Backpropagation
         loss.backward()
         optimizer.step()
-    return loss.item()
+    return loss
 
 
-def evaluate_model(dataloader, model, loss_fn, batch_first=True):
+def evaluate_model(dataloader, model, loss_fn):
     """Generic evaluation steps for any PyTorch deep learning model.
 
     Modeled after the example from the PyTorch tutorial.
@@ -93,11 +93,8 @@ def evaluate_model(dataloader, model, loss_fn, batch_first=True):
     # No need to compute gradients during evaluation
     with torch.no_grad():
         for X, y in dataloader:
-            # Record loss history; permute input (X) if necessary
-            if batch_first == True:
-                pred = model(X)
-            else:
-                pred = model(X.permute(1, 0, 2))
+            # Record loss history
+            pred = model(X)
             loss = loss_fn(pred, y)
             preds = preds + list(pred.flatten())
-    return loss.item(), torch.tensor(preds)
+    return loss, torch.tensor(preds)
