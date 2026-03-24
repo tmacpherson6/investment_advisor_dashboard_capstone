@@ -2,6 +2,8 @@
 """This module defines the models we will use in our analysis.
 
 We selected several models appropriate to time series financial data:
+ - Ridge Regression (scikit-learn)
+ - Gradient Boosting Regression (scikit-learn)
  - Long Short-Term Memory (LSTM, PyTorch)
  - Generalized AutoRegressive Conditional Heteroscedasticity (GARCH, PyFlux)
  - AutoRegressive Integrated Moving Average eXogenous (ARIMAX, PyFlux)
@@ -55,12 +57,9 @@ class FinancialLSTM(nn.Module):
 
     def forward(self, x):
         """Make a prediction based on input x."""
-        # Final hidden state h_n has shape=(D * num_layers, N, H_out)
-        if self.batch_first == True:
-            output, (h_n, c_n) = self.lstm(x)
-        else:
-            output, (h_n, c_n) = self.lstm(x.permute(1, 0, 2))
-        # Change the shape of h_n's activation to (N, H_out) for FC layer
+        output, (h_n, c_n) = self.lstm(x)
+        # Final hidden state h_n has shape=(D * num_layers, N, H_out), so we
+        # change the shape of h_n's activation to (N, H_out) for FC layer.
         out = h_n .view(-1, self.H_out)
         pred = self.fc(out)
         return pred
