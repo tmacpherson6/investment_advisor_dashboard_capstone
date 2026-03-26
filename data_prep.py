@@ -4,12 +4,56 @@
 import math
 import re
 
+from fredapi import Fred
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import BusinessDay
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import Dataset, DataLoader
+
+
+# -----------------------------------------------------------------------------
+# Data Retrieval Functions:
+# A. get_fred_data -- retrieves data from Federal Reserve Economic Data website
+# -----------------------------------------------------------------------------
+
+
+# Copied from Tom's notebook (slightly modified)
+def get_fred_data(fred):
+    """Fetch the latest data from FRED."""
+    try:
+        fred_data = {
+            "nominal_GDP" : fred.get_series("GDP"),  
+            "real_GDP" : fred.get_series("GDPC1"),
+            "debt_to_GDP" : fred.get_series("GFDEGDQ188S"),
+            "debt_interest" : fred.get_series("A091RC1Q027SBEA"),
+            "consumer_price_index" : fred.get_series("CPIAUCSL"),
+            "core_PCI" : fred.get_series("CPILFESL"),
+            "personal_consumption_expenditure" : fred.get_series("PCEPI"),
+            "core_PCE" : fred.get_series("PCEPILFE"),
+            "producer_price_index" : fred.get_series("PPIFIS"),
+            "unemployment_rate" : fred.get_series("UNRATE"),
+            "initial_jobless_claims" : fred.get_series("ICSA"),
+            "continued_jobless_claims" : fred.get_series("CCSA"),
+            "teenager_unemployment_rate" : fred.get_series("LNS14000012"),
+            "adult_unemployment_rate" : fred.get_series("LNS14000025"),
+            "male_unemployment_rate" : fred.get_series("LNS14000001"),
+            "female_unemployment_rate" : fred.get_series("LNS14000002"),
+            "average_duration_of_unemployment" : fred.get_series("UEMPMEAN"),
+            "one_month_yield" : fred.get_series("DGS1MO"),
+            "three_month_yield" : fred.get_series("DGS3MO"),
+            "six_month_yield" : fred.get_series("DGS6MO"),
+            "one_year_yield" : fred.get_series("DGS1"),
+            "two_year_yield" : fred.get_series("DGS2"),
+            "five_year_yield" : fred.get_series("DGS5"),
+            "ten_year_yield" : fred.get_series("DGS10"),
+            "thirty_year_yield" : fred.get_series("DGS30"),
+        }
+        if not fred_data["unemployment_rate"].empty:
+            return fred_data
+    except Exception as e:
+        print(f"Unemployment Rate FRED failed: {e}")
 
 
 # -----------------------------------------------------------------------------
@@ -104,7 +148,9 @@ def get_X_y_cols(df, label_marker='_target'):
             label_columns.append(column_name)
         else:
             if (label_marker not in column_name) and (column_name != 'date'):
-                feature_columns.append(column_name)
+                # We want to exclude return data for other assets -- just noise
+                if '_ret' not in column_name:
+                    feature_columns.append(column_name)
     return (feature_columns, label_columns)
 
 
