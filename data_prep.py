@@ -14,8 +14,9 @@ from torch.utils.data import Dataset, DataLoader
 
 
 # -----------------------------------------------------------------------------
-# Data Retrieval Functions:
+# Data Retrieval and Loading Functions:
 # A. get_fred_data -- retrieves data from Federal Reserve Economic Data website
+# B. make_pca_df -- creates a DataFrame combining PCA and original variables
 # -----------------------------------------------------------------------------
 
 
@@ -54,6 +55,36 @@ def get_fred_data(fred):
             return fred_data
     except Exception as e:
         print(f"Unemployment Rate FRED failed: {e}")
+
+
+def make_pca_df(base_data_file, pca_data_file, ticker):
+    """Combines PCA data with base data for analysis of a single ETF."""
+    base_df = pd.read_csv(
+        base_data_file,
+        index_col='date',
+        parse_dates=True
+    )
+    pca_df = pd.read_csv(
+        pca_data_file,
+        index_col='date',
+        parse_dates=True
+    )
+    # Combine PCA data with base data. From base data, select only return,
+    # historical volatility, and future volatility target.
+    df = pd.concat(
+        [
+            base_df[
+                [
+                    ticker + '_ret',
+                    ticker + '_h-vol',
+                    ticker + '_f-vol_target'
+                ]
+            ],
+            pca_df
+        ],
+        axis=1
+    )
+    return df
 
 
 # -----------------------------------------------------------------------------
