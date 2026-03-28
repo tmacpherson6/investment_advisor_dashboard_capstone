@@ -132,7 +132,7 @@ def remove_series(df, tickers_to_remove=None):
     return df
 
 
-def get_X_y_cols(df, label_marker='_target'):
+def get_X_y_cols(df, label_marker='_target', returns=False):
     """Creates separate lists of column names for data features and labels.
 
     Keyword arguments:
@@ -148,9 +148,12 @@ def get_X_y_cols(df, label_marker='_target'):
             label_columns.append(column_name)
         else:
             if (label_marker not in column_name) and (column_name != 'date'):
-                # We want to exclude return data for other assets -- just noise
-                if '_ret' not in column_name:
+                # We may want to exclude return data for other assets
+                if returns:
                     feature_columns.append(column_name)
+                else:
+                    if '_ret' not in column_name:
+                        feature_columns.append(column_name)
     return (feature_columns, label_columns)
 
 
