@@ -1,13 +1,5 @@
 #123456789012345678901234567890123456789012345678901234567890123456789012345678
-"""This module defines the models we will use in our analysis.
-
-We selected several models appropriate to time series financial data:
- - Ridge Regression (scikit-learn)
- - Gradient Boosting Regression (scikit-learn)
- - Long Short-Term Memory (LSTM, PyTorch)
- - Generalized AutoRegressive Conditional Heteroscedasticity (GARCH, PyFlux)
- - AutoRegressive Integrated Moving Average eXogenous (ARIMAX, PyFlux)
-"""
+"""This module defines the deep-learning models we use in our analyses."""
 
 import pandas as pd
 import torch
@@ -16,7 +8,7 @@ from tqdm import tqdm
 
 
 class FinancialLSTM(nn.Module):
-    """Multivariate LSTM model to predict annualized return and volatility."""
+    """LSTM model to predict annualized return and volatility."""
 
     def __init__(
         self,
