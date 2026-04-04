@@ -57,7 +57,7 @@ def get_fred_data(fred):
         print(f"Unemployment Rate FRED failed: {e}")
 
 
-def make_pca_df(base_data_file, pca_data_file, ticker):
+def make_pca_df(base_data_file, pca_data_file, ticker, returns=False):
     """Combines PCA data with base data for analysis of a single ETF."""
     base_df = pd.read_csv(
         base_data_file,
@@ -69,21 +69,14 @@ def make_pca_df(base_data_file, pca_data_file, ticker):
         index_col='date',
         parse_dates=True
     )
-    # Combine PCA data with base data. From base data, select only return,
-    # historical volatility, and future volatility target.
-    df = pd.concat(
-        [
-            base_df[
-                [
-                    ticker + '_ret',
-                    ticker + '_h-vol',
-                    ticker + '_f-vol_target'
-                ]
-            ],
-            pca_df
-        ],
-        axis=1
-    )
+    # Combine PCA data with base data. From base data, select only historical
+    # volatility and a future volatility target by default.
+    target = [ticker + '_vol_target']
+    base_cols = [ticker + '_vol-h']
+    if returns:
+        # Include past near-term return for asset if desired
+        base_cols = [ticker + '_ret-h'] + base_cols
+    df = pd.concat([base_df[base_cols + target], pca_df], axis=1)
     return df
 
 
@@ -163,7 +156,7 @@ def remove_series(df, tickers_to_remove=None):
     return df
 
 
-def get_X_y_cols(df, label_marker='_target', returns=False):
+def get_X_y_cols(df, label_marker='target', returns=False):
     """Creates separate lists of column names for data features and labels.
 
     Keyword arguments:
@@ -276,9 +269,9 @@ class FinancialDataset(Dataset):
         
         We rely on a financial theory where historical observations are useful
         in predicting future values of return and volatility.
-         - Each data sample is a sequence from a vector-valued time series, 
-           which we can think of as a matrix (X_i) where each row is a past
-           observation vector of dimension (X_dim).
+         - Each data sample is a sequence from a vector-valued time series;
+           thus, each sample is a matrix (X_i) where each row is an
+           observation vector at a given timestamp of dimension (X_dim).
          - Each label (y_i) is a scalar value representing the target, either
            return or volatility over a future outlook defined by a number of
            business days.
@@ -289,7 +282,9 @@ class FinancialDataset(Dataset):
           X_i -- PyTorch tensor of shape (sequence_length, X_dim)
           y_i -- PyTorch tensor of shape (1)
         """
+        # We sample a sequence of data
         X_i = self.data[idx : idx + self.sequence_length]
-        y_i = self.labels[idx]
+        # For L=1, label for sample at idx=0 is located at idx=0
+        y_i = self.labels[idx + self.sequence_length - 1]
         return X_i, y_i
         
