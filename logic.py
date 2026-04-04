@@ -320,7 +320,7 @@ def compute_equity_ceiling(age: int, risk_score: float) -> float:
     """
     Tier-1 equity ceiling as a fraction of total portfolio.
 
-    Formula: (110 - age) + (risk_score - 5) * 3
+    Formula: (100 - age) + (risk_score - 5) * 3
 
     Design rationale
     ────────────────
@@ -330,7 +330,7 @@ def compute_equity_ceiling(age: int, risk_score: float) -> float:
     - Risk score >= 9: formula runs freely up to 100%.
     - Floor: 10% minimum equity regardless of age/score.
     """
-    raw = (110 - age) + (risk_score - 5) * 3
+    raw = (100 - age) + (risk_score - 5) * 3
     if risk_score >= 9:
         ceiling_pct = float(np.clip(raw, 10, 100))
     else:
