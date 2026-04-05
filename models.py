@@ -34,6 +34,7 @@ class FinancialLSTM(nn.Module):
         self.bidirectional = bidirectional
         self.proj_size = proj_size
         self.H_out = (proj_size if proj_size > 0 else hidden_size)
+        self.D = int(bidirectional) + 1
         # Fully connected (output) layer parameter
         self.label_size=label_size
         # Model layers
@@ -45,14 +46,14 @@ class FinancialLSTM(nn.Module):
             bidirectional=bidirectional,
             proj_size=proj_size
         )
-        self.fc = nn.Linear(self.H_out, label_size)
+        self.fc = nn.Linear(self.D * self.H_out, label_size)
 
     def forward(self, x):
         """Make a prediction based on input x."""
         output, (h_n, c_n) = self.lstm(x)
         # Final hidden state h_n has shape=(D * num_layers, N, H_out), so we
         # change the shape of h_n's activation to (N, H_out) for FC layer.
-        out = h_n .view(-1, self.H_out)
+        out = h_n[-1, :, :].view(-1, self.H_out)
         pred = self.fc(out)
         return pred
 

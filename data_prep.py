@@ -57,7 +57,9 @@ def get_fred_data(fred):
         print(f"Unemployment Rate FRED failed: {e}")
 
 
-def make_pca_df(base_data_file, pca_data_file, ticker, returns=False):
+def make_pca_df(
+    base_data_file, pca_data_file, ticker, returns=False
+):
     """Combines PCA data with base data for analysis of a single ETF."""
     base_df = pd.read_csv(
         base_data_file,
@@ -126,12 +128,12 @@ def time_series_split(df, start_date, buffer_size, date_col='date'):
     buffer = BusinessDay(buffer_size)
     # Sometimes we move the datetime index to a column
     if date_col in df.columns:
-        test_df = df[df[date_col] >= start_date]
-        train_df = df[df[date_col] < start_date - buffer]
+        test_df = df[pd.to_datetime(df[date_col]) >= start_date]
+        train_df = df[pd.to_datetime(df[date_col]) < (start_date - buffer)]
     # Otherwise, assume the index has the timestamp
     else:
         test_df = df[df.index >= start_date]
-        train_df = df[df.index < start_date - buffer]
+        train_df = df[df.index < (start_date - buffer)]
     return train_df.copy(), test_df.copy()
 
 
@@ -190,6 +192,8 @@ def get_X_y_cols(df, label_marker='target', returns=False):
 
 def log_return(array):
     """Computes log_return from an array of sequential price values."""
+    if type(array) != type(np.ndarray):
+        array = np.asarray(array)
     return np.log(array[-1] / array[0])
 
 
@@ -208,7 +212,7 @@ def volatility(array):
 
 
 class UnivariateTimeSeriesDataset(Dataset):
-    """Dataset for univariate time series data.
+    """Dataset for time series data where we try to predict the next value.
     
     This dataset implements a backward-looking rolling window to generate
     feature vectors consisting of successive values in a time series.
@@ -245,19 +249,29 @@ class UnivariateTimeSeriesDataset(Dataset):
 class FinancialDataset(Dataset):
     """Dataset for time series financial data."""
     
-    def __init__(self, data, labels, sequence_length=21):
+    def __init__(self, data, labels, sequence_length, target=True):
         """Create a Dataset from time series data (X) and labels (y).
 
         Keyword arguments:
           data -- NumPy array of shape = (num_timestamps, feature_dim)
           labels -- NumPy array of shape = (num_timestamps, label_dim)
-          sequence_length -- length of each input sequence
+          sequence_length -- number of timestamps in each input sequence
+          target -- if True, expect to receive a computed label for 'labels'
+                    whose index is aligned with the data sample (i.e., the 
+                    label at index 'i' corresponds to the data row at index
+                    'i'. If False, we assume that for a data sample at index
+                    'i', the label is given in labels at index 'i + 1' (i.e.,
+                    we are trying to predict the next time step).  This is a 
+                    bit confusing and would have been reworked given more 
+                    time, but it helps the code from a few notebooks to work
+                    properly without reworking it again.
         """
         assert len(data) == len(labels),\
             'data (X) and labels (y) must be same length'
         self.data = torch.from_numpy(data.copy())
         self.labels = torch.from_numpy(labels.copy())
         self.sequence_length = sequence_length
+        self.target = target
         self.X_dim = data.shape[-1]  # Number of features in data sample
         self.y_dim = labels.shape[-1]  # Number of features in label
 
@@ -284,7 +298,13 @@ class FinancialDataset(Dataset):
         """
         # We sample a sequence of data
         X_i = self.data[idx : idx + self.sequence_length]
-        # For L=1, label for sample at idx=0 is located at idx=0
-        y_i = self.labels[idx + self.sequence_length - 1]
+        if self.target:
+            # We predict the label that we manually assigned to the sample
+            # For L=1, label for sample 0 located at index 0
+            y_i = self.labels[idx + self.sequence_length - 1]
+        else:
+            # We predict a label given at the next timestep after the sequence
+            y_i = self.labels[idx + self.sequence_length]
         return X_i, y_i
-        
+
+
