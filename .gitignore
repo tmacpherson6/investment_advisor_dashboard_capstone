@@ -5,3 +5,4 @@ fred_data.csv
 yfinance_data.csv
 raw_data_prediction_dataset.csv
 stationary_prediction_dataset.csv
+.ipynb_checkpoints/
