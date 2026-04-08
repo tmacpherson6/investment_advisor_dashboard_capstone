@@ -54,11 +54,11 @@ import yfinance as yf
 from scipy.optimize import minimize
 
 # Let's pull in the LSTM vol predictions from a CSV that Pete created
-_LSTM_VOL_CSV = Path(__file__).parent / "annualized_volatility_predictions.csv"
+LSTM_VOL_CSV = Path(__file__).parent / "annualized_volatility_predictions.csv"
 
 # Column names in the CSV
-_COL_AVG = "Average Volatility (test set)"
-_COL_LATEST = "Recent Volatility (latest prediction)"
+COL_AVG = "Average Volatility (test set)"
+COL_LATEST = "Recent Volatility (latest prediction)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SHARPE PRIORS FOR RETURN DERIVATION
@@ -104,7 +104,7 @@ SHARPE_PRIORS = {
 # HYG vol floor: LSTM limited-feature model misses credit spread dynamics.
 # 6% is conservative relative to HYG's typical 8–12% realised (historical) vol.
 # this is where experience in the domain is crucial to identify and compensate for model blind spots which we should talk about in the report.
-_HYG_VOL_FLOOR_PCT = 6.0  
+HYG_VOL_FLOOR_PCT = 6.0  
 
 logger = logging.getLogger(__name__)
 
@@ -149,7 +149,7 @@ N = len(ETF_UNIVERSE)
 #  Populated once on first import; refreshed if the calendar date has changed.
 # ─────────────────────────────────────────────────────────────────────────────
 
-_cache = {
+cache = {
     "corr": None,          
     "ann_sig": None,       
     "ann_sig_hist": None,  
@@ -162,30 +162,30 @@ _cache = {
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  DATA IMPORTS
+#  DATA IMPORT
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _load_lstm_vol(tickers: list[str]) -> tuple[np.ndarray, np.ndarray]:
+def load_lstm_vol(tickers):
     """
     Load LSTM annualised volatility predictions from CSV.
 
     Returns (ann_sig_avg, ann_sig_latest) as decimal arrays aligned to `tickers`.
-    Values in the CSV are percentages — divided by 100 here.
+    Values in the CSV are percentages so they are divided by 100 here.
 
-    HYG is floored at _HYG_VOL_FLOOR_PCT to compensate for the limited-feature
-    LSTM's inability to capture credit spread dynamics.
+    HYG is floored at HYG_VOL_FLOOR_PCT to compensate for the limited-feature
+    LSTM's inability to capture credit spread dynamics as discussed earlier.
 
     Raises FileNotFoundError if the CSV is missing, so the caller can fall back
-    to historical vol gracefully.
+    to historical vol gracefully which will hopefully never happen.
     """
-    if not _LSTM_VOL_CSV.exists():
+    if not LSTM_VOL_CSV.exists():
         raise FileNotFoundError(
-            f"LSTM vol CSV not found at {_LSTM_VOL_CSV}. "
+            f"LSTM vol CSV not found at {LSTM_VOL_CSV}. "
             "Falling back to historical volatility."
         )
 
-    df = pd.read_csv(_LSTM_VOL_CSV, index_col="ETF")
+    df = pd.read_csv(LSTM_VOL_CSV, index_col="ETF")
 
     sig_avg = []
     sig_latest = []
@@ -195,34 +195,35 @@ def _load_lstm_vol(tickers: list[str]) -> tuple[np.ndarray, np.ndarray]:
                 f"Ticker {ticker} not found in LSTM vol CSV. "
                 "Check that annualized_volatility_predictions.csv is up to date."
             )
-        avg_pct    = float(df.loc[ticker, _COL_AVG])
-        latest_pct = float(df.loc[ticker, _COL_LATEST])
+        avg_pct    = float(df.loc[ticker, COL_AVG])
+        latest_pct = float(df.loc[ticker, COL_LATEST])
 
-        # Apply HYG floor
+        # Here is where we will apply HYG floor
         if ticker == "HYG":
-            avg_pct    = max(avg_pct,    _HYG_VOL_FLOOR_PCT)
-            latest_pct = max(latest_pct, _HYG_VOL_FLOOR_PCT)
-            logger.info(f"HYG vol floored to {_HYG_VOL_FLOOR_PCT}% (raw: avg={float(df.loc['HYG', _COL_AVG]):.2f}%, latest={float(df.loc['HYG', _COL_LATEST]):.2f}%)")
+            avg_pct    = max(avg_pct,    HYG_VOL_FLOOR_PCT)
+            latest_pct = max(latest_pct, HYG_VOL_FLOOR_PCT)
+            logger.info(f"HYG vol floored to {HYG_VOL_FLOOR_PCT}% (raw: avg={float(df.loc['HYG', COL_AVG]):.2f}%, latest={float(df.loc['HYG', COL_LATEST]):.2f}%)")
 
+        # Convert from percentage to decimal
         sig_avg.append(avg_pct / 100.0)
         sig_latest.append(latest_pct / 100.0)
 
     return np.array(sig_avg), np.array(sig_latest)
 
 
-def _derive_ann_mu(ann_sig: np.ndarray, tickers: list[str], rf: float) -> np.ndarray:
+def derive_ann_mu(ann_sig, tickers, rf):
     """
     Derive expected returns via Sharpe-prior method:
         mu_i = rf + sharpe_prior_i * sigma_lstm_i
 
     A minimum excess return floor of 0.1% above rf is applied to prevent
     any asset from being treated as strictly dominated by the risk-free rate,
-    which would break the vol floor constraint for conservative portfolios.
+    which would break the vol floor constraint for conservative portfolios. This is acceptable because it's assumed any rational investor would require at least some return premium to hold a risky asset, even one with very low Sharpe ratio, otherwise they might as well just hold cash.
 
     Args:
         ann_sig: annualised vol array (decimals), aligned to tickers
         tickers: ordered list matching ETF_UNIVERSE
-        rf: risk-free rate (annual, decimal)
+        rf: risk-free rate (annualised, decimal)
     """
     mu = np.array([
         rf + SHARPE_PRIORS[t] * ann_sig[i]
@@ -231,7 +232,11 @@ def _derive_ann_mu(ann_sig: np.ndarray, tickers: list[str], rf: float) -> np.nda
     # Floor: no asset should be more than rf (would be zeroed out by optimizer)
     mu = np.maximum(mu, rf + 0.001)
     return mu
+
+def fetch_prices(tickers, start="2005-01-01"):
     """
+    This is an older function used to calculate historical return if we need it for comparison purposes, but we are not using it for the main ANN_MU derivation due to the reasons outlined in the docstring of the derive_ann_mu function.
+
     Download adjusted daily close prices for all tickers.
 
     Returns a DataFrame indexed by date with one column per ticker.
@@ -271,14 +276,14 @@ def _derive_ann_mu(ann_sig: np.ndarray, tickers: list[str], rf: float) -> np.nda
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _clean_prices(prices: pd.DataFrame) -> pd.DataFrame:
+def clean_prices(prices):
     """
     Drop any leading rows that contain NaNs (i.e. before all ETFs have
     launched). This gives the longest fully-observed common history.
 
     The binding constraint is XLRE (launched Dec 2015), which means the 2008
     GFC is not represented in the correlation estimates. This is a known
-    limitation documented in the capstone methodology section.
+    limitation.
 
     After dropping leading NaNs, forward-fill any remaining isolated gaps
     (e.g. staggered holidays) for at most 1 day, then drop any residual NaNs.
@@ -300,16 +305,17 @@ def _clean_prices(prices: pd.DataFrame) -> pd.DataFrame:
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _compute_log_returns(prices: pd.DataFrame) -> pd.DataFrame:
+def compute_log_returns(prices):
     """
     Log returns are preferred over simple returns for parameter estimation:
     - Time-additive, better approximation of normality over short intervals
     - More symmetric distribution reduces skew in the correlation matrix
+    - Most commonly used in industry and academia for these purposes, so it aligns with standard practices and expectations in finance.
     """
     return np.log(prices / prices.shift(1)).dropna()
 
 
-def _estimate_correlation(log_returns: pd.DataFrame) -> np.ndarray:
+def estimate_correlation(log_returns):
     """
     Pearson correlation matrix from full-history log returns.
 
@@ -322,12 +328,15 @@ def _estimate_correlation(log_returns: pd.DataFrame) -> np.ndarray:
     The resulting matrix is guaranteed to be symmetric. We enforce positive
     semi-definiteness via eigenvalue clipping as a safeguard.
     """
-    corr = log_returns.corr().values  # (N x N) numpy array
+    corr = log_returns.corr().values  
 
     # ── Enforce positive semi-definiteness ───────────────────────────────
     # Floating-point arithmetic can produce tiny negative eigenvalues.
     # Clip them to zero and reconstruct — this is the Higham (2002) approach
     # simplified for diagonal correction.
+    #
+    # CITATION:
+    # Higham, N. J. (2002). “Computing the nearest correlation matrix—A problem # from finance.” IMA Journal of Numerical Analysis, 22(3), 329-343.
     eigvals, eigvecs = np.linalg.eigh(corr)
     eigvals_clipped = np.clip(eigvals, a_min=0, a_max=None)
     corr_psd = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
@@ -340,11 +349,11 @@ def _estimate_correlation(log_returns: pd.DataFrame) -> np.ndarray:
     return corr_psd
 
 
-def _estimate_ann_vol(log_returns: pd.DataFrame) -> np.ndarray:
+def estimate_ann_vol(log_returns):
     """
     Annualised historical volatility: daily std * sqrt(252).
     Returned as decimals (e.g. 0.15 = 15%), matching ANN_SIG convention in
-    app.py.
+    app.py. This will allow us to use the historical vol for the vol comparison visualisation without any scaling confusion, and it also matches the scale of the LSTM vol predictions which are also in decimals.
     """
     return (log_returns.std() * np.sqrt(252)).values
 
@@ -636,12 +645,12 @@ def optimize_portfolio(
 def _is_cache_stale() -> bool:
     """Returns True if cache has never been populated or was computed on a
     prior calendar day."""
-    return _cache["computed_on"] is None or _cache["computed_on"] < date.today()
+    return cache["computed_on"] is None or cache["computed_on"] < date.today()
 
 
 def _populate_cache() -> None:
     """
-    Fetches prices, loads LSTM vol, estimates parameters, writes into _cache.
+    Fetches prices, loads LSTM vol, estimates parameters, writes into cache.
     Called once at startup; subsequent calls on the same day are no-ops.
 
     Vol priority:
@@ -651,37 +660,37 @@ def _populate_cache() -> None:
     """
     logger.info("logic.py: computing market parameters...")
 
-    prices = _fetch_prices(ETF_UNIVERSE)
-    prices = _clean_prices(prices)
-    log_rets = _compute_log_returns(prices)
+    prices = fetch_prices(ETF_UNIVERSE)
+    prices = clean_prices(prices)
+    log_rets = compute_log_returns(prices)
 
-    corr = _estimate_correlation(log_rets)
-    ann_sig_hist = _estimate_ann_vol(log_rets)
+    corr = estimate_correlation(log_rets)
+    ann_sig_hist = estimate_ann_vol(log_rets)
 
     # ── Load LSTM vol (primary) ───────────────────────────────────────────
     rf = 0.04  # Must match RF_ANN in app.py
     try:
-        ann_sig_lstm_avg, _ = _load_lstm_vol(ETF_UNIVERSE)
+        ann_sig_lstm_avg, _ = load_lstm_vol(ETF_UNIVERSE)
         ann_sig = ann_sig_lstm_avg
         logger.info("logic.py: using LSTM volatility predictions (30-trial avg).")
     except (FileNotFoundError, KeyError) as e:
         logger.warning(f"logic.py: LSTM vol unavailable ({e}). Falling back to historical vol.")
         ann_sig = ann_sig_hist
 
-    ann_mu = _derive_ann_mu(ann_sig, ETF_UNIVERSE, rf)
+    ann_mu = derive_ann_mu(ann_sig, ETF_UNIVERSE, rf)
 
-    _cache["corr"]          = corr
-    _cache["ann_sig"]       = ann_sig
-    _cache["ann_sig_hist"]  = ann_sig_hist
-    _cache["ann_mu"]        = ann_mu
-    _cache["as_of_date"]    = prices.index[-1].strftime("%Y-%m-%d")
-    _cache["common_start"]  = prices.index[0].strftime("%Y-%m-%d")
-    _cache["computed_on"]   = date.today()
+    cache["corr"]          = corr
+    cache["ann_sig"]       = ann_sig
+    cache["ann_sig_hist"]  = ann_sig_hist
+    cache["ann_mu"]        = ann_mu
+    cache["as_of_date"]    = prices.index[-1].strftime("%Y-%m-%d")
+    cache["common_start"]  = prices.index[0].strftime("%Y-%m-%d")
+    cache["computed_on"]   = date.today()
 
     logger.info(
         "logic.py: parameters ready. "
-        f"Common start: {_cache['common_start']}  |  "
-        f"As of: {_cache['as_of_date']}  |  "
+        f"Common start: {cache['common_start']}  |  "
+        f"As of: {cache['as_of_date']}  |  "
         f"N={len(log_rets)} trading days"
     )
     # Log implied return summary for audit trail
@@ -718,13 +727,13 @@ def get_market_params() -> dict:
         _populate_cache()
 
     return {
-        "corr":         _cache["corr"],
-        "ann_sig":      _cache["ann_sig"],
-        "ann_sig_hist": _cache["ann_sig_hist"],
-        "ann_mu":       _cache["ann_mu"],
-        "etf_universe": _cache["etf_universe"],
-        "as_of_date":   _cache["as_of_date"],
-        "common_start": _cache["common_start"],
+        "corr":         cache["corr"],
+        "ann_sig":      cache["ann_sig"],
+        "ann_sig_hist": cache["ann_sig_hist"],
+        "ann_mu":       cache["ann_mu"],
+        "etf_universe": cache["etf_universe"],
+        "as_of_date":   cache["as_of_date"],
+        "common_start": cache["common_start"],
     }
 
 
@@ -745,10 +754,10 @@ def get_market_params() -> dict:
 #      return mu, sig
 #
 #  Then in _populate_cache():
-#      _cache["ann_mu"], _cache["ann_sig"] = _load_model_params()
+#      cache["ann_mu"], cache["ann_sig"] = _load_model_params()
 #
 #  And expose in get_market_params():
-#      "ann_mu": _cache["ann_mu"]
+#      "ann_mu": cache["ann_mu"]
 #
 # ─────────────────────────────────────────────────────────────────────────────
 
