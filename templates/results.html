@@ -1142,7 +1142,7 @@
       const res  = await fetch('/api/recalculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vol_ceiling: vc, risk_score: score, start_value: START_VALUE, horizon_years: HORIZON_YRS })
+        body: JSON.stringify({ vol_ceiling: vc, risk_score: score, start_value: START_VALUE, horizon_years: HORIZON_YRS, age: {{from_data.age | default(45) | int}} })
       });
       const data = await res.json();
       if (data.error) { alert('Error: ' + data.error); return; }

@@ -463,21 +463,24 @@ def api_feedback():
 
 @app.route("/api/recalculate", methods=["POST"])
 def api_recalculate():
-    data = request.get_json()
-    vol_ceiling = float(data.get("vol_ceiling", 0.13))
-    start_value = float(data.get("start_value", 100_000))
-    horizon_years = int(data.get("horizon_years", 1))
-    weights = optimize_portfolio(
-        ann_mu=ANN_MU,
-        ann_sig=ANN_SIG,
-        corr=CORR,
-        vol_ceiling=float(data.get("vol_ceiling", 0.13)),
-        age=int(data.get("age", 45)),
-        risk_score=float(data.get("risk_score", 5.0)),
-        rf=RF_ANN,
-    )
-    stats, gif = build_results(weights, vol_ceiling, start_value, horizon_years)
-    return jsonify({"weights": weights, "stats": stats, "gif_b64": gif})
+    try:
+        data = request.get_json()
+        app.logger.info(f"recalculate payload: {data}") 
+        vol_ceiling   = float(data.get("vol_ceiling", 0.13))
+        start_value   = float(data.get("start_value", 100_000))
+        horizon_years = int(data.get("horizon_years", 1))
+        weights = optimize_portfolio(
+            ann_mu=ANN_MU, ann_sig=ANN_SIG, corr=CORR,
+            vol_ceiling=vol_ceiling,
+            age=int(data.get("age", 45)),
+            risk_score=float(data.get("risk_score", 5.0)),
+            rf=RF_ANN,
+        )
+        stats, gif = build_results(weights, vol_ceiling, start_value, horizon_years)
+        return jsonify({"weights": weights, "stats": stats, "gif_b64": gif})
+    except Exception as e:
+        app.logger.exception("api_recalculate failed")    
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
