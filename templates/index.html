@@ -112,10 +112,11 @@
   <div style="margin-top: 2.5rem; padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold-dim);">
     <p style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); line-height: 1.8; letter-spacing: 0.03em;">
       <strong style="color: var(--gold-dim);">Methodology</strong> &nbsp;·&nbsp;
-      Risk scores derived from an ordered logistic regression trained on 2022 Survey of Consumer Finances microdata.
-      Portfolio weights optimized via constrained Markowitz mean-variance framework using 6-month forward return
-      estimates and a historical correlation matrix. Monte Carlo simulation uses block bootstrap (20-day blocks)
-      to preserve short-run return dependence.
+      Risk scores derived from a model trained on 2022 Survey of Consumer Finances microdata.
+      Expected returns estimated via Sharpe-prior method: <em>μ = r<sub>f</sub> + θ · σ<sub>LSTM</sub></em>,
+      where forward-looking volatility is produced by an LSTM model (30-trial average, lower MAE than VIX baseline).
+      Portfolio weights optimized via constrained Markowitz mean-variance framework with a two-tier constraint system.
+      Monte Carlo simulation uses 1,000 paths with LSTM-derived covariance structure over a 1-year horizon.
     </p>
   </div>
 

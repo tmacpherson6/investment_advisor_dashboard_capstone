@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from PIL import Image
 
-# Let's import some of our functions from logic.py
+# Let's import some of our functions from logic.py, we may not use them all and can delete them later
 from logic import (
     get_market_params,
     ETF_UNIVERSE,
@@ -19,43 +19,26 @@ from logic import (
     compute_equity_ceiling,
 )
 
+# Create our Flask app
 app = Flask(__name__)
 
-# Real data calculated from yfinance pull
-_mp = get_market_params()
-CORR = _mp["corr"]
-ANN_SIG = _mp["ann_sig"]
+# All market parameters — correlation, LSTM vol, and Sharpe-derived returns —
+# are now computed in logic.py and exposed via get_market_params().
+# ANN_MU is derived from LSTM vol + Sharpe priors. See logic.py for details.
+mp = get_market_params()
+CORR    = mp["corr"]
+ANN_SIG = mp["ann_sig"]       # LSTM 30-trial avg vol (primary)
+ANN_SIG_HIST = mp["ann_sig_hist"]  # Historical vol from yfinance (for viz)
+ANN_MU  = mp["ann_mu"]        # rf + sharpe_prior * sigma_lstm
 
 # Initialise feedback table (no-op if already exists or no DB configured)
 with app.app_context():
     pass  # init_feedback_db() called below after routes are defined
 
-# STUB: forward-looking expected returns which we need to replace when models are ready.
-# Order must match ETF_UNIVERSE defined in logic.py.
-ANN_MU = np.array(
-    [
-        0.11,  # XLF  Financials       Sharpe ~0.45
-        0.15,  # XLK  Technology       Sharpe ~0.50
-        0.07,  # XLU  Utilities        Sharpe ~0.20
-        0.10,  # XLV  Health Care      Sharpe ~0.40
-        0.09,  # XLE  Energy           Sharpe ~0.28
-        0.10,  # XLI  Industrials      Sharpe ~0.38
-        0.09,  # XLB  Materials        Sharpe ~0.32
-        0.08,  # XLP  Consumer Staples Sharpe ~0.27
-        0.11,  # XLY  Consumer Disc.   Sharpe ~0.40
-        0.09,  # XLRE Real Estate      Sharpe ~0.28
-        0.051,  # BIL  T-Bills  ← CRITICAL: just barely above RF so Sharpe ~0.2
-        0.05,  # IEF  Intermediate     Sharpe ~0.17
-        0.055,  # TLT  Long Treasury    Sharpe ~0.11
-        0.06,  # LQD  IG Credit        Sharpe ~0.29
-        0.08,  # HYG  High Yield       Sharpe ~0.26
-        0.055,  # TIP  TIPS             Sharpe ~0.22
-        0.07,  # GLD  Gold             Sharpe ~0.25
-    ]
-)
+# Risk-free rate — update to match current BIL yield if desired for more dynamic modelling. Must be consistent with logic.py for ANN_MU derivation.
+RF_ANN = 0.04  
 
-RF_ANN = 0.04  # Risk-free rate — update to match current BIL yield if desired
-
+# Calculate trading days for different horizon options (used in simulation). 252 trading days per year is standard.
 HORIZON_OPTIONS = {
     "1": 252,
     "2": 504,
@@ -67,7 +50,7 @@ HORIZON_OPTIONS = {
 
 
 # ─────────────────────────────────────────────
-#  MOCK FUNCTIONS
+#  MOCK FUNCTIONS (Need To Repalce When SCF data is complete)
 # ─────────────────────────────────────────────
 
 
@@ -102,7 +85,7 @@ def mock_risk_score(form_data):
 
 
 # ─────────────────────────────────────────────
-#  SIMULATION
+#  SIMULATIONS
 # ─────────────────────────────────────────────
 
 
@@ -340,11 +323,15 @@ def analyze():
         etfs=ETF_UNIVERSE,
         gif_b64=gif,
         horizon_years=horizon_years,
+        # Vol comparison data for visualization
+        lstm_vol={etf: round(float(ANN_SIG[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
+        hist_vol={etf: round(float(ANN_SIG_HIST[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
+        ann_mu={etf: round(float(ANN_MU[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
     )
 
 
 # ─────────────────────────────────────────────
-#  FEEDBACK — Schema + Route
+#  FEEDBACK — Schema + Route with help of GENAI (stores to Postgres if DATABASE_URL configured, else JSONL fallback)
 # ─────────────────────────────────────────────
 
 FEEDBACK_DDL = """

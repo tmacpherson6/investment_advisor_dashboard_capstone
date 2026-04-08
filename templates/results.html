@@ -2,6 +2,7 @@
 {% block title %}PortfolioIQ — Results{% endblock %}
 
 {% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   input[type=range] {
     -webkit-appearance: none; appearance: none;
@@ -88,20 +89,20 @@
     padding-top: 1.1rem;
   }
   .feedback-trigger {
-  display: inline-flex; align-items: center; gap: 0.45rem;
-  background: rgba(201,168,76,0.06); 
-  border: 1px solid rgba(201,168,76,0.35);
-  border-radius: 3px; padding: 0.42rem 0.9rem;
-  font-family: var(--font-mono); font-size: 0.68rem;
-  letter-spacing: 0.06em; color: var(--gold-dim); cursor: pointer;
-  transition: border-color 0.2s, color 0.2s, background 0.2s;
-}
-.feedback-trigger:hover { 
-  border-color: var(--gold); 
-  color: var(--gold); 
-  background: rgba(201,168,76,0.12); 
-}
-.feedback-trigger svg { flex-shrink: 0; }
+    display: inline-flex; align-items: center; gap: 0.45rem;
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.35);
+    border-radius: 3px; padding: 0.42rem 0.9rem;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    letter-spacing: 0.06em; color: var(--gold-dim); cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .feedback-trigger:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,168,76,0.12);
+  }
+  .feedback-trigger svg { flex-shrink: 0; }
 
   .feedback-form {
     display: none; margin-top: 1rem;
@@ -172,6 +173,42 @@
   .horizon-pill.active {
     border-color: var(--gold); color: var(--gold);
     background: rgba(201,168,76,0.08);
+  }
+
+  /* ── Chart containers ── */
+  .chart-container {
+    position: relative;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.4rem;
+  }
+  .chart-toggle-group {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+  }
+  .chart-toggle {
+    font-family: var(--font-mono); font-size: 0.65rem;
+    letter-spacing: 0.08em; padding: 0.25rem 0.7rem;
+    border: 1px solid var(--border); border-radius: 20px;
+    background: none; color: var(--muted); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .chart-toggle:hover { border-color: var(--gold-dim); color: var(--text); }
+  .chart-toggle.active {
+    border-color: var(--gold); color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+
+  /* ── Efficient frontier tooltip ── */
+  .ef-legend {
+    display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: 0.8rem;
+  }
+  .ef-legend-item {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted);
+  }
+  .ef-legend-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
   }
 </style>
 {% endblock %}
@@ -484,6 +521,7 @@
       <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
         1000 simulated portfolio paths over a <strong id="gif-horizon-label" style="color:var(--text);">{{ horizon_years }}-year horizon</strong>.
         Dashed line = median (P50). Shaded band = P5–P95 range. Each path is a plausible outcome — the spread is the point.
+        <span style="color:var(--gold-dim);">Note: constant-vol simulation is most reliable at the 1-year horizon.</span>
       </p>
       <div style="text-align:center; border:1px solid var(--border); border-radius:3px; overflow:hidden; background:#0D1117; position:relative;">
         <img id="mc-gif" src="data:image/gif;base64,{{ gif_b64 }}"
@@ -493,6 +531,89 @@
             <span class="spinner"></span>Generating simulation...
           </span>
         </div>
+      </div>
+    </div>
+
+    <!-- ── VIZ 1: Return vs Volatility Scatter ── -->
+    <div class="card">
+      <span class="card-label">Step 5 — Risk / Return Profile</span>
+      <h2>Return vs. Volatility</h2>
+      <hr class="divider">
+      <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
+        Each ETF is plotted by its LSTM-predicted annualised volatility (x-axis) against its Sharpe-implied
+        expected return (y-axis). The <span style="color:var(--gold);">★ optimized portfolio</span> shows
+        where the constrained allocation lands relative to the individual assets.
+      </p>
+      <div class="chart-container" style="padding:1rem;">
+        <canvas id="ef-chart" height="380"></canvas>
+      </div>
+      <div class="ef-legend" style="margin-top:1rem;">
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#4CAF82;"></div><span>Equity sectors</span>
+        </div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#5A8FD4;"></div><span>Fixed income</span>
+        </div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#C9A84C;"></div><span>Real assets (GLD)</span>
+        </div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#fff; border:2px solid #C9A84C; width:10px; height:10px; border-radius:2px;"></div>
+          <span>Optimized portfolio ★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIZ 2: LSTM vs Historical Volatility ── -->
+    <div class="card">
+      <span class="card-label">Step 6 — Model Contribution</span>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.8rem;">
+        <h2>LSTM vs. Historical Volatility</h2>
+        <div class="chart-toggle-group" id="vol-chart-toggles">
+          <button class="chart-toggle active" onclick="setVolSort('etf')" data-sort="etf">A–Z</button>
+          <button class="chart-toggle" onclick="setVolSort('lstm')" data-sort="lstm">By LSTM vol</button>
+          <button class="chart-toggle" onclick="setVolSort('diff')" data-sort="diff">By divergence</button>
+        </div>
+      </div>
+      <hr class="divider">
+      <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
+        Comparing the LSTM's 30-trial average forward-looking volatility against the historical realised volatility
+        from yfinance (post-2015 window). Divergence shows where the model sees a <em>regime shift</em> from the historical norm.
+        <span style="color:var(--gold-dim);">HYG is floored at 6% — see methodology.</span>
+      </p>
+      <div class="chart-container" style="padding:1rem;">
+        <canvas id="vol-chart" height="380"></canvas>
+      </div>
+      <div class="ef-legend" style="margin-top:1rem;">
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#C9A84C;"></div><span>LSTM predicted vol (30-trial avg)</span>
+        </div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#2A3A52;"></div><span>Historical realised vol (yfinance)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── VIZ 3: Portfolio Allocation Donut ── -->
+    <div class="card">
+      <span class="card-label">Step 7 — Asset Class Breakdown</span>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.8rem;">
+        <h2>Allocation by Asset Class</h2>
+        <div class="chart-toggle-group" id="alloc-toggles">
+          <button class="chart-toggle active" onclick="setAllocView('class')" data-view="class">By asset class</button>
+          <button class="chart-toggle" onclick="setAllocView('etf')" data-view="etf">By ETF</button>
+        </div>
+      </div>
+      <hr class="divider">
+      <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
+        How the optimized allocation distributes across equity sectors, fixed income instruments, and real assets.
+        Hover for exact weights.
+      </p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:center;">
+        <div class="chart-container" style="padding:1rem; border:none; background:transparent;">
+          <canvas id="alloc-chart" height="300"></canvas>
+        </div>
+        <div id="alloc-legend" style="font-family:var(--font-mono); font-size:0.7rem; line-height:2;"></div>
       </div>
     </div>
 
@@ -514,6 +635,32 @@
   const ETF_UNIVERSE = {{ etfs | tojson }};
   const START_VALUE  = {{ form_data.investment_amount | default(100000) | float }};
   let   HORIZON_YRS  = {{ horizon_years }};
+
+  // ── Visualization data from logic.py ──
+  const LSTM_VOL  = {{ lstm_vol | tojson }};   // { ETF: pct }
+  const HIST_VOL  = {{ hist_vol | tojson }};   // { ETF: pct }
+  const ANN_MU    = {{ ann_mu   | tojson }};   // { ETF: pct }
+  const WEIGHTS   = {{ weights  | tojson }};   // { ETF: decimal }
+
+  // Asset class classification
+  const ASSET_CLASS = {
+    XLF:'Equity', XLK:'Equity', XLU:'Equity', XLV:'Equity', XLE:'Equity',
+    XLI:'Equity', XLB:'Equity', XLP:'Equity', XLY:'Equity', XLRE:'Equity',
+    BIL:'Fixed Income', IEF:'Fixed Income', TLT:'Fixed Income',
+    LQD:'Fixed Income', HYG:'Fixed Income', TIP:'Fixed Income',
+    GLD:'Real Assets'
+  };
+  const CLASS_COLORS = {
+    'Equity':       '#4CAF82',
+    'Fixed Income': '#5A8FD4',
+    'Real Assets':  '#C9A84C'
+  };
+  // Per-ETF colors for donut detail view
+  const ETF_PALETTE = [
+    '#4CAF82','#5fc995','#3a9e72','#7dcea0','#2ecc8a','#27ae60','#1abc9c','#48c9b0',
+    '#5A8FD4','#7fb3e8','#3d7abf','#2980b9','#5dade2','#85c1e9',
+    '#C9A84C','#e0bb6a'
+  ];
 
   function volCeiling(score) {
     if      (score <= 2.0) return 0.05;
@@ -564,12 +711,10 @@
     document.getElementById('tv-horizon-label').textContent = yrLabel;
     document.getElementById('gif-horizon-label').textContent = yrLabel;
 
-    // Return
     document.getElementById('dc-ret-median').textContent = s.ret_median + '%';
     document.getElementById('dc-ret-std').innerHTML =
       `Typical range<br><span>${s.ret_lo}% &nbsp;→&nbsp; ${s.ret_hi}%</span>`;
 
-    // Vol
     const vm = document.getElementById('dc-vol-median');
     vm.textContent = s.vol_median + '%';
     vm.style.color = s.constraint_status === 'green' ? 'var(--green)'
@@ -579,24 +724,20 @@
       `Typical range<br><span>${s.vol_lo}% &nbsp;→&nbsp; ${s.vol_hi}%</span>`;
     document.getElementById('dc-vol-ceil').textContent = s.vol_ceiling_ann + '%';
 
-    // Sharpe
     const sm = document.getElementById('dc-sharpe-median');
     sm.textContent = s.sharpe_median;
     sm.style.color = s.sharpe_median >= 0.5 ? 'var(--green)' : s.sharpe_median >= 0 ? 'var(--gold)' : 'var(--red)';
     document.getElementById('dc-sharpe-std').innerHTML =
       `Typical range<br><span>${s.sharpe_lo} &nbsp;→&nbsp; ${s.sharpe_hi}</span>`;
 
-    // Drawdown
     document.getElementById('dc-dd-median').textContent = s.dd_p50 + '%';
     document.getElementById('dc-dd-std').innerHTML =
       `Worst 10% of paths<br><span style="color:var(--red);">${s.dd_p10}%</span>`;
 
-    // Terminal value
     document.getElementById('dc-tv-p10').textContent = fmt(s.tv_p10);
     document.getElementById('dc-tv-p50').textContent = fmt(s.tv_p50);
     document.getElementById('dc-tv-p90').textContent = fmt(s.tv_p90);
 
-    // Constraint badge
     const cb = document.getElementById('constraint-badge');
     const statusMap = {
       green: ['✓ Within Risk Constraint', 'badge-green'],
@@ -608,6 +749,272 @@
     cb.className   = 'badge ' + cbClass;
   }
 
+  // ════════════════════════════════════════════════════
+  //  CHART.JS VISUALIZATIONS
+  // ════════════════════════════════════════════════════
+
+  const CHART_DEFAULTS = {
+    color: '#5A6478',
+    font: { family: "'DM Mono', monospace", size: 11 }
+  };
+  Chart.defaults.color = CHART_DEFAULTS.color;
+  Chart.defaults.font  = CHART_DEFAULTS.font;
+
+  // ── VIZ 1: Return vs Volatility Scatter ──────────────────────────────
+  (function buildEFChart() {
+    // Compute portfolio vol and mu for the star point
+    // Vol: weighted average (approximation for display)
+    let portVol = 0, portMu = 0;
+    for (const etf of ETF_UNIVERSE) {
+      portVol += (WEIGHTS[etf] || 0) * LSTM_VOL[etf];
+      portMu  += (WEIGHTS[etf] || 0) * ANN_MU[etf];
+    }
+
+    // Group ETFs by asset class
+    const groups = { Equity: [], 'Fixed Income': [], 'Real Assets': [] };
+    for (const etf of ETF_UNIVERSE) {
+      groups[ASSET_CLASS[etf]].push({
+        x: LSTM_VOL[etf],
+        y: ANN_MU[etf],
+        label: etf
+      });
+    }
+
+    const datasets = [
+      {
+        label: 'Equity',
+        data: groups['Equity'],
+        backgroundColor: 'rgba(76,175,130,0.75)',
+        borderColor: '#4CAF82',
+        borderWidth: 1,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+      },
+      {
+        label: 'Fixed Income',
+        data: groups['Fixed Income'],
+        backgroundColor: 'rgba(90,143,212,0.75)',
+        borderColor: '#5A8FD4',
+        borderWidth: 1,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+      },
+      {
+        label: 'Real Assets',
+        data: groups['Real Assets'],
+        backgroundColor: 'rgba(201,168,76,0.75)',
+        borderColor: '#C9A84C',
+        borderWidth: 1,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+      },
+      {
+        label: 'Portfolio ★',
+        data: [{ x: portVol, y: portMu, label: 'Portfolio ★' }],
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        borderColor: '#C9A84C',
+        borderWidth: 2,
+        pointRadius: 12,
+        pointHoverRadius: 14,
+        pointStyle: 'rectRot',
+      }
+    ];
+
+    new Chart(document.getElementById('ef-chart'), {
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        responsive: true,
+        animation: { duration: 600, easing: 'easeOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111820',
+            borderColor: '#1E2836',
+            borderWidth: 1,
+            titleFont: { family: "'DM Mono', monospace", size: 11 },
+            bodyFont:  { family: "'DM Mono', monospace", size: 11 },
+            callbacks: {
+              title: ctx => ctx[0].raw.label,
+              label: ctx => [`Vol: ${ctx.raw.x.toFixed(2)}%`, `Exp. Return: ${ctx.raw.y.toFixed(2)}%`]
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'LSTM Annualised Volatility (%)', color: '#5A6478', padding: { top: 8 } },
+            grid: { color: 'rgba(30,40,54,0.8)' },
+            ticks: { callback: v => v + '%' }
+          },
+          y: {
+            title: { display: true, text: 'Expected Return (%)', color: '#5A6478', padding: { bottom: 8 } },
+            grid: { color: 'rgba(30,40,54,0.8)' },
+            ticks: { callback: v => v + '%' }
+          }
+        }
+      }
+    });
+  })();
+
+  // ── VIZ 2: LSTM vs Historical Vol Bar Chart ───────────────────────────
+  let volChartInst = null;
+  let volSortMode = 'etf';
+
+  function buildVolChart(sortMode) {
+    const etfs = [...ETF_UNIVERSE];
+    if (sortMode === 'lstm')
+      etfs.sort((a, b) => LSTM_VOL[b] - LSTM_VOL[a]);
+    else if (sortMode === 'diff')
+      etfs.sort((a, b) => Math.abs(LSTM_VOL[b] - HIST_VOL[b]) - Math.abs(LSTM_VOL[a] - HIST_VOL[a]));
+
+    const lstmData = etfs.map(e => LSTM_VOL[e]);
+    const histData = etfs.map(e => HIST_VOL[e]);
+
+    const cfg = {
+      type: 'bar',
+      data: {
+        labels: etfs,
+        datasets: [
+          {
+            label: 'LSTM Predicted',
+            data: lstmData,
+            backgroundColor: 'rgba(201,168,76,0.75)',
+            borderColor: '#C9A84C',
+            borderWidth: 1,
+            borderRadius: 2,
+          },
+          {
+            label: 'Historical (yfinance)',
+            data: histData,
+            backgroundColor: 'rgba(42,58,82,0.85)',
+            borderColor: '#3A4F6E',
+            borderWidth: 1,
+            borderRadius: 2,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 500, easing: 'easeOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111820',
+            borderColor: '#1E2836',
+            borderWidth: 1,
+            titleFont: { family: "'DM Mono', monospace", size: 11 },
+            bodyFont:  { family: "'DM Mono', monospace", size: 11 },
+            callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`,
+              afterBody: ctx => {
+                const etf = ctx[0].label;
+                const diff = LSTM_VOL[etf] - HIST_VOL[etf];
+                return [`Δ LSTM−Hist: ${diff > 0 ? '+' : ''}${diff.toFixed(2)}%`];
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: {
+            title: { display: true, text: 'Annualised Volatility (%)', color: '#5A6478' },
+            grid: { color: 'rgba(30,40,54,0.8)' },
+            ticks: { callback: v => v + '%' }
+          }
+        }
+      }
+    };
+
+    if (volChartInst) { volChartInst.destroy(); }
+    volChartInst = new Chart(document.getElementById('vol-chart'), cfg);
+  }
+
+  function setVolSort(mode) {
+    volSortMode = mode;
+    document.querySelectorAll('#vol-chart-toggles .chart-toggle').forEach(b => {
+      b.classList.toggle('active', b.dataset.sort === mode);
+    });
+    buildVolChart(mode);
+  }
+
+  buildVolChart('etf');
+
+  // ── VIZ 3: Allocation Donut ────────────────────────────────────────────
+  let allocChartInst = null;
+  let allocView = 'class';
+
+  function buildAllocChart(view) {
+    let labels, data, colors;
+
+    if (view === 'class') {
+      const totals = { Equity: 0, 'Fixed Income': 0, 'Real Assets': 0 };
+      for (const etf of ETF_UNIVERSE) {
+        totals[ASSET_CLASS[etf]] += (WEIGHTS[etf] || 0) * 100;
+      }
+      labels = Object.keys(totals).filter(k => totals[k] > 0.05);
+      data   = labels.map(k => Math.round(totals[k] * 10) / 10);
+      colors = labels.map(k => CLASS_COLORS[k]);
+    } else {
+      const active = ETF_UNIVERSE.filter(e => (WEIGHTS[e] || 0) > 0.001);
+      labels = active;
+      data   = active.map(e => Math.round((WEIGHTS[e] || 0) * 1000) / 10);
+      colors = active.map((_, i) => ETF_PALETTE[i % ETF_PALETTE.length]);
+    }
+
+    const cfg = {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: colors,
+          borderColor: '#0A0E14',
+          borderWidth: 3,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        cutout: '62%',
+        animation: { duration: 600, easing: 'easeOutQuart' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#111820',
+            borderColor: '#1E2836',
+            borderWidth: 1,
+            titleFont: { family: "'DM Mono', monospace", size: 11 },
+            bodyFont:  { family: "'DM Mono', monospace", size: 11 },
+            callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` }
+          }
+        }
+      }
+    };
+
+    if (allocChartInst) { allocChartInst.destroy(); }
+    allocChartInst = new Chart(document.getElementById('alloc-chart'), cfg);
+
+    // Rebuild side legend
+    const legendDiv = document.getElementById('alloc-legend');
+    legendDiv.innerHTML = labels.map((lbl, i) =>
+      `<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
+        <div style="width:10px; height:10px; border-radius:2px; background:${colors[i]}; flex-shrink:0;"></div>
+        <span style="color:var(--muted);">${lbl}</span>
+        <span style="color:var(--text); margin-left:auto; padding-left:1rem;">${data[i]}%</span>
+      </div>`
+    ).join('');
+  }
+
+  function setAllocView(view) {
+    allocView = view;
+    document.querySelectorAll('#alloc-toggles .chart-toggle').forEach(b => {
+      b.classList.toggle('active', b.dataset.view === view);
+    });
+    buildAllocChart(view);
+  }
+
+  buildAllocChart('class');
+
   // ── Feedback panel ──
   let fbDirection = null;
 
@@ -617,7 +1024,6 @@
     form.classList.toggle('open', !isOpen);
     document.getElementById('feedback-trigger-btn').style.opacity = isOpen ? '1' : '0.5';
     if (!isOpen) {
-      // Reset state when opening fresh
       fbDirection = null;
       document.getElementById('fb-btn-low').className  = 'fb-dir-btn';
       document.getElementById('fb-btn-high').className = 'fb-dir-btn';
@@ -630,17 +1036,17 @@
     }
   }
 
-function selectDirection(dir) {
-  fbDirection = dir;
-  document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-low'  : '');
-  document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-high' : '');
-  document.getElementById('fb-submit-btn').disabled = false;
-}
+  function selectDirection(dir) {
+    fbDirection = dir;
+    document.getElementById('fb-btn-low').className  = 'fb-dir-btn' + (dir === 'too_high' ? ' selected-low'  : '');
+    document.getElementById('fb-btn-high').className = 'fb-dir-btn' + (dir === 'too_low'  ? ' selected-high' : '');
+    document.getElementById('fb-submit-btn').disabled = false;
+  }
 
   async function submitFeedback() {
     const preferredScore = parseFloat(document.getElementById('fb-preferred-slider').value);
     const notes          = document.getElementById('fb-notes').value.trim();
-    const currentScore   = parseFloat(slider.value);  // current slider value at time of feedback
+    const currentScore   = parseFloat(slider.value);
 
     document.getElementById('fb-loading').style.display    = 'inline-flex';
     document.getElementById('fb-submit-btn').disabled       = true;
@@ -655,7 +1061,6 @@ function selectDirection(dir) {
           preferred_score:  preferredScore,
           direction:        fbDirection,
           notes:            notes || null,
-          // Form inputs for model retraining
           age:              {{ form_data.age | default(45) | int }},
           income:           {{ form_data.income | default(100000) | float }},
           net_worth:        {{ form_data.net_worth | default(300000) | float }},
@@ -703,12 +1108,14 @@ function selectDirection(dir) {
 
       updateStats(data.stats);
 
-      // Rebuild weight bars
+      // Rebuild weight bars and donut chart with new weights
       const barsDiv    = document.getElementById('weight-bars');
       const summaryDiv = document.getElementById('weight-summary');
       let bars = '', parts = [];
       for (const etf of ETF_UNIVERSE) {
         const pct = Math.round(data.weights[etf] * 1000) / 10;
+        // Update WEIGHTS in-place for chart rebuild
+        WEIGHTS[etf] = data.weights[etf];
         if (pct > 0) {
           bars += `<div class="weight-row">
             <span class="weight-label">${etf}</span>
@@ -724,6 +1131,9 @@ function selectDirection(dir) {
         });
       });
       summaryDiv.innerHTML = `<p style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);line-height:1.9;">${parts.join(' &nbsp;·&nbsp; ')}</p>`;
+
+      // Refresh allocation donut with new weights
+      buildAllocChart(allocView);
 
       document.getElementById('mc-gif').src = 'data:image/gif;base64,' + data.gif_b64;
 
