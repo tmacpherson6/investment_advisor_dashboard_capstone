@@ -3,6 +3,7 @@
 
 {% block head %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap@2.3.0/dist/chartjs-chart-treemap.min.js"></script>
 <style>
   input[type=range] {
     -webkit-appearance: none; appearance: none;
@@ -594,26 +595,34 @@
       </div>
     </div>
 
-    <!-- ── VIZ 3: Portfolio Allocation Donut ── -->
+    <!-- ── VIZ 3: Allocation Treemap ── -->
     <div class="card">
       <span class="card-label">Step 7 — Asset Class Breakdown</span>
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.8rem;">
-        <h2>Allocation by Asset Class</h2>
+        <h2>Allocation Treemap</h2>
         <div class="chart-toggle-group" id="alloc-toggles">
-          <button class="chart-toggle active" onclick="setAllocView('class')" data-view="class">By asset class</button>
-          <button class="chart-toggle" onclick="setAllocView('etf')" data-view="etf">By ETF</button>
+          <button class="chart-toggle active" onclick="setAllocView('etf')" data-view="etf">By ETF</button>
+          <button class="chart-toggle" onclick="setAllocView('class')" data-view="class">By asset class</button>
         </div>
       </div>
       <hr class="divider">
       <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
-        How the optimized allocation distributes across equity sectors, fixed income instruments, and real assets.
-        Hover for exact weights.
+        Rectangle area is proportional to portfolio weight — larger box means larger allocation.
+        Color groups by asset class. Hover for exact weights.
       </p>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:center;">
-        <div class="chart-container" style="padding:1rem; border:none; background:transparent;">
-          <canvas id="alloc-chart" height="300"></canvas>
+      <div class="chart-container" style="padding:1rem;">
+        <canvas id="alloc-chart" height="340"></canvas>
+      </div>
+      <div class="ef-legend" style="margin-top:1rem;">
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#4CAF82;"></div><span>Equity sectors</span>
         </div>
-        <div id="alloc-legend" style="font-family:var(--font-mono); font-size:0.7rem; line-height:2;"></div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#5A8FD4;"></div><span>Fixed income</span>
+        </div>
+        <div class="ef-legend-item">
+          <div class="ef-legend-dot" style="background:#C9A84C;"></div><span>Real assets (GLD)</span>
+        </div>
       </div>
     </div>
 
@@ -939,44 +948,76 @@
 
   buildVolChart('etf');
 
-  // ── VIZ 3: Allocation Donut ────────────────────────────────────────────
+  // ── VIZ 3: Allocation Treemap ─────────────────────────────────────────
   let allocChartInst = null;
-  let allocView = 'class';
+  let allocView = 'etf';
+
+  // Shade variants per asset class for visual depth within groups
+  const CLASS_SHADES = {
+    'Equity':       ['#4CAF82','#3a9e72','#5fc995','#2ecc8a','#27ae60','#48c9b0','#7dcea0','#1abc9c','#58d68d','#52be80'],
+    'Fixed Income': ['#5A8FD4','#3d7abf','#7fb3e8','#2980b9','#5dade2','#85c1e9'],
+    'Real Assets':  ['#C9A84C'],
+  };
 
   function buildAllocChart(view) {
-    let labels, data, colors;
+    const treeData = [];
 
-    if (view === 'class') {
+    if (view === 'etf') {
+      // Each ETF is its own rectangle, colored by asset class shade
+      const classCount = { Equity: 0, 'Fixed Income': 0, 'Real Assets': 0 };
+      for (const etf of ETF_UNIVERSE) {
+        const w = (WEIGHTS[etf] || 0) * 100;
+        if (w < 0.1) continue;
+        const cls = ASSET_CLASS[etf];
+        const shades = CLASS_SHADES[cls];
+        const color  = shades[classCount[cls] % shades.length];
+        classCount[cls]++;
+        treeData.push({ label: etf, value: Math.round(w * 10) / 10, cls, color });
+      }
+    } else {
+      // Aggregate by asset class
       const totals = { Equity: 0, 'Fixed Income': 0, 'Real Assets': 0 };
       for (const etf of ETF_UNIVERSE) {
         totals[ASSET_CLASS[etf]] += (WEIGHTS[etf] || 0) * 100;
       }
-      labels = Object.keys(totals).filter(k => totals[k] > 0.05);
-      data   = labels.map(k => Math.round(totals[k] * 10) / 10);
-      colors = labels.map(k => CLASS_COLORS[k]);
-    } else {
-      const active = ETF_UNIVERSE.filter(e => (WEIGHTS[e] || 0) > 0.001);
-      labels = active;
-      data   = active.map(e => Math.round((WEIGHTS[e] || 0) * 1000) / 10);
-      colors = active.map((_, i) => ETF_PALETTE[i % ETF_PALETTE.length]);
+      for (const [cls, val] of Object.entries(totals)) {
+        if (val < 0.1) continue;
+        treeData.push({ label: cls, value: Math.round(val * 10) / 10, cls, color: CLASS_COLORS[cls] });
+      }
     }
 
     const cfg = {
-      type: 'doughnut',
+      type: 'treemap',
       data: {
-        labels,
         datasets: [{
-          data,
-          backgroundColor: colors,
+          label: 'Allocation',
+          tree: treeData,
+          key: 'value',
+          backgroundColor(ctx) {
+            const d = ctx.raw?._data;
+            return d?.color || '#C9A84C';
+          },
           borderColor: '#0A0E14',
-          borderWidth: 3,
-          hoverOffset: 8
+          borderWidth: 2,
+          spacing: 2,
+          labels: {
+            display: true,
+            align: 'center',
+            position: 'middle',
+            overflow: 'fit',
+            color: ['#0A0E14'],
+            font: [{ family: "'DM Mono', monospace", size: 12, weight: '500' }],
+            formatter(ctx) {
+              const d = ctx.raw?._data;
+              if (!d) return '';
+              return [`${d.label}`, `${d.value}%`];
+            }
+          }
         }]
       },
       options: {
         responsive: true,
-        cutout: '62%',
-        animation: { duration: 600, easing: 'easeOutQuart' },
+        animation: { duration: 500, easing: 'easeOutQuart' },
         plugins: {
           legend: { display: false },
           tooltip: {
@@ -985,7 +1026,17 @@
             borderWidth: 1,
             titleFont: { family: "'DM Mono', monospace", size: 11 },
             bodyFont:  { family: "'DM Mono', monospace", size: 11 },
-            callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` }
+            callbacks: {
+              title(ctx) {
+                const d = ctx[0]?.raw?._data;
+                return d ? `${d.label}` : '';
+              },
+              label(ctx) {
+                const d = ctx.raw?._data;
+                if (!d) return '';
+                return [`Weight: ${d.value}%`, `Class: ${d.cls}`];
+              }
+            }
           }
         }
       }
@@ -993,16 +1044,6 @@
 
     if (allocChartInst) { allocChartInst.destroy(); }
     allocChartInst = new Chart(document.getElementById('alloc-chart'), cfg);
-
-    // Rebuild side legend
-    const legendDiv = document.getElementById('alloc-legend');
-    legendDiv.innerHTML = labels.map((lbl, i) =>
-      `<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
-        <div style="width:10px; height:10px; border-radius:2px; background:${colors[i]}; flex-shrink:0;"></div>
-        <span style="color:var(--muted);">${lbl}</span>
-        <span style="color:var(--text); margin-left:auto; padding-left:1rem;">${data[i]}%</span>
-      </div>`
-    ).join('');
   }
 
   function setAllocView(view) {
@@ -1013,7 +1054,7 @@
     buildAllocChart(view);
   }
 
-  buildAllocChart('class');
+  buildAllocChart('etf');
 
   // ── Feedback panel ──
   let fbDirection = null;
@@ -1132,7 +1173,7 @@
       });
       summaryDiv.innerHTML = `<p style="font-family:var(--font-mono);font-size:0.7rem;color:var(--muted);line-height:1.9;">${parts.join(' &nbsp;·&nbsp; ')}</p>`;
 
-      // Refresh allocation donut with new weights
+      // Refresh treemap with new weights
       buildAllocChart(allocView);
 
       document.getElementById('mc-gif').src = 'data:image/gif;base64,' + data.gif_b64;
