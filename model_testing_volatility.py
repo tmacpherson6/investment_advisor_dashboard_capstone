@@ -59,7 +59,7 @@ ETFS = [
     'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY'
 ]
 # Number of trials to run
-NUM_TRIALS = 10
+NUM_TRIALS = 30
 # LSTM and Dataset/Dataloader parameters
 SEQUENCE_LENGTH = 4
 BATCH_SIZE = 12
