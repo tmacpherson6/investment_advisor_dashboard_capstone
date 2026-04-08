@@ -59,7 +59,7 @@ ETFS = [
     'XLI', 'XLK', 'XLP', 'XLRE', 'XLU', 'XLV', 'XLY'
 ]
 # Number of trials to run
-NUM_TRIALS = 1
+NUM_TRIALS = 10
 # LSTM and Dataset/Dataloader parameters
 SEQUENCE_LENGTH = 4
 BATCH_SIZE = 12
@@ -136,7 +136,7 @@ def run_trial(splits, etfs, baseline):
     for etf in etfs:
         for feature_set in feature_sets:
             for model_type in model_types:
-                if model_type == 'LSTM':
+                if (model_type == 'LSTM') and (feature_set == 'limited'):
                     print(
                         f'...LSTM ({feature_set}) is forecasting for {etf}...'
                     )
