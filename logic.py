@@ -650,16 +650,16 @@ def optimize_portfolio(
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def _is_cache_stale() -> bool:
+def is_cache_stale():
     """Returns True if cache has never been populated or was computed on a
     prior calendar day."""
     return cache["computed_on"] is None or cache["computed_on"] < date.today()
 
 
-def _populate_cache() -> None:
+def populate_cache():
     """
     Fetches prices, loads LSTM vol, estimates parameters, writes into cache.
-    Called once at startup; subsequent calls on the same day are no-ops.
+    Called once at startup; subsequent calls on the same day don't need to re-run.
 
     Vol priority:
       ANN_SIG (primary) → LSTM 30-trial average vol (forward-looking)
@@ -676,7 +676,7 @@ def _populate_cache() -> None:
     ann_sig_hist = estimate_ann_vol(log_rets)
 
     # ── Load LSTM vol (primary) ───────────────────────────────────────────
-    rf = 0.04  # Must match RF_ANN in app.py
+    rf = 0.04  # Must match RF_ANN in app.py usually around 4% for consistency in ANN_MU derivation
     try:
         ann_sig_lstm_avg, _ = load_lstm_vol(ETF_UNIVERSE)
         ann_sig = ann_sig_lstm_avg
@@ -701,7 +701,7 @@ def _populate_cache() -> None:
         f"As of: {cache['as_of_date']}  |  "
         f"N={len(log_rets)} trading days"
     )
-    # Log implied return summary for audit trail
+    # Log implied return summary for an audit trail
     for i, t in enumerate(ETF_UNIVERSE):
         logger.info(
             f"  {t}: vol={ann_sig[i]*100:.2f}% (hist={ann_sig_hist[i]*100:.2f}%)  "
@@ -710,17 +710,17 @@ def _populate_cache() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  PUBLIC INTERFACE
-#  This is the only function app.py should call.
+#  APP.PY INTEGRATION
+#  Let's create a single function that app.py should call to get all this info
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def get_market_params() -> dict:
+def get_market_params():
     """
     Returns the current market parameter set. Recomputes if cache is stale.
 
-    Return schema
-    ─────────────
+    Returns
+    ───────
     {
         "corr":         np.ndarray  shape (N, N)   — correlation matrix (historical)
         "ann_sig":      np.ndarray  shape (N,)     — LSTM annualised vol (primary, decimals)
@@ -731,8 +731,8 @@ def get_market_params() -> dict:
         "common_start": str   "YYYY-MM-DD"         — first fully-observed date
     }
     """
-    if _is_cache_stale():
-        _populate_cache()
+    if is_cache_stale():
+        populate_cache()
 
     return {
         "corr":         cache["corr"],
@@ -744,32 +744,6 @@ def get_market_params() -> dict:
         "common_start": cache["common_start"],
     }
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-#  ── FUTURE: MODEL INTEGRATION STUB ─────────────────────────────────────────
-#
-#  When forward-looking return and vol models are ready, add them here.
-#  app.py will automatically pick them up via get_market_params() with no
-#  other changes required.
-#
-#  Example pattern:
-#
-#  from models import ReturnModel, VolModel
-#
-#  def _load_model_params() -> tuple[np.ndarray, np.ndarray]:
-#      mu  = ReturnModel.predict(ETF_UNIVERSE)   # shape (N,)
-#      sig = VolModel.predict(ETF_UNIVERSE)      # shape (N,)
-#      return mu, sig
-#
-#  Then in _populate_cache():
-#      cache["ann_mu"], cache["ann_sig"] = _load_model_params()
-#
-#  And expose in get_market_params():
-#      "ann_mu": cache["ann_mu"]
-#
-# ─────────────────────────────────────────────────────────────────────────────
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 #  STARTUP — compute on import
 #  This fires when app.py does `from logic import get_market_params`
@@ -777,7 +751,7 @@ def get_market_params() -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 
 try:
-    _populate_cache()
+    populate_cache()
 except Exception as e:
     logger.error(
         f"logic.py: failed to compute market parameters on startup: {e}\n"
