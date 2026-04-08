@@ -367,7 +367,7 @@ def estimate_ann_vol(log_returns):
 #    • Vol band:           [vol_floor, vol_ceiling]
 #
 #  Tier 2 — Intra-bucket concentration (relative to bucket size):
-#    • Any single GICS sector ≤ 30% of the equity bucket
+#    • Any single sector ≤ 30% of the equity bucket to avoid piling into one
 #    • Any single IG fixed income ETF ≤ 50% of the FI bucket
 #    • HYG ≤ (risk_score/10)² × 35% of the FI bucket  (quadratic scaling)
 #
@@ -379,7 +379,7 @@ def estimate_ann_vol(log_returns):
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ── Asset-class classification ───────────────────────────────────────────────
-_EQUITY_TICKERS: set[str] = {
+EQUITY_TICKERS = {
     "XLF",
     "XLK",
     "XLU",
@@ -392,7 +392,7 @@ _EQUITY_TICKERS: set[str] = {
     "XLRE",
 }
 
-_FI_TICKERS: set[str] = {
+FI_TICKERS = {
     "BIL",
     "IEF",
     "TLT",
@@ -401,7 +401,8 @@ _FI_TICKERS: set[str] = {
     "TIP",
 }
 
-_IG_FI_TICKERS: set[str] = {  # investment-grade only — HYG excluded
+# Investment-grade fixed income subset for intra-bucket constraints (no HYG)
+IG_FI_TICKERS = {
     "BIL",
     "IEF",
     "TLT",
@@ -410,26 +411,30 @@ _IG_FI_TICKERS: set[str] = {  # investment-grade only — HYG excluded
 }
 
 # Index masks aligned to ETF_UNIVERSE order
-_EQUITY_MASK: np.ndarray = np.array(
-    [1.0 if t in _EQUITY_TICKERS else 0.0 for t in ETF_UNIVERSE]
+EQUITY_MASK = np.array(
+    [1.0 if t in EQUITY_TICKERS else 0.0 for t in ETF_UNIVERSE]
 )
-_FI_MASK: np.ndarray = np.array(
-    [1.0 if t in _FI_TICKERS else 0.0 for t in ETF_UNIVERSE]
+
+# Not sure we will use this one but let's make it incase
+FI_MASK = np.array(
+    [1.0 if t in FI_TICKERS else 0.0 for t in ETF_UNIVERSE]
 )
 
 # Per-instrument index lookups for intra-bucket constraints
-_EQUITY_INDICES: list[int] = [
-    i for i, t in enumerate(ETF_UNIVERSE) if t in _EQUITY_TICKERS
+EQUITY_INDICES = [
+    i for i, t in enumerate(ETF_UNIVERSE) if t in EQUITY_TICKERS
 ]
-_IG_FI_INDICES: list[int] = [
-    i for i, t in enumerate(ETF_UNIVERSE) if t in _IG_FI_TICKERS
+IG_FI_INDICES = [
+    i for i, t in enumerate(ETF_UNIVERSE) if t in IG_FI_TICKERS
 ]
-_HYG_IDX: int = ETF_UNIVERSE.index("HYG")
-_GLD_IDX: int = ETF_UNIVERSE.index("GLD")
+HYG_IDX = ETF_UNIVERSE.index("HYG")
+GLD_IDX = ETF_UNIVERSE.index("GLD")
 
-# Absolute per-instrument upper bounds (used as scipy bounds, not constraints)
-# These are loose safety rails — the intra-bucket constraints do the real work
-_ABS_CAPS: dict[str, float] = {
+# Set our absolute per-instrument upper bounds (used as scipy bounds,
+# not constraints)
+# These are loose safety rails — the intra-bucket constraints should do the 
+# real work
+ABS_CAPS = {
     "XLF": 0.40,
     "XLK": 0.40,
     "XLU": 0.40,
@@ -446,28 +451,31 @@ _ABS_CAPS: dict[str, float] = {
     "LQD": 0.60,
     "HYG": 0.40,
     "TIP": 0.60,
-    "GLD": 0.15,  # loose bound — dynamic cap enforced via constraint in _build_constraints
+    "GLD": 0.15,  
 }
 
-# Keep _WEIGHT_CAPS as public alias for any external references
-_WEIGHT_CAPS = _ABS_CAPS
+# Keep WEIGHT_CAPS as public alias for any external references just in case
+WEIGHT_CAPS = ABS_CAPS
 
 
-def compute_equity_ceiling(age: int, risk_score: float) -> float:
+def compute_equity_ceiling(age, risk_score):
     """
     Tier-1 equity ceiling as a fraction of total portfolio.
+    
+    The typical formula in industry for a starting point is 100-age.
 
-    Formula: (110 - age) + (risk_score - 5) * 3
+    Our Formula:
+    Formula: (100 - age) + (risk_score - 5) * 3
 
     Design rationale
     ────────────────
-    - 110-age baseline: updated life-expectancy rule vs classic 100-age.
+    - 100-age baseline: classic rule of thumb for equity allocation, reflecting decreasing risk capacity with age.
     - Risk score adjustment: ±15% swing around the age baseline.
     - Hard ceiling: 90% for risk_score < 9 (fiduciary conservatism).
     - Risk score >= 9: formula runs freely up to 100%.
     - Floor: 10% minimum equity regardless of age/score.
     """
-    raw = (110 - age) + (risk_score - 5) * 3
+    raw = (100 - age) + (risk_score - 5) * 3
     if risk_score >= 9:
         ceiling_pct = float(np.clip(raw, 10, 100))
     else:
@@ -475,26 +483,26 @@ def compute_equity_ceiling(age: int, risk_score: float) -> float:
     return ceiling_pct / 100.0
 
 
-def _build_constraints(
-    eq_ceiling: float,
-    vol_floor: float,
-    vol_ceiling: float,
-    fi_bucket: float,
-    risk_score: float,
-    cov: np.ndarray,
-    gld_cap: float,
-) -> list[dict]:
+def build_constraints(
+    eq_ceiling,
+    vol_floor,
+    vol_ceiling,
+    fi_bucket,
+    risk_score,
+    cov,
+    gld_cap,
+):
     """
-    Builds the full two-tier constraint list for scipy.optimize.minimize.
+    Builds the full two-tier constraint list for us to use with scipy.optimize.minimize.
 
     Tier-1 constraints (absolute portfolio weights):
-      1. Weights sum to 1
+      1. Weights must sum to 1
       2. vol_floor ≤ portfolio vol ≤ vol_ceiling
       3. Equity bucket ≤ eq_ceiling
       4. GLD ≤ gld_cap  (inverse risk-score scaled: 15% → 5%)
 
     Tier-2 constraints (intra-bucket concentration):
-      5. Each GICS sector ≤ 30% of equity bucket
+      5. Each sector ≤ 30% of equity bucket
       6. Each IG FI instrument ≤ 50% of FI bucket
       7. HYG ≤ (risk_score/10)² × 35% of FI bucket  (quadratic)
     """
@@ -507,7 +515,7 @@ def _build_constraints(
         return float(np.sqrt(w @ cov @ w))
 
     def equity_sum(w):
-        return float(w @ _EQUITY_MASK)
+        return float(w @ EQUITY_MASK)
 
     constraints = [
         # ── Tier 1 ───────────────────────────────────────────────────────
@@ -515,35 +523,35 @@ def _build_constraints(
         {"type": "ineq", "fun": lambda w: vol_ceiling - port_vol(w)},
         {"type": "ineq", "fun": lambda w: port_vol(w) - vol_floor},
         {"type": "ineq", "fun": lambda w: eq_ceiling - equity_sum(w)},
-        {"type": "ineq", "fun": lambda w: gld_cap - w[_GLD_IDX]},  # GLD inverse-scaled
+        {"type": "ineq", "fun": lambda w: gld_cap - w[GLD_IDX]},  # GLD inverse-scaled
         # ── Tier 2: intra-equity sector caps ─────────────────────────────
         *[
             {"type": "ineq", "fun": lambda w, i=i: sector_cap - w[i]}
-            for i in _EQUITY_INDICES
+            for i in EQUITY_INDICES
         ],
         # ── Tier 2: intra-FI IG caps ─────────────────────────────────────
         *[
             {"type": "ineq", "fun": lambda w, i=i: ig_fi_cap - w[i]}
-            for i in _IG_FI_INDICES
+            for i in IG_FI_INDICES
         ],
         # ── Tier 2: HYG quadratic risk-scaled cap ────────────────────────
-        {"type": "ineq", "fun": lambda w: hyg_cap - w[_HYG_IDX]},
+        {"type": "ineq", "fun": lambda w: hyg_cap - w[HYG_IDX]},
     ]
     return constraints
 
 
 def optimize_portfolio(
-    ann_mu: np.ndarray,
-    ann_sig: np.ndarray,
-    corr: np.ndarray,
-    vol_ceiling: float,
-    age: int,
-    risk_score: float,
-    rf: float = 0.04,
-    n_restarts: int = 5,
-) -> dict[str, float]:
+    ann_mu,
+    ann_sig,
+    corr,
+    vol_ceiling,
+    age,
+    risk_score,
+    rf = 0.04, # default to around 4%
+    n_restarts = 5,
+):
     """
-    Maximise Sharpe ratio subject to the two-tier constraint system.
+    Maximise Sharpe ratio subject to the two-tier constraint system as described above.
 
     Tier 1 — Asset class:
       vol_floor ≤ portfolio vol ≤ vol_ceiling
@@ -560,7 +568,7 @@ def optimize_portfolio(
     """
     N = len(ann_mu)
     cov = np.diag(ann_sig) @ corr @ np.diag(ann_sig)
-    abs_caps = np.array([_ABS_CAPS.get(t, 0.40) for t in ETF_UNIVERSE])
+    abs_caps = np.array([ABS_CAPS.get(t, 0.40) for t in ETF_UNIVERSE])
     eq_ceiling = compute_equity_ceiling(age, risk_score)
 
     # ── GLD cap: inverse risk-score scaling ──────────────────────────────
@@ -587,7 +595,7 @@ def optimize_portfolio(
         f"HYG_cap={fi_bucket * (risk_score / 10) ** 2 * 0.35:.1%}"
     )
 
-    constraints = _build_constraints(
+    constraints = build_constraints(
         eq_ceiling, vol_floor, vol_ceiling, fi_bucket, risk_score, cov, gld_cap
     )
     bounds = [(0.0, float(abs_caps[i])) for i in range(N)]
