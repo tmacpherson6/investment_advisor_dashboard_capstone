@@ -61,7 +61,7 @@ COL_LATEST = "Recent Volatility (latest prediction)"
 # ─────────────────────────────────────────────────────────────────────────────
 #  SHARPE PRIORS FOR RETURN DERIVATION
 #  We need to calculate expected returns (ANN_MU) for the optimizer, but our 
-#  LSTM return forecasts were not reliable. Instead, we use a Sharpe-prior 
+#  LSTM return forecasts were not reliable. Instead, we will use a Sharpe-prior 
 #  method to derive ANN_MU from the LSTM vol forecasts and fixed Sharpe priors 
 #  for each asset. 
 #
@@ -113,8 +113,8 @@ logger = logging.getLogger(__name__)
 #  We want to cover everything: sector coverage + yield curve + credit + 
 #  inflation + gold.
 #  Note: XLRE (real estate) launched Dec 2015, which sets the common start
-#        date and means pre-2016 history — including the 2008 GFC — is
-#        excluded. This is documented in methodology comments below.
+#        date and means pre-2016 history — including the 2008 Great Financial 
+#  Crisis — is excluded. This is documented in methodology comments.
 # ─────────────────────────────────────────────────────────────────────────────
 
 ETF_UNIVERSE = [
@@ -168,15 +168,16 @@ def load_lstm_vol(tickers):
     """
     Load LSTM annualised volatility predictions from CSV.
 
-    Returns (ann_sig_avg, ann_sig_latest) as decimal arrays aligned to `tickers`.
-    Values in the CSV are percentages so they are divided by 100 here.
+    Returns (ann_sig_avg, ann_sig_latest) as decimal arrays aligned to the `tickers`.
+    Values in the CSV are percentages so they need to be divided by 100 here.
 
     HYG is floored at HYG_VOL_FLOOR_PCT to compensate for the limited-feature
     LSTM's inability to capture credit spread dynamics as discussed earlier.
 
     Raises FileNotFoundError if the CSV is missing, so the caller can fall back
-    to historical vol gracefully which will hopefully never happen.
+    to historical vol gracefully which should never happen.
     """
+    # The Volatility data was pulled in earlier as LSTM_VOL_CSV
     if not LSTM_VOL_CSV.exists():
         raise FileNotFoundError(
             f"LSTM vol CSV not found at {LSTM_VOL_CSV}. "
@@ -196,10 +197,11 @@ def load_lstm_vol(tickers):
         avg_pct    = float(df.loc[ticker, COL_AVG])
         latest_pct = float(df.loc[ticker, COL_LATEST])
 
-        # Here is where we will apply HYG floor
+        # Here is where we will apply the HYG floor
         if ticker == "HYG":
             avg_pct    = max(avg_pct,    HYG_VOL_FLOOR_PCT)
             latest_pct = max(latest_pct, HYG_VOL_FLOOR_PCT)
+            # Log the flooring for transparency when used
             logger.info(f"HYG vol floored to {HYG_VOL_FLOOR_PCT}% (raw: avg={float(df.loc['HYG', COL_AVG]):.2f}%, latest={float(df.loc['HYG', COL_LATEST]):.2f}%)")
 
         # Convert from percentage to decimal
@@ -214,9 +216,7 @@ def derive_ann_mu(ann_sig, tickers, rf):
     Derive expected returns via Sharpe-prior method:
         mu_i = rf + sharpe_prior_i * sigma_lstm_i
 
-    A minimum excess return floor of 0.1% above rf is applied to prevent
-    any asset from being treated as strictly dominated by the risk-free rate,
-    which would break the vol floor constraint for conservative portfolios. This is acceptable because it's assumed any rational investor would require at least some return premium to hold a risky asset, even one with very low Sharpe ratio, otherwise they might as well just hold cash.
+    A minimum excess return floor of 0.1% above risk-free rate is applied to prevent any asset from being treated as strictly dominated by the risk-free rate (rf), which would break the vol floor constraint for conservative portfolios. This is acceptable because it's assumed any rational investor would require at least some return premium to hold a risky asset, even one with very low Sharpe ratio, otherwise they might as well just hold cash.
 
     Args:
         ann_sig: annualised vol array (decimals), aligned to tickers
@@ -227,18 +227,18 @@ def derive_ann_mu(ann_sig, tickers, rf):
         rf + SHARPE_PRIORS[t] * ann_sig[i]
         for i, t in enumerate(tickers)
     ])
-    # Floor: no asset should be more than rf (would be zeroed out by optimizer)
+    # Floor: no asset should be less than rf (would be zeroed out by optimizer)
     mu = np.maximum(mu, rf + 0.001)
     return mu
 
 def fetch_prices(tickers, start="2005-01-01"):
     """
-    This is an older function used to calculate historical return if we need it for comparison purposes, but we are not using it for the main ANN_MU derivation due to the reasons outlined in the docstring of the derive_ann_mu function.
+    This is an older function used to calculate historical return if we need it for comparison purposes, but we are not using it for the main ANN_MU due to the reasons outlined in the docstring of the derive_ann_mu function.
 
-    Download adjusted daily close prices for all tickers.
+    Function downloads adjusted daily close prices for all tickers.
 
     Returns a DataFrame indexed by date with one column per ticker.
-    Uses auto_adjust=True so splits/dividends are handled automatically.
+    Uses auto_adjust=True so splits/dividends are handled automatically resulting in more realistic price movements.
 
     Raises RuntimeError if the download returns an empty frame (e.g. network
     outage) so the caller can fall back to cached/mock data gracefully.
@@ -251,7 +251,8 @@ def fetch_prices(tickers, start="2005-01-01"):
         threads=True,
     )
 
-    # yfinance returns MultiIndex columns when >1 ticker: (field, ticker)
+    # yfinance returns MultiIndex columns when more than one ticker is 
+    # requested: (field, ticker)
     # Extract only the "Close" level
     if isinstance(raw.columns, pd.MultiIndex):
         prices = raw["Close"]
@@ -264,27 +265,23 @@ def fetch_prices(tickers, start="2005-01-01"):
             "Check network connectivity or ticker symbols."
         )
 
-    # Enforce column order to match ETF_UNIVERSE
+    # Force column order to match ETF_UNIVERSE
     prices = prices.reindex(columns=tickers)
     return prices
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  CLEANING
+#  CLEANING PRICE DATA
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 def clean_prices(prices):
     """
     Drop any leading rows that contain NaNs (i.e. before all ETFs have
-    launched). This gives the longest fully-observed common history.
+    launched). This gives the longest fully-observed common history of our universe.
 
     The binding constraint is XLRE (launched Dec 2015), which means the 2008
-    GFC is not represented in the correlation estimates. This is a known
-    limitation.
-
-    After dropping leading NaNs, forward-fill any remaining isolated gaps
-    (e.g. staggered holidays) for at most 1 day, then drop any residual NaNs.
+    Global Financial Crisis is not represented in the correlation estimates. This is a known limitation we need to discuss in the report.
     """
     # Drop rows where ANY ticker is NaN (removes pre-launch period)
     prices = prices.dropna(how="any")
@@ -317,7 +314,7 @@ def estimate_correlation(log_returns):
     """
     Pearson correlation matrix from full-history log returns.
 
-    Design choice: full history over EWMA.
+    Our design choice: full history over EWMA.
     EWMA upweights recent observations, which biases correlations toward the
     most recent regime (often a stress period with artificially elevated
     equity-equity correlations). Full history averages across multiple regimes
@@ -330,7 +327,7 @@ def estimate_correlation(log_returns):
 
     # ── Enforce positive semi-definiteness ───────────────────────────────
     # Floating-point arithmetic can produce tiny negative eigenvalues.
-    # Clip them to zero and reconstruct — this is the Higham (2002) approach
+    # Clip them to zero and reconstruct. This is the Higham (2002) approach
     # simplified for diagonal correction.
     #
     # CITATION:
@@ -360,9 +357,9 @@ def estimate_ann_vol(log_returns):
 #  PORTFOLIO OPTIMISATION — TWO-TIER CONSTRAINT SYSTEM
 #
 #  Tier 1 — Asset class buckets (absolute portfolio weights):
-#    • Equity ceiling:     compute_equity_ceiling(age, risk_score)
-#    • GLD absolute cap:   15%
-#    • Vol band:           [vol_floor, vol_ceiling]
+#    • Equity ceiling: compute_equity_ceiling(age, risk_score)
+#    • GLD absolute cap: 15%
+#    • Vol band: [vol_floor, vol_ceiling]
 #
 #  Tier 2 — Intra-bucket concentration (relative to bucket size):
 #    • Any single sector ≤ 30% of the equity bucket to avoid piling into one
@@ -430,7 +427,7 @@ GLD_IDX = ETF_UNIVERSE.index("GLD")
 
 # Set our absolute per-instrument upper bounds (used as scipy bounds,
 # not constraints)
-# These are loose safety rails — the intra-bucket constraints should do the 
+# These are loose safety rails, the intra-bucket constraints should do the 
 # real work
 ABS_CAPS = {
     "XLF": 0.40,
@@ -505,9 +502,9 @@ def build_constraints(
       7. HYG ≤ (risk_score/10)² × 35% of FI bucket  (quadratic)
     """
     # ── Tier-2 derived limits ─────────────────────────────────────────────
-    sector_cap = eq_ceiling * 0.30  # 30% of equity bucket
-    ig_fi_cap = fi_bucket * 0.50  # 50% of FI bucket
-    hyg_cap = fi_bucket * (risk_score / 10) ** 2 * 0.35  # quadratic
+    sector_cap = eq_ceiling * 0.30  
+    ig_fi_cap = fi_bucket * 0.50  
+    hyg_cap = fi_bucket * (risk_score / 10) ** 2 * 0.35 
 
     def port_vol(w):
         return float(np.sqrt(w @ cov @ w))
@@ -521,7 +518,7 @@ def build_constraints(
         {"type": "ineq", "fun": lambda w: vol_ceiling - port_vol(w)},
         {"type": "ineq", "fun": lambda w: port_vol(w) - vol_floor},
         {"type": "ineq", "fun": lambda w: eq_ceiling - equity_sum(w)},
-        {"type": "ineq", "fun": lambda w: gld_cap - w[GLD_IDX]},  # GLD inverse-scaled
+        {"type": "ineq", "fun": lambda w: gld_cap - w[GLD_IDX]},  # inverse-scaled
         # ── Tier 2: intra-equity sector caps ─────────────────────────────
         *[
             {"type": "ineq", "fun": lambda w, i=i: sector_cap - w[i]}
@@ -545,7 +542,7 @@ def optimize_portfolio(
     vol_ceiling,
     age,
     risk_score,
-    rf = 0.04, # default to around 4%
+    rf = 0.04, # default to around 4% would be great to pull in SOFR from FRED API if we have time we need it to match app.py though
     n_restarts = 5,
 ):
     """
@@ -586,6 +583,7 @@ def optimize_portfolio(
         floor_pct = 0.45
     vol_floor = vol_ceiling * floor_pct
 
+    # Once again log info for transparency and debugging purposes
     logger.info(
         f"optimize_portfolio: age={age}, risk_score={risk_score} | "
         f"eq_ceiling={eq_ceiling:.1%}, fi_bucket≈{fi_bucket:.1%}, gld_cap={gld_cap:.1%} | "
@@ -598,7 +596,7 @@ def optimize_portfolio(
     )
     bounds = [(0.0, float(abs_caps[i])) for i in range(N)]
 
-    def neg_sharpe(w: np.ndarray) -> float:
+    def neg_sharpe(w):
         port_ret = float(w @ ann_mu)
         port_var = float(w @ cov @ w)
         port_vol = np.sqrt(max(port_var, 1e-12))
@@ -650,7 +648,7 @@ def optimize_portfolio(
 
 def is_cache_stale():
     """Returns True if cache has never been populated or was computed on a
-    prior calendar day."""
+    prior calendar day so we can keep track."""
     return cache["computed_on"] is None or cache["computed_on"] < date.today()
 
 
@@ -674,32 +672,35 @@ def populate_cache():
     ann_sig_hist = estimate_ann_vol(log_rets)
 
     # ── Load LSTM vol (primary) ───────────────────────────────────────────
-    rf = 0.04  # Must match RF_ANN in app.py usually around 4% for consistency in ANN_MU derivation
+    rf = 0.04  # Must match RF_ANN in app.py usually around 4% for consistency in ANN_MU derivation. Same comment about pulling in SOFR applies here.
     try:
         ann_sig_lstm_avg, _ = load_lstm_vol(ETF_UNIVERSE)
         ann_sig = ann_sig_lstm_avg
+        # Log the choice of vol source for transparency and debugging purposes
         logger.info("logic.py: using LSTM volatility predictions (30-trial avg).")
     except (FileNotFoundError, KeyError) as e:
+        # log if it didn't work and then have a fallback
         logger.warning(f"logic.py: LSTM vol unavailable ({e}). Falling back to historical vol.")
         ann_sig = ann_sig_hist
 
     ann_mu = derive_ann_mu(ann_sig, ETF_UNIVERSE, rf)
 
-    cache["corr"]          = corr
-    cache["ann_sig"]       = ann_sig
-    cache["ann_sig_hist"]  = ann_sig_hist
-    cache["ann_mu"]        = ann_mu
-    cache["as_of_date"]    = prices.index[-1].strftime("%Y-%m-%d")
-    cache["common_start"]  = prices.index[0].strftime("%Y-%m-%d")
-    cache["computed_on"]   = date.today()
-
+    cache["corr"] = corr
+    cache["ann_sig"] = ann_sig
+    cache["ann_sig_hist"] = ann_sig_hist
+    cache["ann_mu"] = ann_mu
+    cache["as_of_date"] = prices.index[-1].strftime("%Y-%m-%d")
+    cache["common_start"] = prices.index[0].strftime("%Y-%m-%d")
+    cache["computed_on"] = date.today()
+    
+    # Let's keep up with our logging for transparency and debugging. 
     logger.info(
         "logic.py: parameters ready. "
         f"Common start: {cache['common_start']}  |  "
         f"As of: {cache['as_of_date']}  |  "
         f"N={len(log_rets)} trading days"
     )
-    # Log implied return summary for an audit trail
+    # Log implied return summary for our audit trail
     for i, t in enumerate(ETF_UNIVERSE):
         logger.info(
             f"  {t}: vol={ann_sig[i]*100:.2f}% (hist={ann_sig_hist[i]*100:.2f}%)  "
@@ -720,13 +721,13 @@ def get_market_params():
     Returns
     ───────
     {
-        "corr":         np.ndarray  shape (N, N)   — correlation matrix (historical)
-        "ann_sig":      np.ndarray  shape (N,)     — LSTM annualised vol (primary, decimals)
-        "ann_sig_hist": np.ndarray  shape (N,)     — historical vol from yfinance (for viz)
-        "ann_mu":       np.ndarray  shape (N,)     — implied returns via Sharpe priors (decimals)
-        "etf_universe": list[str]                  — ordered ticker list
-        "as_of_date":   str   "YYYY-MM-DD"         — last price date in yfinance data
-        "common_start": str   "YYYY-MM-DD"         — first fully-observed date
+        "corr": np.ndarray shape (N, N) — correlation matrix (historical)
+        "ann_sig": np.ndarray shape (N,) — LSTM annualised vol (primary, decimals)
+        "ann_sig_hist": np.ndarray shape (N,) — historical vol from yfinance (for viz)
+        "ann_mu": np.ndarray shape (N,) — implied returns via Sharpe priors (decimals)
+        "etf_universe": list[str] — ordered ticker list
+        "as_of_date": str "YYYY-MM-DD" — last price date in yfinance data
+        "common_start": str "YYYY-MM-DD" — first fully-observed date
     }
     """
     if is_cache_stale():
@@ -745,7 +746,6 @@ def get_market_params():
 # ─────────────────────────────────────────────────────────────────────────────
 #  STARTUP — compute on import
 #  This fires when app.py does `from logic import get_market_params`
-#  keeping the /analyze route free of any data fetching latency.
 # ─────────────────────────────────────────────────────────────────────────────
 
 try:
