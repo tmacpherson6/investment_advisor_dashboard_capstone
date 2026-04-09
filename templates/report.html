@@ -1,4 +1,736 @@
 {% extends "base.html" %}
 {% block title %}PortfolioIQ — Technical Report{% endblock %}
 
+{% block head %}
+{# DM Serif Display / DM Sans / DM Mono already loaded by base.html #}
+
+<style>
+    /* ── Report-scoped aliases → base.html tokens ──────────── */
+    :root {
+        --report-max-width: 860px;
+        --report-gutter: 2rem;
+        --color-ink:        var(--text);
+        --color-ink-muted:  var(--muted);
+        --color-rule:       var(--border);
+        --color-accent:     var(--gold);
+        --color-accent-bg:  color-mix(in srgb, var(--gold) 8%, var(--surface));
+        --color-warn-bg:    color-mix(in srgb, var(--amber) 10%, var(--surface));
+        --color-warn-border:var(--amber);
+        --color-table-head: var(--surface);
+        --color-table-stripe: color-mix(in srgb, var(--surface) 60%, var(--bg));
+        --lh-body: 1.75;
+    }
+
+    /* ── Layout ────────────────────────────────────────────── */
+    .report-root {
+        font-family: var(--font-sans);
+        font-size: 1.05rem;
+        line-height: var(--lh-body);
+        color: var(--color-ink);
+        background: var(--bg);
+    }
+
+    .report-grid {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 0;
+        max-width: 1200px;
+        margin: 0 auto;
+        align-items: start;
+    }
+
+    /* ── Sidebar / TOC ─────────────────────────────────────── */
+    .report-toc {
+        position: sticky;
+        top: 1.5rem;
+        padding: 2rem 1.5rem 2rem 0;
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        border-right: 1px solid var(--color-rule);
+        background: var(--bg);
+    }
+
+    .toc-label {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 600;
+        color: var(--color-ink-muted);
+        margin-bottom: 1rem;
+        font-size: 0.7rem;
+    }
+
+    .toc-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .toc-list li {
+        margin-bottom: 0.35rem;
+    }
+
+    .toc-list a {
+        color: var(--color-ink-muted);
+        text-decoration: none;
+        transition: color 0.15s;
+        display: block;
+        padding: 0.15rem 0;
+        border-left: 2px solid transparent;
+        padding-left: 0.6rem;
+    }
+
+    .toc-list a:hover,
+    .toc-list a.active {
+        color: var(--color-accent);
+        border-left-color: var(--color-accent);
+    }
+
+    .toc-list .toc-sub {
+        padding-left: 1.1rem;
+        font-size: 0.73rem;
+        color: #999;
+    }
+
+    /* ── Main Content ──────────────────────────────────────── */
+    .report-body {
+        padding: 2.5rem 0 4rem var(--report-gutter);
+        min-width: 0;
+    }
+
+    /* ── Report Header ─────────────────────────────────────── */
+    .report-header {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .report-eyebrow {
+        font-family: var(--font-sans);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: var(--color-accent);
+        margin-bottom: 0.6rem;
+    }
+
+    .report-title {
+        font-family: var(--font-serif);
+        font-size: 2.4rem;
+        font-weight: 400;
+        line-height: 1.2;
+        margin: 0 0 0.5rem;
+        color: var(--text);
+    }
+
+    .report-subtitle {
+        font-family: var(--font-sans);
+        font-style: italic;
+        font-size: 1.05rem;
+        color: var(--muted);
+        margin: 0 0 1.2rem;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 2rem;
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        color: var(--color-ink-muted);
+        flex-wrap: wrap;
+    }
+
+    .report-meta span strong {
+        color: var(--color-ink);
+        font-weight: 600;
+    }
+
+    /* ── Sections ──────────────────────────────────────────── */
+    .report-section {
+        margin-bottom: 3rem;
+    }
+
+    .section-number {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        color: var(--color-accent);
+        display: block;
+        margin-bottom: 0.2rem;
+        letter-spacing: 0.05em;
+    }
+
+    h2.section-heading {
+        font-family: var(--font-serif);
+        font-size: 1.7rem;
+        font-weight: 400;
+        margin: 0 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+    }
+
+    h3.subsection-heading {
+        font-family: var(--font-sans);
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 1.8rem 0 0.6rem;
+        color: var(--color-ink-muted);
+    }
+
+    p {
+        margin: 0 0 1rem;
+    }
+
+    /* ── Callout / Note Boxes ──────────────────────────────── */
+    .callout {
+        border-left: 3px solid var(--color-accent);
+        background: var(--color-accent-bg);
+        border-radius: 0 6px 6px 0;
+        padding: 0.9rem 1.2rem;
+        margin: 1.5rem 0;
+        font-family: var(--font-sans);
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    .callout-warn {
+        border-left-color: var(--color-warn-border);
+        background: var(--color-warn-bg);
+    }
+
+    .callout strong {
+        display: block;
+        margin-bottom: 0.3rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-accent);
+    }
+
+    .callout-warn strong {
+        color: #b45309;
+    }
+
+    /* ── Tables ────────────────────────────────────────────── */
+    .table-wrap {
+        margin: 1.5rem 0 2rem;
+        overflow-x: auto;
+    }
+
+    .table-caption {
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        color: var(--color-ink-muted);
+        margin-bottom: 0.5rem;
+        font-style: italic;
+    }
+
+    table.report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: var(--font-sans);
+        font-size: 0.88rem;
+    }
+
+    table.report-table thead th {
+        background: var(--color-table-head);
+        font-weight: 600;
+        text-align: left;
+        padding: 0.65rem 0.9rem;
+        border-bottom: 2px solid var(--color-rule);
+        white-space: nowrap;
+    }
+
+    table.report-table tbody tr:nth-child(even) {
+        background: var(--color-table-stripe);
+    }
+
+    table.report-table tbody td {
+        padding: 0.6rem 0.9rem;
+        border-bottom: 1px solid var(--color-rule);
+        vertical-align: top;
+    }
+
+    table.report-table tfoot td {
+        padding: 0.6rem 0.9rem;
+        border-top: 2px solid var(--color-rule);
+        font-weight: 600;
+        font-size: 0.82rem;
+        color: var(--color-ink-muted);
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        font-family: var(--font-mono);
+    }
+
+    .badge-green  { background: color-mix(in srgb, var(--green) 15%, transparent);  color: var(--green); }
+    .badge-red    { background: color-mix(in srgb, var(--red)   15%, transparent);  color: var(--red);   }
+    .badge-yellow { background: color-mix(in srgb, var(--amber) 15%, transparent);  color: var(--amber); }
+    .badge-blue   { background: color-mix(in srgb, var(--gold)  12%, transparent);  color: var(--gold);  }
+
+    /* ── Figures / Images ──────────────────────────────────── */
+    figure.report-figure {
+        margin: 2rem 0;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .figure-placeholder {
+        background: color-mix(in srgb, var(--surface) 80%, var(--bg));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 280px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        letter-spacing: 0.05em;
+    }
+
+    figure.report-figure img {
+        width: 100%;
+        display: block;
+    }
+
+    figcaption {
+        padding: 0.7rem 1rem;
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        color: var(--color-ink-muted);
+        border-top: 1px solid var(--color-rule);
+        font-style: italic;
+    }
+
+    figcaption strong {
+        font-style: normal;
+        color: var(--color-ink);
+    }
+
+    /* ── Key Metrics Strip ─────────────────────────────────── */
+    .metrics-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1px;
+        background: var(--border);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 1.5rem 0;
+    }
+
+    .metric-cell {
+        background: var(--surface);
+        padding: 1rem 1.2rem;
+        font-family: var(--font-sans);
+    }
+
+    .metric-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin-bottom: 0.3rem;
+    }
+
+    .metric-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1;
+        color: var(--gold);
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .metric-delta {
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        color: var(--muted);
+    }
+
+    .metric-delta.up   { color: var(--green); }
+    .metric-delta.down { color: var(--red);   }
+
+    /* ── Footnotes / References ────────────────────────────── */
+    .report-references {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-sans);
+        font-size: 0.8rem;
+        color: var(--muted);
+    }
+
+    .report-references h2 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.8rem;
+    }
+
+    .report-references ol {
+        padding-left: 1.2rem;
+    }
+
+    .report-references li {
+        margin-bottom: 0.4rem;
+    }
+
+    /* ── Print Styles ──────────────────────────────────────── */
+    @media print {
+        .report-toc    { display: none; }
+        .report-grid   { display: block; }
+        .report-body   { padding: 0; }
+    }
+
+    @media (max-width: 768px) {
+        .report-grid { grid-template-columns: 1fr; }
+        .report-toc  { display: none; }
+        .report-body { padding: 1.5rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<div class="report-root">
+<div class="report-grid">
+
+    <!-- ── Table of Contents (Sidebar) ── -->
+    <aside class="report-toc">
+        <div class="toc-label">Contents</div>
+        <ul class="toc-list">
+            <li><a href="#executive-summary">Executive Summary</a></li>
+            <li><a href="#section-1">1. Introduction</a></li>
+                <ul class="toc-list">
+                    <li><a href="#section-1-1" class="toc-sub">1.1 Overview</a></li>
+                    <li><a href="#section-1-2" class="toc-sub">1.2 Literature Review</a></li>
+                </ul>
+            <li><a href="#section-2">2. Methodology</a>
+                <ul class="toc-list">
+                    <li><a href="#section-2-1" class="toc-sub">2.1 Data Sources</a></li>
+                    <li><a href="#section-2-2" class="toc-sub">2.2 Analysis Framework</a></li>
+                </ul>
+            </li>
+            <li><a href="#section-3">3. Findings</a>
+                <ul class="toc-list">
+                    <li><a href="#section-3-1" class="toc-sub">3.1 Key Metrics</a></li>
+                    <li><a href="#section-3-2" class="toc-sub">3.2 Breakdown</a></li>
+                </ul>
+            </li>
+            <li><a href="#section-4">4. Discussion</a></li>
+            <li><a href="#section-5">5. Conclusions</a></li>
+            <li><a href="#references">References</a></li>
+        </ul>
+    </aside>
+
+    <!-- ── Report Body ── -->
+    <main class="report-body">
+
+        <!-- Report Header -->
+        <header class="report-header">
+            <div class="report-eyebrow">PortfolioIQ · Technical Report</div>
+            <h1 class="report-title">The Risky Business of Financial Matchmaking:</h1>
+            <p class="report-subtitle">Optimizing Portfolio Return and Volatility Within Investor Risk Tolerance</p>
+            <div class="report-meta">
+                <span><strong>Authors</strong> Ryan Peet, Kristine Zhou, Thomas MacPherson, and Peter King</span>
+                <span><strong>Date</strong> April 2026</span>
+                <span><strong>Version</strong> 1.0</span>
+                <span><strong>Status</strong> <span class="badge badge-blue">Draft</span></span>
+            </div>
+        </header>
+
+        <!-- Executive Summary -->
+        <section class="report-section" id="executive-summary">
+            <span class="section-number">§ SUMMARY</span>
+            <h2 class="section-heading">Executive Summary</h2>
+            <p>
+                A 3–5 sentence overview of what this report covers, the central finding,
+                and the recommended action or conclusion. Write this last — it should
+                distil everything below into a single digestible paragraph for a reader
+                who may go no further.
+            </p>
+            <div class="callout">
+                <strong>Key Takeaway</strong>
+                Surface the single most important finding or recommendation here so it
+                cannot be missed.
+            </div>
+        </section>
+
+        <!-- Section 1 -->
+        <section class="report-section" id="section-1">
+            <span class="section-number">§ 01</span>
+            <h2 class="section-heading">Introduction</h2>
+            <h3 class="subsection-heading" id="section-1-1">1.1 Overview</h3>
+            <p>
+            <p>
+                Traditionally, financial advising required a personal advisor to determine a client’s risk tolerance, assess market conditions, and translate the two into a coherent investment strategy. This process can be expensive, surprisingly inconsistent, and even largely inaccessible to investors without significant assets. The introduction of ‘robo-advisors’ has begun to automate this workflow, but many current solutions remain a ‘black-box’. These robo-advisors rely on coarse risk categorizations, and rarely discuss the assumptions that are necessary in their portfolio construction logic. 
+            </p>
+            <p>
+                This capstone project introduces a three-component data science pipeline designed to address these current limitations and move the domain forward in a meaningful way. The first component aims to estimate a client’s financial risk tolerance from survey-based behavioural and demographic features, producing a continuous risk score grounded in representative data. The second component forecasts near-term sector-level volatility, providing estimates of uncertainty in the market that extend beyond just historical averages. This uncertainty is then used to determine an expected return for each sector of the securities market. The third component combines the outputs to construct an individualized portfolio using constrained mean-variance optimization intending to maximize the risk-adjusted return (Sharpe ratio) within boundaries that reflect the individual's estimated risk profile. 
+            </p>
+            <p>
+                The contribution of this work to the financial domain is not any single model, but the integration of these components into a smooth end-to-end system from an individual’s personal characteristics to a quantitatively derived personalized portfolio. Each component is independently evaluated, but the pipeline is designed to be assessed as a whole. The value of the system lies in how well each component hands off accurate data as much as the performance of each in isolation. 
+            </p>
+            <h3 class="subsection-heading" id="section-1-2">1.2 Literature Review</h3>
+            <h4 class="subsection-heading" id="section-1-2-1">1.2.1 Risk Tolerance Estimation</h4>
+            <h4 class="subsection-heading" id="section-1-2-2">1.2.2 Volatility Forecasting</h4>
+            <p>
+                Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic (ARCH) class of stochastic processes, econometric models assumed a "constant one-period forecast variance."  Engle's observation that the future variance of a stochastic process depends on recent past values paved the way for new approaches in volatility forecasting.  Many recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to estimate future volatility, exploiting such models' ability to learn dependencies and relationships between variables over time.  Assaf, et al. (2022) found that an LSTM model was able to forecast overall market volatility with performance on par with modern econometric models based on the ARCH process.  Zhang, et al. (2025) combined a hybrid deep-learning model (consisting of a Convolutional Neural Network (CNN) layer, a bidirectional LSTM layer, and an attention mechanism) with an ARCH-based econometric model to forecast volatility of the Shanghai Composite Index (SSEC), claiming to outperform a variety of alternative models including decision tree based ensembles.  Most recently, Peter, et al. (2026) integrated a generalized ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate "consistent superiority" across a variety of metrics.
+            </p>
+            <p>Our study takes a novel approach by focusing volatility for specific market sectors in the U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall market volatility.  Furthermore, we establish a practical benchmark by comparing our model's performance in forecasting volatility over a 30-day future window to the performance of the Cboe Volatility Index (ticker: ^VIX) -- widely considered the "the most popular gauge" of future (30-day) market volatility (Schwab, 2025).
+            </p>
+            <h4 class="subsection-heading" id="section-1-2-3">1.2.3 Portfolio Optimization</h4>
+             <p>
+                The foundation of modern portfolio construction is Harry Markowitz’s 1952 mean-variance framework. Markowitz demonstrated that a rational investor, given a set of assets with known expected returns and covariances, should select a portfolio that maximises their return for a given level of variance. Variance can be directly related to risk, so this can viewed equally as minimizing risk for a given expected return of the portfolio. In theory, he suggests that there is an "efficient frontier" of portfolios that minimize risk for all expected returns and any portfolio lying below this line is considered suboptimal because a better risk-return is achievable (Markowitz, 1952).
+            </p>
+            <p>
+                A key metric derived from this framework is the risk-adjusted return (Sharpe ratio), which normalizes excess return above the risk-free rate (i.e., return on a no-risk asset) by portfolio volatility (Sharpe, 1966). Maximizing the Sharpe ratio is a common objective in portfolio management because it selects the portfolio on the efficient frontier that offers the greatest return per unit of risk.
+            </p>
+            <p>
+                Unfortunately, the classical mean-variance framework carries well documented limitations. Estimated expected returns and covariances are sensitive to the historical window and sampling period used, and small variations in inputs can produce dramatically different optimal portfolios. Robust optimizations need to explicitly account for uncertainty in the parameter estimates so that they perform acceptably well across a range of scenarios as opposed to optimizing for a single point estimate.
+            </p>
+            <p>
+                Practical construction also requires incorporating real-world constraints that the unconstrained efficient frontier ignores. These include upper and lower bounds on individual assets (to prevent extreme concentration in a single asset), sector-level exposure limits, and minimum diversification requirements. These constraints are now standard in applied portfolio management but the choice of constraint is not just technical, it encodes the investment philosophy and risk tolerance of the client. This is precisely the link our pipeline is attempting to formalize, by deriving portfolio constraints directly from an estimated risk score rather than a general risk bucket.
+            </p>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="report-section" id="section-2">
+            <span class="section-number">§ 02</span>
+            <h2 class="section-heading">Methodology</h2>
+            <p>
+                High-level description of the analytical approach. Link to or cite the
+                relevant frameworks, models, or prior work this builds on.
+            </p>
+
+            <h3 class="subsection-heading" id="section-2-1">2.1 Data Sources</h3>
+            <p>
+                List and describe each data source used — provenance, date range,
+                granularity, and any known quality issues.
+            </p>
+
+            <!-- Example table -->
+            <div class="table-wrap">
+                <p class="table-caption">Table 1 — Data sources used in this analysis</p>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Source</th>
+                            <th>Description</th>
+                            <th>Period</th>
+                            <th>Quality</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Source A</td>
+                            <td>Primary market data feed</td>
+                            <td>2020 – 2025</td>
+                            <td><span class="badge badge-green">High</span></td>
+                        </tr>
+                        <tr>
+                            <td>Source B</td>
+                            <td>Secondary benchmark index</td>
+                            <td>2021 – 2025</td>
+                            <td><span class="badge badge-yellow">Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td>Source C</td>
+                            <td>Alternative data (estimated)</td>
+                            <td>2023 – 2025</td>
+                            <td><span class="badge badge-red">Low</span></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4">All figures reported in USD unless noted otherwise.</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <h3 class="subsection-heading" id="section-2-2">2.2 Analysis Framework</h3>
+            <p>
+                Describe the model, statistical methods, or evaluation criteria applied.
+                Be precise enough that another analyst could reproduce the results.
+            </p>
+
+            <div class="callout callout-warn">
+                <strong>Limitation</strong>
+                Note any methodological caveat here — e.g. small sample size,
+                survivorship bias, or model assumptions that may not hold under
+                stress conditions.
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="report-section" id="section-3">
+            <span class="section-number">§ 03</span>
+            <h2 class="section-heading">Findings</h2>
+
+            <h3 class="subsection-heading" id="section-3-1">3.1 Key Metrics</h3>
+
+            <!-- Metrics strip -->
+            <div class="metrics-strip">
+                <div class="metric-cell">
+                    <div class="metric-label">Metric One</div>
+                    <div class="metric-value">—</div>
+                    <div class="metric-delta up">↑ vs prior period</div>
+                </div>
+                <div class="metric-cell">
+                    <div class="metric-label">Metric Two</div>
+                    <div class="metric-value">—</div>
+                    <div class="metric-delta down">↓ vs prior period</div>
+                </div>
+                <div class="metric-cell">
+                    <div class="metric-label">Metric Three</div>
+                    <div class="metric-value">—</div>
+                    <div class="metric-delta">vs prior period</div>
+                </div>
+                <div class="metric-cell">
+                    <div class="metric-label">Metric Four</div>
+                    <div class="metric-value">—</div>
+                    <div class="metric-delta">vs prior period</div>
+                </div>
+            </div>
+
+            <h3 class="subsection-heading" id="section-3-2">3.2 Breakdown</h3>
+            <p>
+                Narrative explanation of the findings. Reference figures and tables
+                by number. Avoid simply repeating the table values — explain what
+                they mean and why they matter.
+            </p>
+
+            <!-- Figure with placeholder -->
+            <figure class="report-figure">
+                <div class="figure-placeholder">[ Chart · Figure 1 ]</div>
+                {# Replace the div above with: <img src="{{ figure_1_url }}" alt="…"> #}
+                <figcaption>
+                    <strong>Figure 1.</strong> Caption describing what is shown,
+                    the time period, and any important context a reader needs to
+                    interpret it correctly.
+                </figcaption>
+            </figure>
+
+            <!-- Detailed findings table -->
+            <div class="table-wrap">
+                <p class="table-caption">Table 2 — Detailed breakdown by category</p>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Value A</th>
+                            <th>Value B</th>
+                            <th>Change</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Category 1</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td><span class="badge badge-green">+x%</span></td>
+                            <td>Note or qualifier</td>
+                        </tr>
+                        <tr>
+                            <td>Category 2</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td><span class="badge badge-red">−x%</span></td>
+                            <td>Note or qualifier</td>
+                        </tr>
+                        <tr>
+                            <td>Category 3</td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td><span class="badge badge-yellow">~flat</span></td>
+                            <td>Note or qualifier</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Second figure -->
+            <figure class="report-figure">
+                <div class="figure-placeholder">[ Chart · Figure 2 ]</div>
+                <figcaption>
+                    <strong>Figure 2.</strong> Caption for the second chart or
+                    image. Replace placeholder div with a real <code>&lt;img&gt;</code>
+                    tag or an embedded chart component.
+                </figcaption>
+            </figure>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="report-section" id="section-4">
+            <span class="section-number">§ 04</span>
+            <h2 class="section-heading">Discussion</h2>
+            <p>
+                Interpret the findings in context. Connect back to the research
+                question posed in the introduction. Address any surprising or
+                counterintuitive results, and explain them if possible.
+            </p>
+            <p>
+                Compare against benchmarks, prior periods, or external studies
+                where relevant. Be explicit about causality vs correlation.
+            </p>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="report-section" id="section-5">
+            <span class="section-number">§ 05</span>
+            <h2 class="section-heading">Conclusions</h2>
+            <p>
+                Summarise the principal conclusions that follow logically from the
+                evidence presented. State recommendations clearly and, where possible,
+                link each recommendation to the specific finding that motivates it.
+            </p>
+            <p>
+                Flag any open questions or areas warranting further investigation.
+            </p>
+        </section>
+
+        <!-- References -->
+        <section class="report-references" id="references">
+            <h2>References</h2>
+            <ol>
+                <li>Author, A. (Year). <em>Title of source.</em> Publisher / URL.</li>
+                <li>Author, B. &amp; Author, C. (Year). <em>Title of source.</em> Journal, Vol(Issue).</li>
+                <li>Add further references as needed.</li>
+            </ol>
+        </section>
+
+    </main>
+</div><!-- /.report-grid -->
+</div><!-- /.report-root -->
+
+<script>
+/* Highlight active TOC item on scroll */
+(function () {
+    const sections = document.querySelectorAll('[id]');
+    const links    = document.querySelectorAll('.toc-list a');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                links.forEach(l => l.classList.remove('active'));
+                const active = document.querySelector(`.toc-list a[href="#${entry.target.id}"]`);
+                if (active) active.classList.add('active');
+            }
+        });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+
+    sections.forEach(s => observer.observe(s));
+})();
+</script>
+{% endblock %}
