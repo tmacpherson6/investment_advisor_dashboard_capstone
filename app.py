@@ -16,7 +16,7 @@ from logic import (
     get_market_params,
     ETF_UNIVERSE,
     optimize_portfolio,
-    compute_equity_ceiling,
+    compute_equity_ceiling,  #We aren't using this yet but we may
 )
 
 # Create our Flask app
@@ -262,13 +262,14 @@ def generate_gif(paths, start_value, horizon_years):
 
     pil_frames = [Image.open(io.BytesIO(f)).convert("RGBA") for f in frames_buf]
     gif_buf = io.BytesIO()
+    # We need to slow this down so the user has a chance to read what its saying
     pil_frames[0].save(
         gif_buf,
         format="GIF",
         save_all=True,
         append_images=pil_frames[1:],
         loop=0,
-        duration=150,
+        duration=250,
     )
     gif_buf.seek(0)
     return base64.b64encode(gif_buf.read()).decode("utf-8")

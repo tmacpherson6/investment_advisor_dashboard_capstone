@@ -512,7 +512,7 @@
       </div>
       <div id="weight-summary" style="margin-top:1.2rem; padding:0.8rem 1rem; background:var(--bg); border-radius:3px; border:1px solid var(--border);">
         <p style="font-family:var(--font-mono); font-size:0.7rem; color:var(--muted); line-height:1.9;">
-          {% for etf in etfs %}{% set pct = (weights[etf] * 100) | round(1) %}{% if pct >= 1 %}<span style="color:var(--text);">{{ etf }}</span> {{ pct }}%{% if not loop.last %} &nbsp;·&nbsp; {% endif %}{% endif %}{% endfor %}
+          {% for etf in etfs %}{% set pct = (weights[etf] * 100) | round(1) %}{% if pct >= 1 %}<span style="color:var(--text);">{{ etf }}</span> {{ pct }}%{% if not loop.last %} · {% endif %}{% endif %}{% endfor %}
         </p>
       </div>
     </div>
@@ -525,7 +525,7 @@
       <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
         1000 simulated portfolio paths over a <strong id="gif-horizon-label" style="color:var(--text);">{{ horizon_years }}-year horizon</strong>.
         Dashed line = median (P50). Shaded band = P5–P95 range. Each path is a plausible outcome — the spread is the point.
-        <span style="color:var(--gold-dim);">Note: constant-vol simulation is most reliable at the 1-year horizon.</span>
+        <span style="color:var(--gold-dim);">Note: constant-volatility simulation is most reliable at the 1-year horizon.</span>
       </p>
       <div style="text-align:center; border:1px solid var(--border); border-radius:3px; overflow:hidden; background:#0D1117; position:relative;">
         <img id="mc-gif" src="data:image/gif;base64,{{ gif_b64 }}"
@@ -538,7 +538,8 @@
       </div>
     </div>
 
-    <!-- ── VIZ 1: Return vs Volatility Scatter ── -->
+    <!-- ── Visualization 1: Return vs Volatility Scatter ── -->
+     <!-- This is a quick way to see how well sectors and our portfolio perform higher return and lower risk is ideal -->
     <div class="card">
       <span class="card-label">Step 5 — Risk / Return Profile</span>
       <h2>Return vs. Volatility</h2>
