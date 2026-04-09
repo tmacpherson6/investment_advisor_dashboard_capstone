@@ -1,3 +1,19 @@
+"""
+app.py - version 1.1
+────────────────────────────────────────────────────────────────────────────────
+This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes: 
+
+1) The index route ("/") which renders the input form for user data and preferences. This is where users will enter their age, income, net worth, investment experience, and other relevant information that feeds into the risk assessment model.
+
+2) The analyze route ("/analyze") which processes the form submission, runs the risk assessment model (currently mocked), optimizes the portfolio based on the derived parameters, runs Monte Carlo simulations to generate return and risk statistics, and finally renders the results page with all this information.
+
+We do have an additonal route for recalculating the simulations on the fly ("/api/recalculate") which is called via AJAX from the results page when users adjust the risk constraint slider or the period of simulation. This allows for a more interactive experience without needing to resubmit the entire form.
+
+When the technical report is finished, we will be adding it to it's own route ("/report") and linking to it from the index page. This will be a static page that provides a detailed explanation of our methodology, data sources, model architecture, and results. It will also include visualizations and tables to help users understand how we derived our risk scores and portfolio recommendations.
+
+The app also includes an API endpoint ("/api/feedback") to collect user feedback on the risk assessment model's output, which can be stored in a PostgreSQL database if configured, or in a local JSONL file as a fallback. This feedback mechanism is crucial for iteratively improving our model based on real user input.
+"""
+
 from flask import Flask, render_template, request, jsonify
 import numpy as np
 import io
@@ -483,6 +499,9 @@ def api_recalculate():
         app.logger.exception("api_recalculate failed")    
         return jsonify({"error": str(e)}), 500
 
+@app.route("/report")
+def report():
+    return render_template("report.html")
 
 if __name__ == "__main__":
     init_feedback_db()
