@@ -8,7 +8,10 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* ── THIS BASE HTML IS THE GENERAL LOOK OF THE ENTIRE DASHBOARD WE WILL IMPORT THIS AS THE STYLE OF ADDITIONAL PAGES FOR CONSISTENCY ──  */
 
+    /* ── LET'S SET A COLOR SCHEME TO WORK WITH ── */
     :root {
       --bg:       #0A0E14;
       --surface:  #111820;
@@ -34,7 +37,7 @@
       line-height: 1.6;
     }
 
-    /* ── NAV ── */
+    /* ── BUILD NAVIGATION MENU ── */
     nav {
       display: flex;
       align-items: center;
@@ -49,27 +52,27 @@
     }
     .nav-logo {
       font-family: var(--font-serif);
-      font-size: 1.3rem;
+      font-size: 1.5rem;
       color: var(--gold);
       letter-spacing: 0.02em;
       text-decoration: none;
     }
     .nav-tag {
       font-family: var(--font-mono);
-      font-size: 0.68rem;
+      font-size: 0.8rem;
       color: var(--muted);
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    /* ── LAYOUT ── */
+    /* ── GENERAL LAYOUT FOR WEBPAGES ── */
     .container {
       max-width: 960px;
       margin: 0 auto;
       padding: 3rem 2rem;
     }
 
-    /* ── CARDS ── */
+    /* ── PUT INFORMATION ON CARDS TO LOOK BETTER ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -94,7 +97,7 @@
       margin-bottom: 0.3rem;
     }
 
-    /* ── FORMS ── */
+    /* ── SOME FORMS WILL NEED TO BE FILLED OUT  ── */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -132,7 +135,7 @@
     }
     .form-group select option { background: var(--surface); }
 
-    /* ── BUTTON ── */
+    /* ── GENERAL LOOK OF BUTTONS ── */
     .btn {
       display: inline-block;
       padding: 0.8rem 2.2rem;
@@ -151,7 +154,7 @@
     .btn:hover { background: var(--gold); color: var(--bg); }
     .btn-full { width: 100%; text-align: center; margin-top: 1.5rem; }
 
-    /* ── STAT CHIPS ── */
+    /* ── STAT CHIPS TO DISPLAY INFOMATION ── */
     .stat-row {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -262,20 +265,20 @@
     .badge-amber  { background: rgba(232,148,58,0.15);  color: var(--amber); border: 1px solid rgba(232,148,58,0.3);  }
     .badge-red    { background: rgba(207,102,121,0.15); color: var(--red);   border: 1px solid rgba(207,102,121,0.3); }
 
-    /* ── DIVIDER ── */
+    /* ── BOTTOM DIVIDER ── */
     .divider {
       border: none;
       border-top: 1px solid var(--border);
       margin: 1.5rem 0;
     }
 
-    /* ── FOOTER ── */
+    /* ── INCLUDING A FOOTER ── */
     footer {
       text-align: center;
       padding: 2rem;
       border-top: 1px solid var(--border);
       font-family: var(--font-mono);
-      font-size: 0.65rem;
+      font-size: 0.85rem;
       color: var(--muted);
       letter-spacing: 0.08em;
     }
@@ -291,7 +294,7 @@
   {% block content %}{% endblock %}
 
   <footer>
-    Capstone Project &nbsp;·&nbsp; University of Michigan Applied Data Science &nbsp;·&nbsp; Mock data — not financial advice
+    Investor Gurus | Capstone Project | University of Michigan Master of Applied Data Science | NOT FINANCIAL ADVICE
   </footer>
 </body>
 </html>
