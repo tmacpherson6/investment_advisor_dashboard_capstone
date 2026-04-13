@@ -1,7 +1,7 @@
 """
 app.py - version 1.1
 ────────────────────────────────────────────────────────────────────────────────
-This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes: 
+This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes:
 
 1) The index route ("/") which renders the input form for user data and preferences. This is where users will enter their age, income, net worth, investment experience, and other relevant information that feeds into the risk assessment model.
 
@@ -32,7 +32,7 @@ from logic import (
     get_market_params,
     ETF_UNIVERSE,
     optimize_portfolio,
-    compute_equity_ceiling,  #We aren't using this yet but we may
+    compute_equity_ceiling,  # We aren't using this yet but we may
 )
 
 # Create our Flask app
@@ -42,17 +42,17 @@ app = Flask(__name__)
 # are now computed in logic.py and exposed via get_market_params().
 # ANN_MU is derived from LSTM vol + Sharpe priors. See logic.py for details.
 mp = get_market_params()
-CORR    = mp["corr"]
-ANN_SIG = mp["ann_sig"]       # LSTM 30-trial avg vol (primary)
+CORR = mp["corr"]
+ANN_SIG = mp["ann_sig"]  # LSTM 30-trial avg vol (primary)
 ANN_SIG_HIST = mp["ann_sig_hist"]  # Historical vol from yfinance (for viz)
-ANN_MU  = mp["ann_mu"]        # rf + sharpe_prior * sigma_lstm
+ANN_MU = mp["ann_mu"]  # rf + sharpe_prior * sigma_lstm
 
 # Initialise feedback table (no-op if already exists or no DB configured)
 with app.app_context():
     pass  # init_feedback_db() called below after routes are defined
 
 # Risk-free rate — update to match current BIL yield if desired for more dynamic modelling. Must be consistent with logic.py for ANN_MU derivation.
-RF_ANN = 0.04  
+RF_ANN = 0.04
 
 # Calculate trading days for different horizon options (used in simulation). 252 trading days per year is standard.
 HORIZON_OPTIONS = {
@@ -341,9 +341,16 @@ def analyze():
         gif_b64=gif,
         horizon_years=horizon_years,
         # Vol comparison data for visualization
-        lstm_vol={etf: round(float(ANN_SIG[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
-        hist_vol={etf: round(float(ANN_SIG_HIST[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
-        ann_mu={etf: round(float(ANN_MU[i]*100), 2) for i, etf in enumerate(ETF_UNIVERSE)},
+        lstm_vol={
+            etf: round(float(ANN_SIG[i] * 100), 2) for i, etf in enumerate(ETF_UNIVERSE)
+        },
+        hist_vol={
+            etf: round(float(ANN_SIG_HIST[i] * 100), 2)
+            for i, etf in enumerate(ETF_UNIVERSE)
+        },
+        ann_mu={
+            etf: round(float(ANN_MU[i] * 100), 2) for i, etf in enumerate(ETF_UNIVERSE)
+        },
     )
 
 
@@ -482,12 +489,14 @@ def api_feedback():
 def api_recalculate():
     try:
         data = request.get_json()
-        app.logger.info(f"recalculate payload: {data}") 
-        vol_ceiling   = float(data.get("vol_ceiling", 0.13))
-        start_value   = float(data.get("start_value", 100_000))
+        app.logger.info(f"recalculate payload: {data}")
+        vol_ceiling = float(data.get("vol_ceiling", 0.13))
+        start_value = float(data.get("start_value", 100_000))
         horizon_years = int(data.get("horizon_years", 1))
         weights = optimize_portfolio(
-            ann_mu=ANN_MU, ann_sig=ANN_SIG, corr=CORR,
+            ann_mu=ANN_MU,
+            ann_sig=ANN_SIG,
+            corr=CORR,
             vol_ceiling=vol_ceiling,
             age=int(data.get("age", 45)),
             risk_score=float(data.get("risk_score", 5.0)),
@@ -496,12 +505,14 @@ def api_recalculate():
         stats, gif = build_results(weights, vol_ceiling, start_value, horizon_years)
         return jsonify({"weights": weights, "stats": stats, "gif_b64": gif})
     except Exception as e:
-        app.logger.exception("api_recalculate failed")    
+        app.logger.exception("api_recalculate failed")
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/report")
 def report():
     return render_template("report.html")
+
 
 if __name__ == "__main__":
     init_feedback_db()
