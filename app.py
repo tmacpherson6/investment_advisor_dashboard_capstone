@@ -1,5 +1,5 @@
 """
-app.py - version 1.1
+app.py - version 1.2
 ────────────────────────────────────────────────────────────────────────────────
 This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes:
 
@@ -401,7 +401,7 @@ def get_db_conn():
 
 
 def init_feedback_db():
-    """Idempotently create the risk_feedback table. Call once at startup."""
+    """Create the risk_feedback table. Call once at startup."""
     conn = get_db_conn()
     if conn is None:
         app.logger.warning(

@@ -1,12 +1,12 @@
 """
-logic.py - version 1.6
+logic.py - version 1.7
 ────────────────────────────────────────────────────────────────────────────────
-Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. We are still waiting on the SCF model data for the risk score but that will be added here when we do. We will then have to update the index.html in order to have the appropriate questions that line up to the model. It should be plug and play. 
+Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. We are still waiting on the SCF model data for the risk score but that will be added here when we do. We will then have to update the index.html in order to have the appropriate questions that line up to the model. It should be plug and play.
 
 Current state of parameters
 ───────────────────────────
   REAL:  Correlation matrix is derived from yfinance daily close prices
-  REAL:  Annualised volatility (ANN_SIG) is derived from LSTM predictions using 
+  REAL:  Annualised volatility (ANN_SIG) is derived from LSTM predictions using
          Pete's model (30-trial average, annualised: raw_pred * sqrt(252) * 100)
   REAL:  Expected returns (ANN_MU) this is where we have had to make the most
          significnat change as our LSTM models did not show improvement over dummy models. So we will use an expected return based on a Sharpe-prior method:
@@ -15,7 +15,7 @@ Current state of parameters
          return forecasting was not reliable, so we use economically-motivated
          Sharpe priors (literature and historical data) scaled by forward-looking vol rather than historical mean returns (which are noisy and bull-market biased in our window missing correction risks).
 
-  NB:    HYG vol is floored at 6% annualised. Our model prediction is quite low 
+  NB:    HYG vol is floored at 6% annualised. Our model prediction is quite low
          volatility for a 'Junk Bond' ETF. The LSTM's limited feature set
          (ETF return + vol history only) might be missing credit spread dynamics that drive HYG risk. Floor is documented in our methodology.
 
@@ -32,9 +32,9 @@ Caching (efficiency design)
 Constraints for portfolio optimisation:
 
 Real historical covariance structure from yfinance (correlation matrix)
-LSTM forward-looking vol (30-trial avg) for ANN_SIG 
+LSTM forward-looking vol (30-trial avg) for ANN_SIG
 ANN_MU derivation from our Sharpe-prior method using the LSTM vol forecasts
-Two-tier constraint system with fiduciary rationale 
+Two-tier constraint system with fiduciary rationale
 Age-based equity ceiling with risk score adjustment
 Vol band enforcing risk delivery obligation
 HYG quadratic scaling within FI bucket (conservative risk allocation for high-yield credit in low-risk portfolios)
@@ -52,7 +52,7 @@ import yfinance as yf
 from scipy.optimize import minimize
 
 # Let's pull in the LSTM vol predictions from a CSV that Pete created
-LSTM_VOL_CSV = Path(__file__).parent / "annualized_volatility_predictions.csv"
+LSTM_VOL_CSV = Path(__file__).parent / "data" / "annualized_volatility_predictions.csv"
 
 # Column names in the CSV
 COL_AVG = "Average Volatility (test set)"
@@ -60,60 +60,60 @@ COL_LATEST = "Recent Volatility (latest prediction)"
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  SHARPE PRIORS FOR RETURN DERIVATION
-#  We need to calculate expected returns (ANN_MU) for the optimizer, but our 
-#  LSTM return forecasts were not reliable. Instead, we will use a Sharpe-prior 
-#  method to derive ANN_MU from the LSTM vol forecasts and fixed Sharpe priors 
-#  for each asset. 
+#  We need to calculate expected returns (ANN_MU) for the optimizer, but our
+#  LSTM return forecasts were not reliable. Instead, we will use a Sharpe-prior
+#  method to derive ANN_MU from the LSTM vol forecasts and fixed Sharpe priors
+#  for each asset.
 #
 #  SHARPE PRIORS  (used to derive ANN_MU = rf + sharpe * sigma_lstm)
 #
 #  Anchored to empirical long-run US equity Sharpe of ~0.4–0.5.
 #  Fixed income and alternatives scaled relative to that anchor.
 #  Sources: Ilmanen (2011), Erb & Harvey (2006), AQR research.
-#  
+#
 #  CITATIONS:
-#  Ilmanen, A. (2011). Expected returns: An investor’s guide to harvesting 
+#  Ilmanen, A. (2011). Expected returns: An investor’s guide to harvesting
 #  market rewards. Wiley.
-#  Erb, C. B., & Harvey, C. R. (2006). The strategic and tactical value of 
+#  Erb, C. B., & Harvey, C. R. (2006). The strategic and tactical value of
 #  commodity futures. Financial Analysts Journal, 62(2), 69–97. https://doi.org/
 #  10.2469/faj.v62.n2.4084
 # ─────────────────────────────────────────────────────────────────────────────
 
 SHARPE_PRIORS = {
-    "XLK":  0.50,  # Technology         — highest Sharpe sector historically
-    "XLV":  0.45,  # Health Care        — defensive growth, resilient earnings
-    "XLY":  0.42,  # Consumer Disc.     — cyclical but strong long-run returns
-    "XLF":  0.40,  # Financials         — market-like; rate sensitivity nets out
-    "XLI":  0.38,  # Industrials        — solid but cyclical
-    "XLB":  0.32,  # Materials          — commodity-linked, higher vol/return
-    "XLP":  0.30,  # Consumer Staples   — low vol but low return
+    "XLK": 0.50,  # Technology         — highest Sharpe sector historically
+    "XLV": 0.45,  # Health Care        — defensive growth, resilient earnings
+    "XLY": 0.42,  # Consumer Disc.     — cyclical but strong long-run returns
+    "XLF": 0.40,  # Financials         — market-like; rate sensitivity nets out
+    "XLI": 0.38,  # Industrials        — solid but cyclical
+    "XLB": 0.32,  # Materials          — commodity-linked, higher vol/return
+    "XLP": 0.30,  # Consumer Staples   — low vol but low return
     "XLRE": 0.30,  # Real Estate        — rate-sensitive; yield + limited capital gain
-    "XLE":  0.28,  # Energy             — high vol, volatile commodity exposure
-    "XLU":  0.25,  # Utilities          — bond-proxy; rate risk compresses Sharpe
-    "LQD":  0.30,  # IG Credit          — yield pickup over Treasuries, modest vol
-    "HYG":  0.28,  # High Yield         — equity-like tail risk erodes Sharpe
-    "TIP":  0.25,  # TIPS               — real return protection, low nominal Sharpe
-    "IEF":  0.20,  # Int. Treasuries    — duration risk for modest excess return
-    "TLT":  0.12,  # Long Treasuries    — high duration risk
-    "BIL":  0.10,  # T-Bills            — near-zero excess return by construction
-    "GLD":  0.25,  # Gold               — diversifier; Erb & Harvey long-run estimate
+    "XLE": 0.28,  # Energy             — high vol, volatile commodity exposure
+    "XLU": 0.25,  # Utilities          — bond-proxy; rate risk compresses Sharpe
+    "LQD": 0.30,  # IG Credit          — yield pickup over Treasuries, modest vol
+    "HYG": 0.28,  # High Yield         — equity-like tail risk erodes Sharpe
+    "TIP": 0.25,  # TIPS               — real return protection, low nominal Sharpe
+    "IEF": 0.20,  # Int. Treasuries    — duration risk for modest excess return
+    "TLT": 0.12,  # Long Treasuries    — high duration risk
+    "BIL": 0.10,  # T-Bills            — near-zero excess return by construction
+    "GLD": 0.25,  # Gold               — diversifier; Erb & Harvey long-run estimate
 }
 
 # HYG vol floor: LSTM limited-feature model misses credit spread dynamics.
 # 6% is conservative relative to HYG's typical 8–12% realised (historical) vol.
 # this is where experience in the domain is crucial to identify and compensate for model blind spots which we should talk about in the report.
-HYG_VOL_FLOOR_PCT = 6.0  
+HYG_VOL_FLOOR_PCT = 6.0
 
 logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ETF UNIVERSE FOR PORTFOLIO OPTIMISATION
-#  Sector ETFs give finer-grained risk/reward control vs broad-market ETFs like 
+#  Sector ETFs give finer-grained risk/reward control vs broad-market ETFs like
 #  the SPY or QQQ.
-#  We want to cover everything: sector coverage + yield curve + credit + 
+#  We want to cover everything: sector coverage + yield curve + credit +
 #  inflation + gold.
 #  Note: XLRE (real estate) launched Dec 2015, which sets the common start
-#        date and means pre-2016 history — including the 2008 Great Financial 
+#        date and means pre-2016 history — including the 2008 Great Financial
 #  Crisis — is excluded. This is documented in methodology comments.
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -148,14 +148,14 @@ N = len(ETF_UNIVERSE)
 # ─────────────────────────────────────────────────────────────────────────────
 
 cache = {
-    "corr": None,          
-    "ann_sig": None,       
-    "ann_sig_hist": None,  
-    "ann_mu": None,        
+    "corr": None,
+    "ann_sig": None,
+    "ann_sig_hist": None,
+    "ann_mu": None,
     "etf_universe": ETF_UNIVERSE,
-    "as_of_date": None,    
-    "common_start": None,  
-    "computed_on": None,  
+    "as_of_date": None,
+    "common_start": None,
+    "computed_on": None,
 }
 
 
@@ -194,15 +194,17 @@ def load_lstm_vol(tickers):
                 f"Ticker {ticker} not found in LSTM vol CSV. "
                 "Check that annualized_volatility_predictions.csv is up to date."
             )
-        avg_pct    = float(df.loc[ticker, COL_AVG])
+        avg_pct = float(df.loc[ticker, COL_AVG])
         latest_pct = float(df.loc[ticker, COL_LATEST])
 
         # Here is where we will apply the HYG floor
         if ticker == "HYG":
-            avg_pct    = max(avg_pct,    HYG_VOL_FLOOR_PCT)
+            avg_pct = max(avg_pct, HYG_VOL_FLOOR_PCT)
             latest_pct = max(latest_pct, HYG_VOL_FLOOR_PCT)
             # Log the flooring for transparency when used
-            logger.info(f"HYG vol floored to {HYG_VOL_FLOOR_PCT}% (raw: avg={float(df.loc['HYG', COL_AVG]):.2f}%, latest={float(df.loc['HYG', COL_LATEST]):.2f}%)")
+            logger.info(
+                f"HYG vol floored to {HYG_VOL_FLOOR_PCT}% (raw: avg={float(df.loc['HYG', COL_AVG]):.2f}%, latest={float(df.loc['HYG', COL_LATEST]):.2f}%)"
+            )
 
         # Convert from percentage to decimal
         sig_avg.append(avg_pct / 100.0)
@@ -223,13 +225,11 @@ def derive_ann_mu(ann_sig, tickers, rf):
         tickers: ordered list matching ETF_UNIVERSE
         rf: risk-free rate (annualised, decimal)
     """
-    mu = np.array([
-        rf + SHARPE_PRIORS[t] * ann_sig[i]
-        for i, t in enumerate(tickers)
-    ])
+    mu = np.array([rf + SHARPE_PRIORS[t] * ann_sig[i] for i, t in enumerate(tickers)])
     # Floor: no asset should be less than rf (would be zeroed out by optimizer)
     mu = np.maximum(mu, rf + 0.001)
     return mu
+
 
 def fetch_prices(tickers, start="2005-01-01"):
     """
@@ -251,7 +251,7 @@ def fetch_prices(tickers, start="2005-01-01"):
         threads=True,
     )
 
-    # yfinance returns MultiIndex columns when more than one ticker is 
+    # yfinance returns MultiIndex columns when more than one ticker is
     # requested: (field, ticker)
     # Extract only the "Close" level
     if isinstance(raw.columns, pd.MultiIndex):
@@ -323,7 +323,7 @@ def estimate_correlation(log_returns):
     The resulting matrix is guaranteed to be symmetric. We enforce positive
     semi-definiteness via eigenvalue clipping as a safeguard.
     """
-    corr = log_returns.corr().values  
+    corr = log_returns.corr().values
 
     # ── Enforce positive semi-definiteness ───────────────────────────────
     # Floating-point arithmetic can produce tiny negative eigenvalues.
@@ -406,28 +406,20 @@ IG_FI_TICKERS = {
 }
 
 # Index masks aligned to ETF_UNIVERSE order
-EQUITY_MASK = np.array(
-    [1.0 if t in EQUITY_TICKERS else 0.0 for t in ETF_UNIVERSE]
-)
+EQUITY_MASK = np.array([1.0 if t in EQUITY_TICKERS else 0.0 for t in ETF_UNIVERSE])
 
 # Not sure we will use this one but let's make it incase
-FI_MASK = np.array(
-    [1.0 if t in FI_TICKERS else 0.0 for t in ETF_UNIVERSE]
-)
+FI_MASK = np.array([1.0 if t in FI_TICKERS else 0.0 for t in ETF_UNIVERSE])
 
 # Per-instrument index lookups for intra-bucket constraints
-EQUITY_INDICES = [
-    i for i, t in enumerate(ETF_UNIVERSE) if t in EQUITY_TICKERS
-]
-IG_FI_INDICES = [
-    i for i, t in enumerate(ETF_UNIVERSE) if t in IG_FI_TICKERS
-]
+EQUITY_INDICES = [i for i, t in enumerate(ETF_UNIVERSE) if t in EQUITY_TICKERS]
+IG_FI_INDICES = [i for i, t in enumerate(ETF_UNIVERSE) if t in IG_FI_TICKERS]
 HYG_IDX = ETF_UNIVERSE.index("HYG")
 GLD_IDX = ETF_UNIVERSE.index("GLD")
 
 # Set our absolute per-instrument upper bounds (used as scipy bounds,
 # not constraints)
-# These are loose safety rails, the intra-bucket constraints should do the 
+# These are loose safety rails, the intra-bucket constraints should do the
 # real work
 ABS_CAPS = {
     "XLF": 0.40,
@@ -446,7 +438,7 @@ ABS_CAPS = {
     "LQD": 0.60,
     "HYG": 0.40,
     "TIP": 0.60,
-    "GLD": 0.15,  
+    "GLD": 0.15,
 }
 
 # Keep WEIGHT_CAPS as public alias for any external references just in case
@@ -456,7 +448,7 @@ WEIGHT_CAPS = ABS_CAPS
 def compute_equity_ceiling(age, risk_score):
     """
     Tier-1 equity ceiling as a fraction of total portfolio.
-    
+
     The typical formula in industry for a starting point is 100-age.
 
     Our Formula:
@@ -502,9 +494,9 @@ def build_constraints(
       7. HYG ≤ (risk_score/10)² × 35% of FI bucket  (quadratic)
     """
     # ── Tier-2 derived limits ─────────────────────────────────────────────
-    sector_cap = eq_ceiling * 0.30  
-    ig_fi_cap = fi_bucket * 0.50  
-    hyg_cap = fi_bucket * (risk_score / 10) ** 2 * 0.35 
+    sector_cap = eq_ceiling * 0.30
+    ig_fi_cap = fi_bucket * 0.50
+    hyg_cap = fi_bucket * (risk_score / 10) ** 2 * 0.35
 
     def port_vol(w):
         return float(np.sqrt(w @ cov @ w))
@@ -542,8 +534,8 @@ def optimize_portfolio(
     vol_ceiling,
     age,
     risk_score,
-    rf = 0.04, # default to around 4% would be great to pull in SOFR from FRED API if we have time we need it to match app.py though
-    n_restarts = 5,
+    rf=0.04,  # default to around 4% would be great to pull in SOFR from FRED API if we have time we need it to match app.py though
+    n_restarts=5,
 ):
     """
     Maximise Sharpe ratio subject to the two-tier constraint system as described above.
@@ -680,7 +672,9 @@ def populate_cache():
         logger.info("logic.py: using LSTM volatility predictions (30-trial avg).")
     except (FileNotFoundError, KeyError) as e:
         # log if it didn't work and then have a fallback
-        logger.warning(f"logic.py: LSTM vol unavailable ({e}). Falling back to historical vol.")
+        logger.warning(
+            f"logic.py: LSTM vol unavailable ({e}). Falling back to historical vol."
+        )
         ann_sig = ann_sig_hist
 
     ann_mu = derive_ann_mu(ann_sig, ETF_UNIVERSE, rf)
@@ -692,8 +686,8 @@ def populate_cache():
     cache["as_of_date"] = prices.index[-1].strftime("%Y-%m-%d")
     cache["common_start"] = prices.index[0].strftime("%Y-%m-%d")
     cache["computed_on"] = date.today()
-    
-    # Let's keep up with our logging for transparency and debugging. 
+
+    # Let's keep up with our logging for transparency and debugging.
     logger.info(
         "logic.py: parameters ready. "
         f"Common start: {cache['common_start']}  |  "
@@ -703,8 +697,8 @@ def populate_cache():
     # Log implied return summary for our audit trail
     for i, t in enumerate(ETF_UNIVERSE):
         logger.info(
-            f"  {t}: vol={ann_sig[i]*100:.2f}% (hist={ann_sig_hist[i]*100:.2f}%)  "
-            f"mu={ann_mu[i]*100:.2f}%  sharpe_prior={SHARPE_PRIORS[t]}"
+            f"  {t}: vol={ann_sig[i] * 100:.2f}% (hist={ann_sig_hist[i] * 100:.2f}%)  "
+            f"mu={ann_mu[i] * 100:.2f}%  sharpe_prior={SHARPE_PRIORS[t]}"
         )
 
 
@@ -734,14 +728,15 @@ def get_market_params():
         populate_cache()
 
     return {
-        "corr":         cache["corr"],
-        "ann_sig":      cache["ann_sig"],
+        "corr": cache["corr"],
+        "ann_sig": cache["ann_sig"],
         "ann_sig_hist": cache["ann_sig_hist"],
-        "ann_mu":       cache["ann_mu"],
+        "ann_mu": cache["ann_mu"],
         "etf_universe": cache["etf_universe"],
-        "as_of_date":   cache["as_of_date"],
+        "as_of_date": cache["as_of_date"],
         "common_start": cache["common_start"],
     }
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  STARTUP — compute on import
