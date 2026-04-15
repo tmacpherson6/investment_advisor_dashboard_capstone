@@ -33,7 +33,9 @@
 
   <!-- Form -->
   <form action="/analyze" method="POST">
-    <div class="card">
+
+    <!-- Card 1: Personal Profile -->
+    <div class="card" style="margin-bottom: 1.5rem;">
       <span class="card-label" style="font-size: 0.8rem; font-weight: bold;">Personal Profile</span>
       <h2 style="font-size: 2.4rem;">Demographics</h2>
       <hr class="divider">
@@ -41,61 +43,144 @@
 
         <div class="form-group">
           <label>Age</label>
-          <input type="number" name="age" placeholder="e.g. 42" min="18" max="90" required>
-        </div>
-
-        <div class="form-group">
-          <label>Annual Household Income ($)</label>
-          <input type="number" name="income" placeholder="e.g. 150000" min="0" required>
-        </div>
-
-        <div class="form-group">
-          <label>Net Worth ($)</label>
-          <input type="number" name="net_worth" placeholder="e.g. 500000" min="0" required>
+          <input type="number" name="age" placeholder="e.g. 42" min="18" max="95" required>
         </div>
 
         <div class="form-group">
           <label>Education Level</label>
-          <select name="education" required>
+          <select name="educ" required>
             <option value="" disabled selected>Select level</option>
-            <option value="1">High School or Less</option>
-            <option value="2">Some College</option>
-            <option value="3">Bachelor's Degree</option>
-            <option value="4">Graduate Degree</option>
+            <option value="8">No high school diploma</option>
+            <option value="9">High school diploma / GED</option>
+            <option value="10">Some college, no degree</option>
+            <option value="11">Associate degree</option>
+            <option value="12">Bachelor's degree</option>
+            <option value="14">Graduate or professional degree</option>
           </select>
         </div>
 
         <div class="form-group">
-          <label>Investment Experience</label>
-          <select name="investment_experience" required>
-            <option value="" disabled selected>Select experience</option>
-            <option value="1">None</option>
-            <option value="2">Limited (1–3 years)</option>
-            <option value="3">Moderate (3–10 years)</option>
-            <option value="4">Experienced (10+ years)</option>
-          </select>
+          <label>Number of Dependent Children</label>
+          <input type="number" name="kids" placeholder="e.g. 2" min="0" max="15" value="0" required>
         </div>
 
         <div class="form-group">
-          <label>Investment Horizon</label>
-          <select name="horizon" required>
-            <option value="" disabled selected>Select horizon</option>
-            <option value="short">Short-term (< 2 years)</option>
-            <option value="medium">Medium-term (2–7 years)</option>
-            <option value="long">Long-term (7+ years)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Employment Status</label>
-          <select name="employment" required>
+          <label>Marital Status</label>
+          <select name="married" required>
             <option value="" disabled selected>Select status</option>
-            <option value="1">Employed (salaried)</option>
-            <option value="2">Self-employed</option>
-            <option value="3">Retired</option>
-            <option value="4">Other</option>
+            <option value="1">Married or living with partner</option>
+            <option value="2">Not married</option>
           </select>
         </div>
+
+      </div>
+    </div>
+
+    <!-- Card 2: Income -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <span class="card-label" style="font-size: 0.8rem; font-weight: bold;">Income</span>
+      <h2 style="font-size: 2.4rem;">Household Income</h2>
+      <hr class="divider">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Total Annual Household Income ($)</label>
+          <input type="number" name="income" placeholder="e.g. 150000" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Wage / Salary Income ($)</label>
+          <input type="number" name="wageinc" placeholder="e.g. 120000" min="0" value="0" required>
+          <small style="color: var(--muted); font-size: 0.78rem;">Enter 0 if retired or self-employed</small>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Card 3: Balance Sheet -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <span class="card-label" style="font-size: 0.8rem; font-weight: bold;">Balance Sheet</span>
+      <h2 style="font-size: 2.4rem;">Assets &amp; Liabilities</h2>
+      <hr class="divider">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>Net Worth ($)</label>
+          <input type="number" name="networth" placeholder="e.g. 500000" required>
+          <small style="color: var(--muted); font-size: 0.78rem;">Can be negative</small>
+        </div>
+
+        <div class="form-group">
+          <label>Total Assets ($)</label>
+          <input type="number" name="asset" placeholder="e.g. 800000" min="0" value="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Total Debt ($)</label>
+          <input type="number" name="debt" placeholder="e.g. 300000" min="0" value="0" required>
+        </div>
+
+        <div class="form-group">
+          <label>Liquid Assets ($)</label>
+          <input type="number" name="liq" placeholder="e.g. 50000" min="0" value="0" required>
+          <small style="color: var(--muted); font-size: 0.78rem;">Checking, savings, money market</small>
+        </div>
+
+        <div class="form-group">
+          <label>Financial Assets ($)</label>
+          <input type="number" name="fin" placeholder="e.g. 200000" min="0" value="0" required>
+          <small style="color: var(--muted); font-size: 0.78rem;">Stocks, bonds, retirement accounts</small>
+        </div>
+
+        <div class="form-group">
+          <label>Real Estate Value ($)</label>
+          <input type="number" name="houses" placeholder="e.g. 400000" min="0" value="0" required>
+          <small style="color: var(--muted); font-size: 0.78rem;">Primary residence and other property</small>
+        </div>
+
+        <div class="form-group">
+          <label>Vehicle Value ($)</label>
+          <input type="number" name="vehic" placeholder="e.g. 30000" min="0" value="0" required>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Card 4: Spending Behavior -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <span class="card-label" style="font-size: 0.8rem; font-weight: bold;">Spending Behavior</span>
+      <h2 style="font-size: 2.4rem;">Savings &amp; Spending</h2>
+      <hr class="divider">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>How does your spending compare to your income?</label>
+          <select name="wsaved" required>
+            <option value="" disabled selected>Select one</option>
+            <option value="1">I spend more than I earn</option>
+            <option value="2">I spend about what I earn</option>
+            <option value="3">I spend less than I earn</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Did you spend less than your income last year?</label>
+          <select name="saved" required>
+            <option value="" disabled selected>Select one</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Card 5: Portfolio Settings -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <span class="card-label" style="font-size: 0.8rem; font-weight: bold;">Portfolio Settings</span>
+      <h2 style="font-size: 2.4rem;">Simulation Parameters</h2>
+      <hr class="divider">
+      <div class="form-grid">
 
         <div class="form-group">
           <label>Initial Investment Amount ($)</label>
