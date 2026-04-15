@@ -181,12 +181,6 @@ project/
 ├── requirements.txt
 ├── README.md
 │
-├── src/
-│   ├── data_prep.py                Data preparation utilities for model training
-│   ├── model_testing_volatility.py Volatility model evaluation and baseline comparison
-│   ├── models.py                   Model definitions
-│   └── viz.py                      Visualisation utilities
-│
 ├── templates/
 │   ├── base.html                   Shared base layout
 │   ├── index.html                  Investor questionnaire
@@ -216,7 +210,13 @@ project/
     ├── Tom's Notebook 1–5          Data pipeline and SCF exploration (see table below)
     ├── Pete-A*/B*/C*/D*            LSTM volatility model pipeline (see table below)
     ├── Ryan-SCF_*                  Random Forest risk tolerance prediction
-    └── Kristine_SCF_*              SCF regression analysis (R kernel)
+    ├── Kristine_SCF_*              SCF regression analysis (R kernel)
+    ├── __init.py__
+    └── helpers/
+        ├── data_prep.py                Data preparation utilities for model training
+        ├── model_testing_volatility.py Volatility model evaluation and baseline comparison
+        ├── models.py                   Model definitions
+        └── viz.py                      Visualisation utilities
 ```
 
 ### Notebooks
