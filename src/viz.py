@@ -1,5 +1,8 @@
 #123456789012345678901234567890123456789012345678901234567890123456789012345678
-"""This module contains data visualization helper functions."""
+"""This module contains data visualization helper functions.
+
+Author: Pete King
+"""
 
 import numpy as np
 import pandas as pd

@@ -1,6 +1,8 @@
 #123456789012345678901234567890123456789012345678901234567890123456789012345678
 """This module tests model predictions of future market sector volatility.
 
+Author: Pete King
+
 We chose a variety of Exchange Traded Funds (ETFs) to represent different 
 market sectors, and we test three types of models, using three different 
 feature sets each, to predict realized (historical) volatilty for each sector.

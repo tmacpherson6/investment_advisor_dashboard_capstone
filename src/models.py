@@ -1,5 +1,8 @@
 #123456789012345678901234567890123456789012345678901234567890123456789012345678
-"""This module defines the deep-learning models we use in our analyses."""
+"""This module defines the deep-learning models we use in our analyses.
+
+Author: Pete King
+"""
 
 import pandas as pd
 import torch
