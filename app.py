@@ -1,5 +1,5 @@
 """
-app.py - version 1.2
+app.py - version 1.3
 ────────────────────────────────────────────────────────────────────────────────
 This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes:
 

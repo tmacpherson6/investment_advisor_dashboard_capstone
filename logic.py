@@ -1,5 +1,5 @@
 """
-logic.py - version 1.7
+logic.py - version 1.8
 ────────────────────────────────────────────────────────────────────────────────
 Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. We are still waiting on the SCF model data for the risk score but that will be added here when we do. We will then have to update the index.html in order to have the appropriate questions that line up to the model. It should be plug and play.
 
