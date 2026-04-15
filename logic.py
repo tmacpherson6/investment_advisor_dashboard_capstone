@@ -46,13 +46,76 @@ import logging
 from datetime import date
 from pathlib import Path
 
+import joblib
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from scipy.optimize import minimize
 
+BASE_DIR = Path(__file__).resolve().parent
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  RF RISK MODEL  (trained in notebooks/Ryan_SCF_Random_Forest_Risk_Pred.ipynb)
+# ─────────────────────────────────────────────────────────────────────────────
+RF_MODEL_PATH = BASE_DIR / "models" / "rf_risk_model.joblib"
+rf_model = None 
+
+
+def get_rf_model():
+    global rf_model
+    if rf_model is None:
+        rf_model = joblib.load(RF_MODEL_PATH)
+    return rf_model
+
+
+RF_FEATURE_COLS = [
+    "age", "educ", "kids", "married",
+    "income", "wageinc",
+    "networth", "asset", "debt", "liq", "fin", "houses", "vehic",
+    "wsaved", "saved",
+]
+
+
+def rf_risk_score(form_data):
+    """
+    Build the 15-feature vector from submitted form data and run the SCF
+    Random Forest pipeline to predict a 0–10 risk tolerance score.
+
+    Falls back to a simple heuristic if the model file is not yet available
+    (i.e. the notebook has not been run yet).
+    """
+    row = {col: float(form_data.get(col, 0)) for col in _RF_FEATURE_COLS}
+    X = pd.DataFrame([row], columns=RF_FEATURE_COLS)
+
+    try:
+        raw_score = float(get_rf_model().predict(X)[0])
+    except Exception:
+        # Model not yet trained — fall back to a simple heuristic so the app
+        # stays runnable before the notebook is executed.
+        age = row["age"]
+        income = row["income"]
+        wsaved = row["wsaved"]
+        raw_score = 5.0 + (3 - wsaved) * 1.5 + (income / 100_000 - 1) * 0.4 - (age - 45) / 30
+
+    score = float(np.clip(round(raw_score, 1), 0, 10))
+
+    # Vol-ceiling bands (we will need to recalibrate this after QuantileTransformer is added or we address the scaling)
+    if score <= 2.0:
+        vol_ceiling = 0.05
+    elif score <= 4.0:
+        vol_ceiling = 0.08
+    elif score <= 6.0:
+        vol_ceiling = 0.13
+    elif score <= 8.0:
+        vol_ceiling = 0.18
+    else:
+        vol_ceiling = 0.24
+
+    return {"score": score, "vol_ceiling": vol_ceiling}
+
+
 # Let's pull in the LSTM vol predictions from a CSV that Pete created
-LSTM_VOL_CSV = Path(__file__).parent / "data" / "annualized_volatility_predictions.csv"
+LSTM_VOL_CSV = BASE_DIR / "data" / "annualized_volatility_predictions.csv"
 
 # Column names in the CSV
 COL_AVG = "Average Volatility (test set)"
