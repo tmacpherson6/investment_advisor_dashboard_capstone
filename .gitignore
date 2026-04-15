@@ -8,6 +8,13 @@ data/fred_data.csv
 data/yfinance_data.csv
 data/raw_data_prediction_dataset.csv
 data/stationary_prediction_dataset.csv
+data/etf_raw_data.csv
+data/indices_raw_data.csv
+data/filled_indices_data.csv
+data/etf_transformed.csv
+data/indices_transformed.csv
+data/fred_transformed.csv
+data/etf_transformed_log.csv
 .ipynb_checkpoints/
 .venv/
 venv/
