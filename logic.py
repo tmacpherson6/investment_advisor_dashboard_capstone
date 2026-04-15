@@ -84,7 +84,7 @@ def rf_risk_score(form_data):
     Falls back to a simple heuristic if the model file is not yet available
     (i.e. the notebook has not been run yet).
     """
-    row = {col: float(form_data.get(col, 0)) for col in _RF_FEATURE_COLS}
+    row = {col: float(form_data.get(col, 0)) for col in RF_FEATURE_COLS}
     X = pd.DataFrame([row], columns=RF_FEATURE_COLS)
 
     try:
