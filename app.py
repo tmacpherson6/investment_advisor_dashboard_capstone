@@ -415,7 +415,7 @@ def init_feedback_db():
     conn.close()
 
 
-FEEDBACK_LOG = os.path.join(os.path.dirname(__file__), "feedback_log.jsonl")
+FEEDBACK_LOG = os.path.join(os.path.dirname(__file__), "data", "feedback_log.jsonl")
 
 
 @app.route("/api/feedback", methods=["POST"])
