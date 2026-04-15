@@ -235,7 +235,7 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 | A-series | Pete-A1 through Pete-A4 | Initial data inspection, hold-out split, early LSTM prototypes |
 | B-series | Pete-B1 through Pete-B9 | Full feature engineering, train/val/test splits, Ridge/GBR/LSTM model development |
 | C-series | Pete-C3 through Pete-C9 | Downsampled (weekly) pipeline — feature engineering, PCA, model variants |
-| D-series | Pete-D1 | Annualised volatility aggregation → **`annualized_volatility_predictions.csv`** (consumed by `logic.py`) |
+| D-series | Pete-D1 through D2 | Annualised volatility prediction results from ensemble model → **`annualized_volatility_predictions.csv`** (consumed by `logic.py`) |
 
 **Ryan's notebook**
 | Notebook | Purpose |
@@ -254,14 +254,14 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 ## Technologies Used
 
 - Python 3.11
+- R
 - Flask
-- yfinance
+- yfinance / fredapi
 - NumPy / Pandas
-- SciPy (SLSQP optimisation)
-- Matplotlib / Pillow (GIF generation)
+- Matplotlib / Pillow (GIF generation) / Altair / seaborn
 - PyTorch (LSTM volatility model)
 - scikit-learn (Ridge, GBR, PCA, Random Forest)
-- fredapi (FRED macro data)
+- SciPy (SLSQP optimisation)
 - Jupyter / JupyterLab
 
 ---
