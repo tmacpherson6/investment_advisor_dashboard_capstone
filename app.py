@@ -33,6 +33,7 @@ from logic import (
     ETF_UNIVERSE,
     optimize_portfolio,
     compute_equity_ceiling,  # We aren't using this yet but we may
+    rf_risk_score,
 )
 
 # Create our Flask app
@@ -319,7 +320,7 @@ def analyze():
     horizon_years = int(form_data.get("horizon_years", 1))
     age = int(form_data.get("age", 45))
 
-    risk = mock_risk_score(form_data)
+    risk = rf_risk_score(form_data)
     weights = optimize_portfolio(
         ann_mu=ANN_MU,
         ann_sig=ANN_SIG,
