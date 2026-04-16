@@ -1406,11 +1406,7 @@ Financial advising is traditionally expensive, inconsistent, and largely inacces
             <h3 class="subsection-heading">C.3 Correlation Analysis</h3>
 
             <figure class="report-figure">
-                {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_a2_corr_heatmap.png') }}" alt="Feature correlation heatmap"> #}
-                <div class="figure-placeholder">
-                    [ Correlation Heatmap · Figure A-2 ]
-                    <span class="fig-filename">static/fig_a2_corr_heatmap.png</span>
-                </div>
+                <img src="{{ url_for('static', filename='fig_a2_corr_heatmap.png') }}" alt="Feature correlation heatmap">
                 <figcaption>
                     <strong>Figure A-2.</strong> Correlation matrix of features used in volatility forecasting.
                     The top row reflects correlation with the target (SPY_vol_target). Near-term historical
@@ -1423,22 +1419,14 @@ Financial advising is traditionally expensive, inconsistent, and largely inacces
 
             <div class="figure-pair">
                 <figure class="report-figure">
-                    {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_a3a_strong_corr.png') }}" alt="Strong correlation: vol vs future vol"> #}
-                    <div class="figure-placeholder" style="height: 200px;">
-                        [ Strong Correlation · A-3a ]
-                        <span class="fig-filename">static/fig_a3a_strong_corr.png</span>
-                    </div>
+                    <img src="{{ url_for('static', filename='fig_a3a_strong_corr.png') }}" alt="Strong correlation: vol vs future vol">
                     <figcaption>
                         <strong>Figure A-3a.</strong> Strong correlation between historical volatility and
                         future realised volatility — making accurate near-term forecasting achievable.
                     </figcaption>
                 </figure>
                 <figure class="report-figure">
-                    {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_a3b_weak_corr.png') }}" alt="Weak correlation: return vs future return"> #}
-                    <div class="figure-placeholder" style="height: 200px;">
-                        [ Weak Correlation · A-3b ]
-                        <span class="fig-filename">static/fig_a3b_weak_corr.png</span>
-                    </div>
+                    <img src="{{ url_for('static', filename='fig_a3b_weak_corr.png') }}" alt="Weak correlation: return vs future return"> 
                     <figcaption>
                         <strong>Figure A-3b.</strong> Weak correlation between historical return and future
                         return — confirming that return forecasting from these features is not viable.
