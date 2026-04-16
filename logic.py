@@ -529,20 +529,21 @@ def compute_equity_ceiling(age, risk_score):
     Tier-1 equity ceiling as a fraction of total portfolio.
 
     The typical formula in industry for a starting point is 100-age.
+    We use 110-age to account for increased longevity.
 
     Our Formula:
-    Formula: (100 - age) + (risk_score - 5) * 3
+    Formula: (110 - age) + (risk_score - 5) * 3
 
     Design rationale
     ────────────────
-    - 100-age baseline: classic rule of thumb for equity allocation, reflecting decreasing risk capacity with age.
+    - 110-age baseline: extended rule of thumb accounting for increased longevity, reflecting decreasing risk capacity with age.
     - Risk score adjustment: ±15% swing around the age baseline.
-    - Hard ceiling: 90% for risk_score < 9 (fiduciary conservatism).
-    - Risk score >= 9: formula runs freely up to 100%.
+    - Hard ceiling: 90% for risk_score < 7 (fiduciary conservatism).
+    - Risk score >= 7: formula runs freely up to 100%.
     - Floor: 10% minimum equity regardless of age/score.
     """
-    raw = (100 - age) + (risk_score - 5) * 3
-    if risk_score >= 9:
+    raw = (110 - age) + (risk_score - 5) * 3
+    if risk_score >= 7:
         ceiling_pct = float(np.clip(raw, 10, 100))
     else:
         ceiling_pct = float(np.clip(raw, 10, 90))
