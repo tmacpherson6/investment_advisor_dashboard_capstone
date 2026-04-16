@@ -203,6 +203,16 @@ project/
 │   ├── volatility_baseline.json    Baseline metrics for vol model comparison
 │   └── volatility_results.json     Full vol model results
 │
+├── static/
+│   ├── fig_a1_spy_return.png       Static image of SPY retruns for report
+│   ├── fig_a2_corr_heatmap.png     Correlation matrix for report
+│   ├── fig_a3a_strong_corr.png     Moderately Strong Correlation image for report
+│   ├── fig_a3b_weak_corr.png       Weak Correlation image for report
+│   ├── fig_a4a_low_tracking.png    Low Tracking Model Output image for report
+│   ├── fig_a4b_high_tracking.png   High Tracking Model Output image for report
+│   ├── fig_mae_distribution.png    Grouping of mae box-whisker plots for report
+│   └── fig_pipeline_architecture.png DAG of the model pipeline for the report
+│
 └── notebooks/
     ├── Tom's Notebook 1–5          Data pipeline and SCF exploration (see table below)
     ├── Pete-A*/B*/C*/D*            LSTM volatility model pipeline (see table below)
