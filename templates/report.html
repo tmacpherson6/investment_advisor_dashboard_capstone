@@ -605,7 +605,7 @@
             <p class="report-subtitle">Optimizing Portfolio Return and Volatility Within Investor Risk Tolerance</p>
             <div class="report-meta">
                 <span><strong>Authors</strong> Peter King, Ryan Peet, Kristine Zhou, Thomas MacPherson</span>
-                <span><strong>Course</strong> SIADS 699 — Team 14, Investor Gurus</span>
+                <span><strong>Course</strong> SIADS 699 — Team 14 | Investor Gurus</span>
                 <span><strong>Status</strong> <span class="badge badge-yellow">Draft</span></span>
             </div>
         </header>
@@ -620,25 +620,9 @@
 
             <h3 class="subsection-heading" id="intro-overview">1.1 Overview</h3>
             <p>
-                Financial advising is traditionally expensive, inconsistent, and largely inaccessible to
-                investors without significant wealth. While robo-advisors have begun to automate the process,
-                most continue to operate as black boxes — relying on coarse risk categories and obscuring the
-                assumptions behind their recommendations. This project introduces a three-component pipeline to
-                address this gap.
+Financial advising is traditionally expensive, inconsistent, and largely inaccessible to investors without significant wealth. While robo-advisors have begun to automate the process, most continue to operate as black boxes. Meaning, they rely on coarse risk categories and obscuring assumptions behind their recommendations. This project introduces a three-component pipeline to address this gap. First, a risk tolerance classifier that produces a continuous client risk score from nationally representative survey data. Secondly, a volatility forecasting model whose predictions serve as inputs to a Sharpe-prior return estimation method, together producing forward-looking expected returns for each instrument. Finally a constrained mean-variance optimizer that combines these inputs into an individualized, risk-calibrated portfolio. The central contribution is not any single model but the end-to-end integration of all three, with results presented through an interactive client dashboard. 
             </p>
-            <p>
-                First, a risk tolerance classifier that produces a continuous client risk score from nationally
-                representative survey data. Second, a volatility forecasting model whose predictions serve as
-                inputs to a Sharpe-prior return estimation method, together producing forward-looking expected
-                returns for each instrument. Finally, a constrained mean-variance optimizer that combines these
-                inputs into an individualized, risk-calibrated portfolio.
-            </p>
-            <p>
-                The central contribution is not any single model but the end-to-end integration of all three,
-                with results presented through an interactive client dashboard. The value of the system lies in
-                how accurately each component hands off data to the next, as much as the performance of each
-                in isolation.
-            </p>
+            
 
             <h3 class="subsection-heading" id="intro-background">1.2 Background</h3>
 
@@ -650,46 +634,17 @@
 
             <h4 class="subsubsection-heading" id="bg-volatility">1.2.2 Volatility Forecasting</h4>
             <p>
-                Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic
-                (ARCH) class of stochastic processes, econometric models assumed a "constant one-period
-                forecast variance." Engle's observation that the future variance of a stochastic process
-                depends on recent past values paved the way for new approaches in volatility forecasting. Many
-                recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to
-                estimate future volatility, exploiting such models' ability to learn dependencies and
-                relationships between variables over time (Assaf et al., 2022; Zhang et al., 2025; Peter et al., 2026).
+               Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic (ARCH) class of stochastic processes, econometric models assumed a "constant one-period forecast variance."  Engle's observation that the future variance of a stochastic process depends on recent past values paved the way for new approaches in volatility forecasting.  Many recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to estimate future volatility, exploiting such models' ability to learn dependencies and relationships between variables over time (Assaf, et al. (2022), Zhang, et al. (2025), and Peter, et al. (2026)).
             </p>
             <p>
-                Our study takes a novel approach by focusing on volatility for specific market sectors in the
-                U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall
-                market volatility. Furthermore, we establish a practical benchmark by comparing our model's
-                performance to the Cboe Volatility Index (ticker: ^VIX) — widely considered "the most popular
-                gauge" of future (30-day) market volatility (Schwab, 2025).
+                Our study takes a novel approach by focusing on volatility for specific market sectors in the U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall market volatility.  Furthermore, we establish a practical benchmark by comparing our model's performance to the Cboe Volatility Index (ticker: ^VIX) -- widely considered the "the most popular gauge" of future (30-day) market volatility (Schwab, 2025).
             </p>
 
             <h4 class="subsubsection-heading" id="bg-portfolio">1.2.3 Portfolio Optimization</h4>
             <p>
-                The foundation of modern portfolio construction is Harry Markowitz's (1952) mean-variance
-                framework. Markowitz demonstrated that a rational investor, given a set of assets with known
-                expected returns and covariances, should select a portfolio that maximises return for a given
-                level of variance — or equivalently, minimise risk for a target expected return. This defines
-                an "efficient frontier" of portfolios; any portfolio lying below it is suboptimal because a
-                better risk-return trade-off is achievable.
+                Portfolio construction in this project is grounded in Markowitz’s (1952) mean variance framework, which states that a rational investor should try to maximize their return for a given level of risk. A common metric derived from this is the Sharpe ratio, which measures return per unit of risk above a risk-free baseline (Sharpe, 1966). In practice, classic mean-variance optimization is highly sensitive to input estimates, often producing unstable portfolios (Michaud, 1989), and requires boundaries on individual assets and specific diversification requirements to prevent extreme concentration in a single asset. In this pipeline, those constraints are driven directly from a modelled client risk score.
             </p>
-            <p>
-                A key metric derived from this framework is the Sharpe ratio, which normalises excess return
-                above the risk-free rate by portfolio volatility (Sharpe, 1966). Maximising the Sharpe ratio
-                selects the point on the efficient frontier offering the greatest return per unit of risk.
-            </p>
-            <p>
-                In practice, the classical framework carries well-documented limitations. Estimated expected
-                returns and covariances are sensitive to the historical window used, and small input variations
-                can produce dramatically different optimal portfolios (Michaud, 1989). Robust implementations
-                require explicit constraints that the unconstrained frontier ignores: bounds on individual
-                assets to prevent extreme concentration, sector-level exposure limits, and diversification
-                requirements. Critically, the choice of constraint encodes investment philosophy and risk
-                tolerance — the link this pipeline aims to formalise, by deriving constraints directly from
-                an estimated client risk score rather than a generic risk bucket.
-            </p>
+          
         </section>
 
 
@@ -702,9 +657,8 @@
 
             <h3 class="subsection-heading" id="challenge">2.1 The Challenge</h3>
             <p>
-                The challenge was to build an integrated data science pipeline that translates individualised
-                investor profiles into a personalised investment strategy through risk scoring, volatility
-                forecasting, and constrained portfolio optimisation.
+              The challenge was to build an integrated data science pipeline that translates individualized investor profiles into a personalized investment strategy through risk scoring, volatility forecasting, and constrained portfolio optimization. 
+
             </p>
 
             <h3 class="subsection-heading" id="subproblems">2.2 Sub-Problems</h3>
@@ -717,13 +671,7 @@
 
             <h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
             <p>
-                For the second component of our portfolio generation pipeline, our goal was to forecast
-                <strong>realized volatility</strong> (also referred to as historical volatility) for a
-                collection of sector-representative ETFs over a 21 business day (30 calendar day) outlook. A
-                brief discussion of return and volatility is included in the appendix. Our goals were to
-                achieve forecast accuracy on par or superior to the VIX for the S&amp;P 500 ETF (ticker: SPY),
-                and to create sector-specific forecasts with comparable accuracy to what the VIX achieves for
-                the S&amp;P 500 more broadly.
+               For the second component of our portfolio generation pipeline, our goal was to forecast realized volatility (also referred to as historical volatility) for a collection of sector-representative ETFs over a 21 business day (30 calendar day) outlook.  A brief discussion of return and volatility is included in the appendix to this report.  Our goals were to achieve forecast accuracy on par or superior to the VIX for the S&P 500 ETF (ticker: SPY) and to create sector-specific forecasts with comparable accuracy to what the VIX achieves for the S&P 500.
             </p>
 
             <h4 class="subsubsection-heading" id="subproblem-port">2.2.3 Maximising Return while Limiting Portfolio Volatility</h4>
@@ -921,11 +869,7 @@
             <h3 class="subsection-heading" id="architecture">2.5 Three-Component Pipeline Architecture</h3>
 
             <figure class="report-figure">
-                {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_pipeline_architecture.png') }}" alt="Three-component pipeline architecture diagram"> #}
-                <div class="figure-placeholder">
-                    [ Architecture Diagram ]
-                    <span class="fig-filename">static/fig_pipeline_architecture.png</span>
-                </div>
+                <img src="{{ url_for('static', filename='fig_pipeline_architecture.png') }}" alt="Three-component pipeline architecture diagram">
                 <figcaption>
                     <strong>Figure 1.</strong> Three-component pipeline architecture: SCF risk scoring →
                     LSTM volatility forecasting → constrained Markowitz optimisation → PortfolioIQ dashboard.
@@ -1085,11 +1029,7 @@
             </p>
 
             <figure class="report-figure">
-                {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_mae_distribution.png') }}" alt="LSTM MAE distribution over 30 trials vs VIX baseline"> #}
-                <div class="figure-placeholder">
-                    [ LSTM MAE Distribution · Figure 2 ]
-                    <span class="fig-filename">static/fig_mae_distribution.png</span>
-                </div>
+                <img src="{{ url_for('static', filename='fig_mae_distribution.png') }}" alt="LSTM MAE distribution over 30 trials vs VIX baseline">
                 <figcaption>
                     <strong>Figure 2.</strong> LSTM model MAE distribution over 30 independent trials compared
                     to the VIX baseline MAE (red dashed line), in units of annualised volatility. The "limited"
@@ -1404,11 +1344,7 @@
             </p>
 
             <figure class="report-figure">
-                {# Replace placeholder with: <img src="{{ url_for('static', filename='fig_a1_spy_return.png') }}" alt="SPY daily return since 1993"> #}
-                <div class="figure-placeholder">
-                    [ SPY Daily Return · Figure A-1 ]
-                    <span class="fig-filename">static/fig_a1_spy_return.png</span>
-                </div>
+                <img src="{{ url_for('static', filename='fig_a1_spy_return.png') }}" alt="SPY daily return since 1993">                 
                 <figcaption>
                     <strong>Figure A-1.</strong> Daily return for the S&amp;P 500 ETF (SPY) since inception
                     in 1993. Low baseline volatility (~1.2%) is punctuated by multi-month elevated volatility
