@@ -1,15 +1,29 @@
-<!-- 
+<!--
   AI Assistance Disclosure:
-  HTML and CSS in this file was substantially generated 
-  using Claude (Anthropic, claude.ai) and subsequently 
-  reviewed, modified, and validated by the author to 
-  ensure it meets project requirements. The author takes 
+  HTML and CSS in this file was substantially generated
+  using Claude (Anthropic, claude.ai) and subsequently
+  reviewed, modified, and validated by the author to
+  ensure it meets project requirements. The author takes
   full responsibility for the final code.
-  
-  We also read and used the text "HTML & CSS: Design and Build Websites" by Jon Duckett as a reference and guide for the design and structure of this dashboard allowing us to accurately review and edit the AI-generated code to meet our needs.
-  
-  Reference: Duckett, J. (2011). HTML & CSS: Design and 
-  Build Websites. John Wiley & Sons.
+
+  We also read and used the text "HTML & CSS: Design and Build Websites" by Jon Duckett
+  as a reference and guide for the design and structure of this dashboard allowing us to
+  accurately review and edit the AI-generated code to meet our needs.
+
+  Reference: Duckett, J. (2011). HTML & CSS: Design and Build Websites. John Wiley & Sons.
+
+  ══════════════════════════════════════════════════════════════
+  IMAGE MANIFEST — save these files to static/report/
+  ══════════════════════════════════════════════════════════════
+  fig_pipeline_architecture.png  →  3-component pipeline diagram         (§ 2.5 Architecture)
+  fig_mae_distribution.png       →  LSTM MAE distribution over 30 trials  (§ 3.2 Results)
+  fig_a1_spy_return.png          →  SPY daily return since 1993           (Appendix C-1)
+  fig_a2_corr_heatmap.png        →  Feature correlation heatmap           (Appendix C-3)
+  fig_a3a_strong_corr.png        →  Strong correlation — vol vs future    (Appendix C-3)
+  fig_a3b_weak_corr.png          →  Weak correlation — return vs future   (Appendix C-3)
+  fig_a4a_low_tracking.png       →  Low tracking score — GBR w/ PCA      (Appendix C-4)
+  fig_a4b_high_tracking.png      →  High tracking score — LSTM limited    (Appendix C-4)
+  ══════════════════════════════════════════════════════════════
 -->
 
 {% extends "base.html" %}
@@ -21,18 +35,17 @@
 <style>
     /* ── Report-scoped aliases → base.html tokens ──────────── */
     :root {
-        --report-max-width: 860px;
-        --report-gutter: 2rem;
-        --color-ink:        var(--text);
-        --color-ink-muted:  var(--muted);
-        --color-rule:       var(--border);
-        --color-accent:     var(--gold);
-        --color-accent-bg:  color-mix(in srgb, var(--gold) 8%, var(--surface));
-        --color-warn-bg:    color-mix(in srgb, var(--amber) 10%, var(--surface));
-        --color-warn-border:var(--amber);
-        --color-table-head: var(--surface);
+        --report-gutter:      2rem;
+        --color-ink:          var(--text);
+        --color-ink-muted:    var(--muted);
+        --color-rule:         var(--border);
+        --color-accent:       var(--gold);
+        --color-accent-bg:    color-mix(in srgb, var(--gold) 8%, var(--surface));
+        --color-warn-bg:      color-mix(in srgb, var(--amber) 10%, var(--surface));
+        --color-warn-border:  var(--amber);
+        --color-table-head:   var(--surface);
         --color-table-stripe: color-mix(in srgb, var(--surface) 60%, var(--bg));
-        --lh-body: 1.75;
+        --lh-body: 1.78;
     }
 
     /* ── Layout ────────────────────────────────────────────── */
@@ -46,7 +59,7 @@
 
     .report-grid {
         display: grid;
-        grid-template-columns: 220px 1fr;
+        grid-template-columns: 230px 1fr;
         gap: 0;
         max-width: 1200px;
         margin: 0 auto;
@@ -57,20 +70,23 @@
     .report-toc {
         position: sticky;
         top: 1.5rem;
-        padding: 2rem 1.5rem 2rem 0;
+        max-height: calc(100vh - 3rem);
+        overflow-y: auto;
+        padding: 2rem 1.25rem 2rem 0;
         font-family: var(--font-sans);
-        font-size: 0.78rem;
+        font-size: 0.76rem;
         border-right: 1px solid var(--color-rule);
         background: var(--bg);
+        scrollbar-width: thin;
     }
 
     .toc-label {
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        font-weight: 600;
+        font-weight: 700;
         color: var(--color-ink-muted);
         margin-bottom: 1rem;
-        font-size: 0.7rem;
+        font-size: 0.68rem;
     }
 
     .toc-list {
@@ -79,18 +95,15 @@
         padding: 0;
     }
 
-    .toc-list li {
-        margin-bottom: 0.35rem;
-    }
+    .toc-list li { margin-bottom: 0.25rem; }
 
     .toc-list a {
         color: var(--color-ink-muted);
         text-decoration: none;
         transition: color 0.15s;
         display: block;
-        padding: 0.15rem 0;
+        padding: 0.12rem 0 0.12rem 0.6rem;
         border-left: 2px solid transparent;
-        padding-left: 0.6rem;
     }
 
     .toc-list a:hover,
@@ -99,16 +112,20 @@
         border-left-color: var(--color-accent);
     }
 
-    .toc-list .toc-sub {
-        padding-left: 1.1rem;
-        font-size: 0.73rem;
-        color: #999;
+    .toc-sub  { padding-left: 1.2rem; font-size: 0.71rem; color: #888; }
+    .toc-sub2 { padding-left: 2rem;   font-size: 0.68rem; color: #666; }
+
+    .toc-break {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 0.75rem 0;
     }
 
     /* ── Main Content ──────────────────────────────────────── */
     .report-body {
-        padding: 2.5rem 0 4rem var(--report-gutter);
+        padding: 2.5rem 1rem 5rem var(--report-gutter);
         min-width: 0;
+        max-width: 820px;
     }
 
     /* ── Report Header ─────────────────────────────────────── */
@@ -121,10 +138,11 @@
     .report-eyebrow {
         font-family: var(--font-sans);
         font-size: 0.72rem;
-        font-weight: 600;
+        font-weight: 700;
         letter-spacing: 0.14em;
         color: var(--color-accent);
         margin-bottom: 0.6rem;
+        text-transform: uppercase;
     }
 
     .report-title {
@@ -146,22 +164,17 @@
 
     .report-meta {
         display: flex;
-        gap: 2rem;
+        gap: 1.8rem;
         font-family: var(--font-sans);
         font-size: 0.8rem;
         color: var(--color-ink-muted);
         flex-wrap: wrap;
     }
 
-    .report-meta span strong {
-        color: var(--color-ink);
-        font-weight: 600;
-    }
+    .report-meta span strong { color: var(--color-ink); font-weight: 600; }
 
     /* ── Sections ──────────────────────────────────────────── */
-    .report-section {
-        margin-bottom: 3rem;
-    }
+    .report-section { margin-bottom: 3rem; }
 
     .section-number {
         font-family: var(--font-mono);
@@ -174,7 +187,7 @@
 
     h2.section-heading {
         font-family: var(--font-serif);
-        font-size: 1.7rem;
+        font-size: 1.75rem;
         font-weight: 400;
         margin: 0 0 1rem;
         padding-bottom: 0.5rem;
@@ -184,28 +197,42 @@
 
     h3.subsection-heading {
         font-family: var(--font-sans);
-        font-size: 1rem;
-        font-weight: 600;
+        font-size: 0.85rem;
+        font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin: 1.8rem 0 0.6rem;
+        letter-spacing: 0.09em;
+        margin: 2rem 0 0.6rem;
         color: var(--color-ink-muted);
     }
 
-    p {
-        margin: 0 0 1rem;
+    h4.subsubsection-heading {
+        font-family: var(--font-sans);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 1.4rem 0 0.5rem;
+        color: var(--color-ink);
     }
 
-    /* ── Callout / Note Boxes ──────────────────────────────── */
+    p { margin: 0 0 1rem; }
+
+    /* ── Lists ─────────────────────────────────────────────── */
+    .report-body ul,
+    .report-body ol {
+        margin: 0.4rem 0 1rem 1.4rem;
+        line-height: 1.85;
+    }
+
+    .report-body li { margin-bottom: 0.3rem; }
+
+    /* ── Callout Boxes ─────────────────────────────────────── */
     .callout {
         border-left: 3px solid var(--color-accent);
         background: var(--color-accent-bg);
         border-radius: 0 6px 6px 0;
         padding: 0.9rem 1.2rem;
         margin: 1.5rem 0;
-        font-family: var(--font-sans);
         font-size: 0.9rem;
-        line-height: 1.6;
+        line-height: 1.65;
     }
 
     .callout-warn {
@@ -213,17 +240,74 @@
         background: var(--color-warn-bg);
     }
 
+    .callout-pending {
+        border-left-color: var(--muted);
+        background: color-mix(in srgb, var(--surface) 55%, var(--bg));
+        color: var(--muted);
+        font-style: italic;
+    }
+
     .callout strong {
         display: block;
         margin-bottom: 0.3rem;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         color: var(--color-accent);
+        font-style: normal;
     }
 
-    .callout-warn strong {
-        color: #b45309;
+    .callout-warn  strong { color: var(--amber); }
+    .callout-pending strong { color: var(--muted); }
+
+    /* ── Constraint summary grid ───────────────────────────── */
+    .constraint-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .constraint-tier {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+    }
+
+    .constraint-tier h5 {
+        font-family: var(--font-mono);
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-accent);
+        margin: 0 0 0.6rem;
+        font-weight: 600;
+    }
+
+    .constraint-tier ul {
+        margin: 0;
+        padding-left: 1.1rem;
+        font-size: 0.85rem;
+        line-height: 1.7;
+        list-style: disc;
+    }
+
+    .constraint-tier li { margin-bottom: 0.2rem; }
+
+    /* ── Equations ─────────────────────────────────────────── */
+    .equation {
+        font-family: var(--font-mono);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.85rem 1.5rem;
+        margin: 1.2rem 0;
+        text-align: center;
+        font-size: 1rem;
+        color: var(--text);
+        overflow-x: auto;
+        letter-spacing: 0.03em;
     }
 
     /* ── Tables ────────────────────────────────────────────── */
@@ -233,7 +317,6 @@
     }
 
     .table-caption {
-        font-family: var(--font-sans);
         font-size: 0.78rem;
         color: var(--color-ink-muted);
         margin-bottom: 0.5rem;
@@ -243,8 +326,7 @@
     table.report-table {
         width: 100%;
         border-collapse: collapse;
-        font-family: var(--font-sans);
-        font-size: 0.88rem;
+        font-size: 0.87rem;
     }
 
     table.report-table thead th {
@@ -254,6 +336,7 @@
         padding: 0.65rem 0.9rem;
         border-bottom: 2px solid var(--color-rule);
         white-space: nowrap;
+        font-size: 0.82rem;
     }
 
     table.report-table tbody tr:nth-child(even) {
@@ -261,7 +344,7 @@
     }
 
     table.report-table tbody td {
-        padding: 0.6rem 0.9rem;
+        padding: 0.58rem 0.9rem;
         border-bottom: 1px solid var(--color-rule);
         vertical-align: top;
     }
@@ -270,23 +353,25 @@
         padding: 0.6rem 0.9rem;
         border-top: 2px solid var(--color-rule);
         font-weight: 600;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         color: var(--color-ink-muted);
+        font-style: italic;
     }
 
     .badge {
         display: inline-block;
-        padding: 0.15rem 0.5rem;
+        padding: 0.12rem 0.48rem;
         border-radius: 4px;
-        font-size: 0.75rem;
+        font-size: 0.73rem;
         font-weight: 600;
         font-family: var(--font-mono);
     }
 
-    .badge-green  { background: color-mix(in srgb, var(--green) 15%, transparent);  color: var(--green); }
-    .badge-red    { background: color-mix(in srgb, var(--red)   15%, transparent);  color: var(--red);   }
-    .badge-yellow { background: color-mix(in srgb, var(--amber) 15%, transparent);  color: var(--amber); }
-    .badge-blue   { background: color-mix(in srgb, var(--gold)  12%, transparent);  color: var(--gold);  }
+    .badge-green  { background: rgba(34,197,94,0.14);   color: var(--green); }
+    .badge-red    { background: rgba(239,68,68,0.14);   color: var(--red);   }
+    .badge-yellow { background: rgba(245,158,11,0.14);  color: var(--amber); }
+    .badge-blue   { background: rgba(201,168,76,0.12);  color: var(--gold);  }
+    .badge-muted  { background: rgba(160,160,160,0.14); color: var(--muted); }
 
     /* ── Figures / Images ──────────────────────────────────── */
     figure.report-figure {
@@ -300,86 +385,110 @@
     .figure-placeholder {
         background: color-mix(in srgb, var(--surface) 80%, var(--bg));
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         height: 280px;
         color: var(--muted);
         font-family: var(--font-mono);
         font-size: 0.8rem;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.04em;
+        gap: 0.5rem;
     }
 
-    figure.report-figure img {
-        width: 100%;
-        display: block;
+    .figure-placeholder .fig-filename {
+        font-size: 0.7rem;
+        color: var(--color-accent);
+        opacity: 0.75;
     }
+
+    figure.report-figure img { width: 100%; display: block; }
 
     figcaption {
         padding: 0.7rem 1rem;
-        font-family: var(--font-sans);
         font-size: 0.8rem;
         color: var(--color-ink-muted);
         border-top: 1px solid var(--color-rule);
         font-style: italic;
     }
 
-    figcaption strong {
-        font-style: normal;
-        color: var(--color-ink);
+    figcaption strong { font-style: normal; color: var(--color-ink); }
+
+    .figure-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin: 2rem 0;
     }
 
-    /* ── Key Metrics Strip ─────────────────────────────────── */
-    .metrics-strip {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1px;
-        background: var(--border);
+    .figure-pair figure.report-figure { margin: 0; }
+
+    /* ── Video ─────────────────────────────────────────────── */
+    .video-container {
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 8px;
-        overflow: hidden;
+        padding: 2.5rem 2rem;
+        text-align: center;
         margin: 1.5rem 0;
     }
 
-    .metric-cell {
-        background: var(--surface);
-        padding: 1rem 1.2rem;
-        font-family: var(--font-sans);
+    .video-icon { font-size: 2.5rem; display: block; margin-bottom: 0.8rem; }
+
+    .video-container p {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.2rem;
     }
 
-    .metric-label {
+    .video-link {
+        display: inline-block;
+        background: var(--gold);
+        color: var(--bg);
+        font-weight: 700;
+        font-size: 0.88rem;
+        padding: 0.65rem 1.6rem;
+        border-radius: 6px;
+        text-decoration: none;
+        letter-spacing: 0.04em;
+        transition: opacity 0.15s;
+    }
+
+    .video-link:hover { opacity: 0.82; }
+
+    /* ── Appendix ──────────────────────────────────────────── */
+    hr.appendix-divider {
+        border: none;
+        border-top: 2px dashed var(--border);
+        margin: 4rem 0 3rem;
+    }
+
+    .appendix-eyebrow {
+        font-family: var(--font-mono);
         font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
         color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        display: block;
         margin-bottom: 0.3rem;
     }
 
-    .metric-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        line-height: 1;
-        color: var(--gold);
-        font-family: var(--font-mono);
-        font-variant-numeric: tabular-nums;
-    }
-
-    .metric-delta {
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
+    h2.appendix-heading {
+        font-family: var(--font-serif);
+        font-size: 1.5rem;
+        font-weight: 400;
         color: var(--muted);
+        margin: 0 0 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
     }
 
-    .metric-delta.up   { color: var(--green); }
-    .metric-delta.down { color: var(--red);   }
-
-    /* ── Footnotes / References ────────────────────────────── */
+    /* ── References ────────────────────────────────────────── */
     .report-references {
         margin-top: 3rem;
         padding-top: 1.5rem;
         border-top: 1px solid var(--border);
-        font-family: var(--font-sans);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         color: var(--muted);
     }
 
@@ -388,28 +497,32 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.1em;
-        margin-bottom: 0.8rem;
+        margin-bottom: 1rem;
+        color: var(--text);
     }
 
-    .report-references ol {
-        padding-left: 1.2rem;
-    }
+    .report-references ol { padding-left: 1.4rem; }
 
     .report-references li {
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.65rem;
+        line-height: 1.65;
     }
 
-    /* ── Print Styles ──────────────────────────────────────── */
+    .report-references a { color: var(--gold); word-break: break-all; }
+
+    /* ── Print & Responsive ────────────────────────────────── */
     @media print {
-        .report-toc    { display: none; }
-        .report-grid   { display: block; }
-        .report-body   { padding: 0; }
+        .report-toc  { display: none; }
+        .report-grid { display: block; }
+        .report-body { padding: 0; }
     }
 
     @media (max-width: 768px) {
-        .report-grid { grid-template-columns: 1fr; }
-        .report-toc  { display: none; }
-        .report-body { padding: 1.5rem; }
+        .report-grid         { grid-template-columns: 1fr; }
+        .report-toc          { display: none; }
+        .report-body         { padding: 1.5rem; }
+        .figure-pair         { grid-template-columns: 1fr; }
+        .constraint-grid     { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
@@ -418,310 +531,1044 @@
 <div class="report-root">
 <div class="report-grid">
 
-    <!-- ── Table of Contents (Sidebar) ── -->
+    <!-- ══════════════════════════════════════════════════════
+         TABLE OF CONTENTS
+         ══════════════════════════════════════════════════════ -->
     <aside class="report-toc">
         <div class="toc-label">Contents</div>
         <ul class="toc-list">
-            <li><a href="#executive-summary">Executive Summary</a></li>
-            <li><a href="#section-1">1. Introduction</a></li>
-                <ul class="toc-list">
-                    <li><a href="#section-1-1" class="toc-sub">1.1 Overview</a></li>
-                    <li><a href="#section-1-2" class="toc-sub">1.2 Literature Review</a></li>
-                </ul>
-            <li><a href="#section-2">2. Methodology</a>
-                <ul class="toc-list">
-                    <li><a href="#section-2-1" class="toc-sub">2.1 Data Sources</a></li>
-                    <li><a href="#section-2-2" class="toc-sub">2.2 Analysis Framework</a></li>
-                </ul>
-            </li>
-            <li><a href="#section-3">3. Findings</a>
-                <ul class="toc-list">
-                    <li><a href="#section-3-1" class="toc-sub">3.1 Key Metrics</a></li>
-                    <li><a href="#section-3-2" class="toc-sub">3.2 Breakdown</a></li>
-                </ul>
-            </li>
-            <li><a href="#section-4">4. Discussion</a></li>
-            <li><a href="#section-5">5. Conclusions</a></li>
+            <li><a href="#intro">I. Introduction</a></li>
+            <li><a href="#intro-overview"    class="toc-sub">1.1 Overview</a></li>
+            <li><a href="#intro-background"  class="toc-sub">1.2 Background</a></li>
+            <li><a href="#bg-risk"           class="toc-sub2">Risk Tolerance</a></li>
+            <li><a href="#bg-volatility"     class="toc-sub2">Volatility Forecasting</a></li>
+            <li><a href="#bg-portfolio"      class="toc-sub2">Portfolio Optimization</a></li>
+
+            <hr class="toc-break">
+
+            <li><a href="#methodology">II. Problem &amp; Methodology</a></li>
+            <li><a href="#challenge"         class="toc-sub">2.1 The Challenge</a></li>
+            <li><a href="#subproblems"       class="toc-sub">2.2 Sub-Problems</a></li>
+            <li><a href="#subproblem-risk"   class="toc-sub2">Risk Tolerance</a></li>
+            <li><a href="#subproblem-vol"    class="toc-sub2">Volatility Forecasting</a></li>
+            <li><a href="#subproblem-port"   class="toc-sub2">Portfolio Optimization</a></li>
+            <li><a href="#datasets"          class="toc-sub">2.3 Datasets</a></li>
+            <li><a href="#method-detail"     class="toc-sub">2.4 Methodology</a></li>
+            <li><a href="#method-risk"       class="toc-sub2">Risk Tolerance</a></li>
+            <li><a href="#method-vol"        class="toc-sub2">Volatility Forecasting</a></li>
+            <li><a href="#method-port"       class="toc-sub2">Portfolio Optimization</a></li>
+            <li><a href="#architecture"      class="toc-sub">2.5 Architecture</a></li>
+
+            <hr class="toc-break">
+
+            <li><a href="#evaluation">III. Experimental Evaluation</a></li>
+            <li><a href="#eval-strategy"     class="toc-sub">3.1 Evaluation Strategy</a></li>
+            <li><a href="#results"           class="toc-sub">3.2 Results</a></li>
+
+            <hr class="toc-break">
+
+            <li><a href="#discussion">IV. Discussion</a></li>
+            <li><a href="#interpretation"    class="toc-sub">4.1 Interpretation</a></li>
+            <li><a href="#error-analysis"    class="toc-sub">4.2 Error Analysis</a></li>
+            <li><a href="#limitations"       class="toc-sub">4.3 Limitations</a></li>
+
+            <hr class="toc-break">
+
+            <li><a href="#conclusion">V. Conclusion</a></li>
+            <li><a href="#benefits"          class="toc-sub">5.1 Application &amp; Benefits</a></li>
+            <li><a href="#ethics"            class="toc-sub">5.2 Ethical Concerns</a></li>
+            <li><a href="#example-usage"     class="toc-sub">5.3 Example Usage</a></li>
+            <li><a href="#sow"               class="toc-sub">5.4 Statement of Work</a></li>
+
+            <hr class="toc-break">
+
             <li><a href="#references">References</a></li>
+
+            <hr class="toc-break">
+
+            <li><a href="#appendix">Appendix</a></li>
+            <li><a href="#appendix-litreview" class="toc-sub">A. Literature Review</a></li>
+            <li><a href="#appendix-datasets"  class="toc-sub">B. Datasets</a></li>
+            <li><a href="#appendix-vol"       class="toc-sub">C. Volatility Modeling</a></li>
         </ul>
     </aside>
 
-    <!-- ── Report Body ── -->
+    <!-- ══════════════════════════════════════════════════════
+         REPORT BODY
+         ══════════════════════════════════════════════════════ -->
     <main class="report-body">
 
-        <!-- Report Header -->
+        <!-- Header -->
         <header class="report-header">
-            <div class="report-eyebrow">PortfolioIQ · Technical Report</div>
+            <div class="report-eyebrow">PortfolioIQ · SIADS 699 Capstone · Winter 2026</div>
             <h1 class="report-title">The Risky Business of Financial Matchmaking:</h1>
             <p class="report-subtitle">Optimizing Portfolio Return and Volatility Within Investor Risk Tolerance</p>
             <div class="report-meta">
                 <span><strong>Authors</strong> Peter King, Ryan Peet, Kristine Zhou, Thomas MacPherson</span>
-                <span><strong>Date</strong> April 2026</span>
-                <span><strong>Version</strong> 1.0</span>
-                <span><strong>Status</strong> <span class="badge badge-blue">Draft</span></span>
+                <span><strong>Course</strong> SIADS 699 — Team 14, Investor Gurus</span>
+                <span><strong>Status</strong> <span class="badge badge-yellow">Draft</span></span>
             </div>
         </header>
 
-        <!-- Executive Summary -->
-        <section class="report-section" id="executive-summary">
-            <span class="section-number">§ SUMMARY</span>
-            <h2 class="section-heading">Executive Summary</h2>
-            <p>
-                A 3–5 sentence overview of what this report covers, the central finding,
-                and the recommended action or conclusion. Write this last — it should
-                distil everything below into a single digestible paragraph for a reader
-                who may go no further.
-            </p>
-            <div class="callout">
-                <strong>Key Takeaway</strong>
-                Surface the single most important finding or recommendation here so it
-                cannot be missed.
-            </div>
-        </section>
 
-        <!-- Section 1 -->
-        <section class="report-section" id="section-1">
+        <!-- ══════════════════════════════════════════════════
+             I. INTRODUCTION
+             ══════════════════════════════════════════════════ -->
+        <section class="report-section" id="intro">
             <span class="section-number">§ 01</span>
             <h2 class="section-heading">Introduction</h2>
-            <h3 class="subsection-heading" id="section-1-1">1.1 Overview</h3>
+
+            <h3 class="subsection-heading" id="intro-overview">1.1 Overview</h3>
             <p>
-            <p>
-                Traditionally, financial advising required a personal advisor to determine a client’s risk tolerance, assess market conditions, and translate the two into a coherent investment strategy. This process can be expensive, surprisingly inconsistent, and even largely inaccessible to investors without significant assets. The introduction of ‘robo-advisors’ has begun to automate this workflow, but many current solutions remain a ‘black-box’. These robo-advisors rely on coarse risk categorizations, and rarely discuss the assumptions that are necessary in their portfolio construction logic. 
+                Financial advising is traditionally expensive, inconsistent, and largely inaccessible to
+                investors without significant wealth. While robo-advisors have begun to automate the process,
+                most continue to operate as black boxes — relying on coarse risk categories and obscuring the
+                assumptions behind their recommendations. This project introduces a three-component pipeline to
+                address this gap.
             </p>
             <p>
-                This capstone project introduces a three-component data science pipeline designed to address these current limitations and move the domain forward in a meaningful way. The first component aims to estimate a client’s financial risk tolerance from survey-based behavioural and demographic features, producing a continuous risk score grounded in representative data. The second component forecasts near-term sector-level volatility, providing estimates of uncertainty in the market that extend beyond just historical averages. This uncertainty is then used to determine an expected return for each sector of the securities market. The third component combines the outputs to construct an individualized portfolio using constrained mean-variance optimization intending to maximize the risk-adjusted return (Sharpe ratio) within boundaries that reflect the individual's estimated risk profile. 
+                First, a risk tolerance classifier that produces a continuous client risk score from nationally
+                representative survey data. Second, a volatility forecasting model whose predictions serve as
+                inputs to a Sharpe-prior return estimation method, together producing forward-looking expected
+                returns for each instrument. Finally, a constrained mean-variance optimizer that combines these
+                inputs into an individualized, risk-calibrated portfolio.
             </p>
             <p>
-                The contribution of this work to the financial domain is not any single model, but the integration of these components into a smooth end-to-end system from an individual’s personal characteristics to a quantitatively derived personalized portfolio. Each component is independently evaluated, but the pipeline is designed to be assessed as a whole. The value of the system lies in how well each component hands off accurate data as much as the performance of each in isolation. 
+                The central contribution is not any single model but the end-to-end integration of all three,
+                with results presented through an interactive client dashboard. The value of the system lies in
+                how accurately each component hands off data to the next, as much as the performance of each
+                in isolation.
             </p>
-            <h3 class="subsection-heading" id="section-1-2">1.2 Literature Review</h3>
-            <h4 class="subsection-heading" id="section-1-2-1">1.2.1 Risk Tolerance Estimation</h4>
-            <h4 class="subsection-heading" id="section-1-2-2">1.2.2 Volatility Forecasting</h4>
+
+            <h3 class="subsection-heading" id="intro-background">1.2 Background</h3>
+
+            <h4 class="subsubsection-heading" id="bg-risk">1.2.1 Risk Tolerance Estimation</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Background literature on risk tolerance estimation — awaiting team contribution.
+            </div>
+
+            <h4 class="subsubsection-heading" id="bg-volatility">1.2.2 Volatility Forecasting</h4>
             <p>
-                Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic (ARCH) class of stochastic processes, econometric models assumed a "constant one-period forecast variance."  Engle's observation that the future variance of a stochastic process depends on recent past values paved the way for new approaches in volatility forecasting.  Many recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to estimate future volatility, exploiting such models' ability to learn dependencies and relationships between variables over time.  Assaf, et al. (2022) found that an LSTM model was able to forecast overall market volatility with performance on par with modern econometric models based on the ARCH process.  Zhang, et al. (2025) combined a hybrid deep-learning model (consisting of a Convolutional Neural Network (CNN) layer, a bidirectional LSTM layer, and an attention mechanism) with an ARCH-based econometric model to forecast volatility of the Shanghai Composite Index (SSEC), claiming to outperform a variety of alternative models including decision tree based ensembles.  Most recently, Peter, et al. (2026) integrated a generalized ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate "consistent superiority" across a variety of metrics.
-            </p>
-            <p>Our study takes a novel approach by focusing volatility for specific market sectors in the U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall market volatility.  Furthermore, we establish a practical benchmark by comparing our model's performance in forecasting volatility over a 30-day future window to the performance of the Cboe Volatility Index (ticker: ^VIX) -- widely considered the "the most popular gauge" of future (30-day) market volatility (Schwab, 2025).
-            </p>
-            <h4 class="subsection-heading" id="section-1-2-3">1.2.3 Portfolio Optimization</h4>
-             <p>
-                The foundation of modern portfolio construction is Harry Markowitz’s 1952 mean-variance framework. Markowitz demonstrated that a rational investor, given a set of assets with known expected returns and covariances, should select a portfolio that maximises their return for a given level of variance. Variance can be directly related to risk, so this can viewed equally as minimizing risk for a given expected return of the portfolio. In theory, he suggests that there is an "efficient frontier" of portfolios that minimize risk for all expected returns and any portfolio lying below this line is considered suboptimal because a better risk-return is achievable (Markowitz, 1952).
-            </p>
-            <p>
-                A key metric derived from this framework is the risk-adjusted return (Sharpe ratio), which normalizes excess return above the risk-free rate (i.e., return on a no-risk asset) by portfolio volatility (Sharpe, 1966). Maximizing the Sharpe ratio is a common objective in portfolio management because it selects the portfolio on the efficient frontier that offers the greatest return per unit of risk.
+                Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic
+                (ARCH) class of stochastic processes, econometric models assumed a "constant one-period
+                forecast variance." Engle's observation that the future variance of a stochastic process
+                depends on recent past values paved the way for new approaches in volatility forecasting. Many
+                recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to
+                estimate future volatility, exploiting such models' ability to learn dependencies and
+                relationships between variables over time (Assaf et al., 2022; Zhang et al., 2025; Peter et al., 2026).
             </p>
             <p>
-                Unfortunately, the classical mean-variance framework carries well documented limitations. Estimated expected returns and covariances are sensitive to the historical window and sampling period used, and small variations in inputs can produce dramatically different optimal portfolios. Robust optimizations need to explicitly account for uncertainty in the parameter estimates so that they perform acceptably well across a range of scenarios as opposed to optimizing for a single point estimate.
+                Our study takes a novel approach by focusing on volatility for specific market sectors in the
+                U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall
+                market volatility. Furthermore, we establish a practical benchmark by comparing our model's
+                performance to the Cboe Volatility Index (ticker: ^VIX) — widely considered "the most popular
+                gauge" of future (30-day) market volatility (Schwab, 2025).
+            </p>
+
+            <h4 class="subsubsection-heading" id="bg-portfolio">1.2.3 Portfolio Optimization</h4>
+            <p>
+                The foundation of modern portfolio construction is Harry Markowitz's (1952) mean-variance
+                framework. Markowitz demonstrated that a rational investor, given a set of assets with known
+                expected returns and covariances, should select a portfolio that maximises return for a given
+                level of variance — or equivalently, minimise risk for a target expected return. This defines
+                an "efficient frontier" of portfolios; any portfolio lying below it is suboptimal because a
+                better risk-return trade-off is achievable.
             </p>
             <p>
-                Practical construction also requires incorporating real-world constraints that the unconstrained efficient frontier ignores. These include upper and lower bounds on individual assets (to prevent extreme concentration in a single asset), sector-level exposure limits, and minimum diversification requirements. These constraints are now standard in applied portfolio management but the choice of constraint is not just technical, it encodes the investment philosophy and risk tolerance of the client. This is precisely the link our pipeline is attempting to formalize, by deriving portfolio constraints directly from an estimated risk score rather than a general risk bucket.
+                A key metric derived from this framework is the Sharpe ratio, which normalises excess return
+                above the risk-free rate by portfolio volatility (Sharpe, 1966). Maximising the Sharpe ratio
+                selects the point on the efficient frontier offering the greatest return per unit of risk.
+            </p>
+            <p>
+                In practice, the classical framework carries well-documented limitations. Estimated expected
+                returns and covariances are sensitive to the historical window used, and small input variations
+                can produce dramatically different optimal portfolios (Michaud, 1989). Robust implementations
+                require explicit constraints that the unconstrained frontier ignores: bounds on individual
+                assets to prevent extreme concentration, sector-level exposure limits, and diversification
+                requirements. Critically, the choice of constraint encodes investment philosophy and risk
+                tolerance — the link this pipeline aims to formalise, by deriving constraints directly from
+                an estimated client risk score rather than a generic risk bucket.
             </p>
         </section>
 
-        <!-- Section 2 -->
-        <section class="report-section" id="section-2">
+
+        <!-- ══════════════════════════════════════════════════
+             II. PROBLEM DEFINITION, APPROACH & METHODOLOGY
+             ══════════════════════════════════════════════════ -->
+        <section class="report-section" id="methodology">
             <span class="section-number">§ 02</span>
-            <h2 class="section-heading">Methodology</h2>
+            <h2 class="section-heading">Problem Definition, Approach, and Methodology</h2>
+
+            <h3 class="subsection-heading" id="challenge">2.1 The Challenge</h3>
             <p>
-                High-level description of the analytical approach. Link to or cite the
-                relevant frameworks, models, or prior work this builds on.
+                The challenge was to build an integrated data science pipeline that translates individualised
+                investor profiles into a personalised investment strategy through risk scoring, volatility
+                forecasting, and constrained portfolio optimisation.
             </p>
 
-            <h3 class="subsection-heading" id="section-2-1">2.1 Data Sources</h3>
+            <h3 class="subsection-heading" id="subproblems">2.2 Sub-Problems</h3>
+
+            <h4 class="subsubsection-heading" id="subproblem-risk">2.2.1 Estimating Client Risk Tolerance</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Sub-problem framing for risk tolerance estimation — awaiting team contribution.
+            </div>
+
+            <h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
             <p>
-                List and describe each data source used — provenance, date range,
-                granularity, and any known quality issues.
+                For the second component of our portfolio generation pipeline, our goal was to forecast
+                <strong>realized volatility</strong> (also referred to as historical volatility) for a
+                collection of sector-representative ETFs over a 21 business day (30 calendar day) outlook. A
+                brief discussion of return and volatility is included in the appendix. Our goals were to
+                achieve forecast accuracy on par or superior to the VIX for the S&amp;P 500 ETF (ticker: SPY),
+                and to create sector-specific forecasts with comparable accuracy to what the VIX achieves for
+                the S&amp;P 500 more broadly.
             </p>
 
-            <!-- Example table -->
+            <h4 class="subsubsection-heading" id="subproblem-port">2.2.3 Maximising Return while Limiting Portfolio Volatility</h4>
+            <p>
+                Given a client's estimated risk score and a set of sector-level volatility forecasts, the
+                third component constructs a portfolio designed to maximise risk-adjusted return within
+                constraints calibrated to that individual. The risk score regulates the full constraint
+                architecture through a two-tier system.
+            </p>
+
+            <div class="constraint-grid">
+                <div class="constraint-tier">
+                    <h5>Tier 1 — Asset-Class Level</h5>
+                    <ul>
+                        <li>Age-adjusted equity ceiling (110 − age baseline, modified by risk score)</li>
+                        <li>Gold cap inverse-scaled with risk score (15% at score 1 → 5% at score 10)</li>
+                        <li>Volatility band: floor and ceiling both scale linearly with risk score</li>
+                    </ul>
+                </div>
+                <div class="constraint-tier">
+                    <h5>Tier 2 — Intra-Bucket Level</h5>
+                    <ul>
+                        <li>Any single equity sector ≤ 30% of total equity bucket</li>
+                        <li>Any IG fixed-income instrument ≤ 50% of fixed-income allocation</li>
+                        <li>HYG ≤ (risk score / 10)² × 35% of FI bucket <em>(quadratic scaling)</em></li>
+                    </ul>
+                </div>
+            </div>
+
+            <p>
+                The quadratic HYG cap reflects the fiduciary view that high-yield credit exposure should be
+                strictly proportional to demonstrated risk tolerance. More conservative profiles receive
+                tighter volatility ceilings and greater diversification requirements; more aggressive profiles
+                are permitted higher concentrations and volatility in exchange for greater return potential.
+            </p>
+            <p>
+                The optimiser is designed to maximise the Sharpe ratio of the resulting portfolio. For a
+                portfolio with weight vector <strong>w</strong>, expected return vector <strong>μ</strong>,
+                and covariance matrix <strong>Σ</strong>, the objective is:
+            </p>
+
+            <div class="equation">
+                maximise &nbsp;&nbsp; (<strong>w</strong><sup>T</sup><strong>μ</strong> − r<sub>f</sub>) &nbsp;/&nbsp; √(<strong>w</strong><sup>T</sup><strong>Σw</strong>)
+            </div>
+
+            <p>
+                This is subject to constraints on total portfolio volatility, individual weight bounds, sector
+                exposure limits, and a full investment constraint (weights sum to one; no short positions). The
+                output is a set of portfolio weights per ETF representing the recommended allocation — not the
+                universally optimal portfolio, but the portfolio that theoretically maximises risk-adjusted
+                return given the specific client's risk profile and current volatility forecasts.
+            </p>
+            <p>
+                A client reclassified from moderate to more conservative — whether due to different survey
+                responses or a model misclassification — will receive a meaningfully different portfolio with a
+                lower volatility ceiling and greater diversification requirements under the same volatility
+                environment. The sensitivity of the portfolio output to risk classification is substantial, as
+                this is what drives individual portfolio construction.
+            </p>
+
+            <h3 class="subsection-heading" id="datasets">2.3 Datasets</h3>
+
+            <h4 class="subsubsection-heading" id="datasets-scf">2.3.1 Survey of Consumer Finances (2022)</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                SCF dataset description — awaiting team contribution.
+            </div>
+
+            <h4 class="subsubsection-heading" id="datasets-financial">2.3.2 Financial Data: Yahoo Finance &amp; FRED</h4>
+            <p>
+                Our financial data came from two sources: Yahoo Finance (via the <code>yfinance</code> Python
+                library) and the Federal Reserve Economic Data (FRED) database (via the <code>fredapi</code>
+                Python library). For a detailed description of these datasets, including date ranges, frequency,
+                and quality, refer to Appendix B.
+            </p>
+
+            <h3 class="subsection-heading" id="method-detail">2.4 Methodology</h3>
+
+            <h4 class="subsubsection-heading" id="method-risk">2.4.1 Risk Tolerance Estimation</h4>
+
+            <p><em>Data cleaning, imputation, and transformation</em></p>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Data cleaning and transformation for risk model — awaiting team contribution.
+            </div>
+
+            <p><em>Feature selection and extraction</em></p>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Feature selection and extraction — awaiting team contribution.
+            </div>
+
+            <p><em>Modeling</em></p>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Risk model architecture and training details — awaiting team contribution.
+            </div>
+            <p>
+                The Random Forest output is further transformed via a QuantileTransformer to produce a
+                near-normal risk score distribution on a [1, 10] scale. The QuantileTransformer is fitted on
+                training-set predictions rather than ground-truth labels, ensuring the transformation reflects
+                the model's actual output range and avoids leakage from the test distribution.
+            </p>
+
+            <h4 class="subsubsection-heading" id="method-vol">2.4.2 Volatility Forecasting</h4>
+            <p>
+                We began our approach to volatility forecasting with data cleaning, imputation of missing or
+                erroneous values, transformation from raw data to useful features, and time-series resampling.
+                Overall, financial data was very clean, with at most 9.7 percent missing values for one index.
+                We filled missing values using linear interpolation for daily-frequency indices; for missing
+                values resulting from upsampling lower-frequency data, we used forward-fill to guard against
+                data leakage.
+            </p>
+            <p>
+                Feature selection was informed by the literature and our own correlation analysis (details in
+                Appendix C). The two features that consistently ranked highest in importance and correlation
+                with the target variable were:
+            </p>
+            <ul>
+                <li>Historical (5-day) volatility for the target ETF — by far the most important predictor</li>
+                <li>Historical (5-day) return for the target ETF</li>
+            </ul>
+            <p>
+                To incorporate lower-frequency macroeconomic data, all time-series features were resampled to
+                weekly frequency. Feature extraction via Principal Component Analysis (PCA) was then applied,
+                retaining 80 percent of the variation in the original 87 features in just 12 principal
+                components. Full details are in Appendix C.
+            </p>
+            <p>
+                We evaluated three model types against three feature subsets — nine combinations in total:
+            </p>
+            <ul>
+                <li><strong>Ridge regressor</strong> — linear regression with L2 norm penalty</li>
+                <li><strong>Gradient Boosting regressor (GBR)</strong> — decision tree ensemble of weak learners</li>
+                <li><strong>LSTM deep-learning model</strong> — capable of learning non-linear temporal relationships</li>
+            </ul>
+            <p>
+                Feature subsets were: a <em>limited</em> set (5-day return and 5-day volatility only), the
+                <em>full</em> set (all 87 features), and a <em>PCA</em> set (return, volatility, and 12 PCA
+                components). For a detailed discussion of methodology, refer to Appendix C.
+            </p>
+
+            <h4 class="subsubsection-heading" id="method-port">2.4.3 Portfolio Optimisation</h4>
+            <p>
+                Note that the LSTM volatility forecasting component was trained and evaluated on a universe of
+                21 ETFs, including broad market ETFs. The portfolio optimiser uses a subset of 17 instruments,
+                selected to span equities, fixed income, and real assets while maintaining a consistent price
+                history from December 2015 onward — constrained by the launch date of XLRE (Real Estate).
+            </p>
+
             <div class="table-wrap">
-                <p class="table-caption">Table 1 — Data sources used in this analysis</p>
+                <p class="table-caption">Table 1 — ETF universe used in portfolio optimisation (17 instruments)</p>
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th>Source</th>
-                            <th>Description</th>
-                            <th>Period</th>
-                            <th>Quality</th>
+                            <th>Ticker</th>
+                            <th>Name</th>
+                            <th>Asset Class</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>XLF</code></td><td>Financials</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLK</code></td><td>Technology</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLU</code></td><td>Utilities</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLV</code></td><td>Health Care</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLE</code></td><td>Energy</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLI</code></td><td>Industrials</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLB</code></td><td>Materials</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLP</code></td><td>Consumer Staples</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLY</code></td><td>Consumer Discretionary</td><td>Equity — Sector</td></tr>
+                        <tr><td><code>XLRE</code></td><td>Real Estate <em>(binding constraint: launched Dec 2015)</em></td><td>Equity — Sector</td></tr>
+                        <tr><td><code>BIL</code></td><td>1–3 Month T-Bills</td><td>Fixed Income</td></tr>
+                        <tr><td><code>IEF</code></td><td>7–10yr Treasuries</td><td>Fixed Income</td></tr>
+                        <tr><td><code>TLT</code></td><td>20yr+ Treasuries</td><td>Fixed Income</td></tr>
+                        <tr><td><code>LQD</code></td><td>IG Corporate Credit</td><td>Fixed Income</td></tr>
+                        <tr><td><code>HYG</code></td><td>High-Yield Credit</td><td>Fixed Income</td></tr>
+                        <tr><td><code>TIP</code></td><td>TIPS (Inflation-Linked)</td><td>Fixed Income</td></tr>
+                        <tr><td><code>GLD</code></td><td>Gold</td><td>Real Assets</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p>
+                For portfolio construction, we implemented a constrained mean-variance optimiser grounded in
+                the Markowitz framework. This choice is deliberate despite the well-documented sensitivity to
+                input estimates: Markowitz optimisation remains the industry standard for systematic portfolio
+                construction, offers strong interpretability, and provides a principled mechanism for
+                incorporating hard constraints on both volatility and asset weights. In future research, more
+                sophisticated alternatives like the Black-Litterman model or robust optimisation variants may
+                be considered; these were judged above-and-beyond the scope of this proof-of-concept pipeline.
+                The optimiser is implemented using <code>scipy.optimize.minimize</code> (SLSQP method), with
+                constraints and objective functions parameterised by the client's risk assessment.
+            </p>
+
+            <h3 class="subsection-heading" id="architecture">2.5 Three-Component Pipeline Architecture</h3>
+
+            <figure class="report-figure">
+                {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_pipeline_architecture.png') }}" alt="Three-component pipeline architecture diagram"> #}
+                <div class="figure-placeholder">
+                    [ Architecture Diagram ]
+                    <span class="fig-filename">static/report/fig_pipeline_architecture.png</span>
+                </div>
+                <figcaption>
+                    <strong>Figure 1.</strong> Three-component pipeline architecture: SCF risk scoring →
+                    LSTM volatility forecasting → constrained Markowitz optimisation → PortfolioIQ dashboard.
+                </figcaption>
+            </figure>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════
+             III. EXPERIMENTAL EVALUATION
+             ══════════════════════════════════════════════════ -->
+        <section class="report-section" id="evaluation">
+            <span class="section-number">§ 03</span>
+            <h2 class="section-heading">Experimental Evaluation</h2>
+
+            <h3 class="subsection-heading" id="eval-strategy">3.1 Evaluation Strategy</h3>
+
+            <h4 class="subsubsection-heading">Risk Tolerance</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Evaluation strategy for risk tolerance model — awaiting team contribution.
+            </div>
+
+            <h4 class="subsubsection-heading">Volatility Forecasting</h4>
+            <p>
+                We conducted hyperparameter tuning for all models (details in Appendix C) and compared
+                performance against the validation set for model selection. Mean absolute error (MAE) served
+                as the primary accuracy metric. We also developed three additional criteria to ensure the
+                final model met the business requirements of a financial advisor:
+            </p>
+            <ul>
+                <li><strong>Accuracy</strong> — R²<sub>OOS</sub> above zero (smaller MAE than baseline)</li>
+                <li><strong>Tracking</strong> — predictions should follow the general volatility profile over time, appropriately anticipating spikes and declines</li>
+                <li><strong>Lag</strong> — predictions should not trail realised volatility excessively</li>
+                <li><strong>Estimation</strong> — the model should not systematically over- or under-estimate; over-estimation preferred to under-estimation</li>
+            </ul>
+            <p>
+                We compared each model to the VIX as a baseline for predicting the SPY ETF. Out-of-sample
+                R-squared was computed as:
+            </p>
+            <div class="equation">
+                R²<sub>OOS</sub> = 1 − MAE<sub>m</sub> / MAE<sub>b</sub>
+            </div>
+            <p>
+                where MAE<sub>m</sub> is model MAE and MAE<sub>b</sub> is baseline (VIX) MAE. Based on these
+                criteria, we selected a model type and feature set for robust statistical testing: training 30
+                independent learners per ETF over 30 independent trials, comparing the median MAE distribution
+                against the baseline. This ensemble approach guards against lucky initialisation from
+                stochastic training and produces more reliable predictions than any single model.
+            </p>
+
+            <h4 class="subsubsection-heading">Portfolio Generation</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Evaluation strategy for portfolio generation — awaiting team contribution.
+            </div>
+
+            <h3 class="subsection-heading" id="results">3.2 Results</h3>
+
+            <h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Risk tolerance model selection and performance results — awaiting team contribution.
+            </div>
+
+            <h4 class="subsubsection-heading">Volatility Forecasting — Model Selection</h4>
+            <p>
+                Table 2 summarises model selection using the four-fold criteria of Accuracy, Tracking, Lag,
+                and Estimation on the validation set, benchmarked against the VIX for SPY. An LSTM model
+                using the "limited" or "PCA" feature set achieved performance on par with or better than the
+                baseline. The GBR, despite performing well on some criteria, was eliminated primarily because
+                of its critically low Tracking score. See Appendix C for illustrated examples of high vs. low
+                Tracking scores.
+            </p>
+
+            <div class="table-wrap">
+                <p class="table-caption">Table 2 — Model selection results on validation set (four-fold criteria)</p>
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Feature Set</th>
+                            <th>Accuracy (R²<sub>OOS</sub>)</th>
+                            <th>Tracking (1–10)</th>
+                            <th>Lag (1–10)</th>
+                            <th>Estimation (1–10)</th>
+                            <th>Selected</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Source A</td>
-                            <td>Primary market data feed</td>
-                            <td>2020 – 2025</td>
-                            <td><span class="badge badge-green">High</span></td>
+                            <td>Ridge</td><td>Limited</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
                         </tr>
                         <tr>
-                            <td>Source B</td>
-                            <td>Secondary benchmark index</td>
-                            <td>2021 – 2025</td>
-                            <td><span class="badge badge-yellow">Medium</span></td>
+                            <td>Ridge</td><td>Full</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
                         </tr>
                         <tr>
-                            <td>Source C</td>
-                            <td>Alternative data (estimated)</td>
-                            <td>2023 – 2025</td>
-                            <td><span class="badge badge-red">Low</span></td>
+                            <td>Ridge</td><td>PCA</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
+                        </tr>
+                        <tr>
+                            <td>GBR</td><td>Limited</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
+                        </tr>
+                        <tr>
+                            <td>GBR</td><td>Full</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
+                        </tr>
+                        <tr>
+                            <td>GBR</td><td>PCA</td>
+                            <td>—</td><td>5</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-red">No (poor tracking)</span></td>
+                        </tr>
+                        <tr>
+                            <td>LSTM</td><td>Limited</td>
+                            <td>—</td><td>8</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-green">✓ Selected</span></td>
+                        </tr>
+                        <tr>
+                            <td>LSTM</td><td>PCA</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-yellow">Finalist</span></td>
+                        </tr>
+                        <tr>
+                            <td>LSTM</td><td>Full</td>
+                            <td>—</td><td>—</td><td>—</td><td>—</td>
+                            <td><span class="badge badge-muted">No</span></td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="4">All figures reported in USD unless noted otherwise.</td>
+                            <td colspan="7">
+                                Accuracy scores to be filled from notebook outputs. Tracking scores of 5 (GBR/PCA)
+                                and 8 (LSTM/Limited) are from visual evaluation. See Appendix C for full criteria definitions.
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <h3 class="subsection-heading" id="section-2-2">2.2 Analysis Framework</h3>
+            <h4 class="subsubsection-heading">Volatility Forecasting — Statistical Measures of Performance</h4>
             <p>
-                Describe the model, statistical methods, or evaluation criteria applied.
-                Be precise enough that another analyst could reproduce the results.
+                As shown in Figure 2, the LSTM model using the "limited" feature set consistently achieved a
+                lower MAE than the baseline (VIX) on the held-out testing set for 20 of 21
+                sector-representative ETFs — all except the 1–3 month T-Bill ETF (BIL). While LSTM models
+                using the "PCA" feature set achieved slightly lower median MAE over 30 trials for 11 of 21
+                ETFs, the "limited" feature set produced a tighter distribution, reflecting lower prediction
+                variance and improved model consistency. LSTM models using the "full" feature set showed
+                substantially wider MAE distributions, reflecting high variance and instability.
             </p>
 
-            <div class="callout callout-warn">
-                <strong>Limitation</strong>
-                Note any methodological caveat here — e.g. small sample size,
-                survivorship bias, or model assumptions that may not hold under
-                stress conditions.
-            </div>
-        </section>
-
-        <!-- Section 3 -->
-        <section class="report-section" id="section-3">
-            <span class="section-number">§ 03</span>
-            <h2 class="section-heading">Findings</h2>
-
-            <h3 class="subsection-heading" id="section-3-1">3.1 Key Metrics</h3>
-
-            <!-- Metrics strip -->
-            <div class="metrics-strip">
-                <div class="metric-cell">
-                    <div class="metric-label">Metric One</div>
-                    <div class="metric-value">—</div>
-                    <div class="metric-delta up">↑ vs prior period</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-label">Metric Two</div>
-                    <div class="metric-value">—</div>
-                    <div class="metric-delta down">↓ vs prior period</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-label">Metric Three</div>
-                    <div class="metric-value">—</div>
-                    <div class="metric-delta">vs prior period</div>
-                </div>
-                <div class="metric-cell">
-                    <div class="metric-label">Metric Four</div>
-                    <div class="metric-value">—</div>
-                    <div class="metric-delta">vs prior period</div>
-                </div>
-            </div>
-
-            <h3 class="subsection-heading" id="section-3-2">3.2 Breakdown</h3>
-            <p>
-                Narrative explanation of the findings. Reference figures and tables
-                by number. Avoid simply repeating the table values — explain what
-                they mean and why they matter.
-            </p>
-
-            <!-- Figure with placeholder -->
             <figure class="report-figure">
-                <div class="figure-placeholder">[ Chart · Figure 1 ]</div>
-                {# Replace the div above with: <img src="{{ figure_1_url }}" alt="…"> #}
+                {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_mae_distribution.png') }}" alt="LSTM MAE distribution over 30 trials vs VIX baseline"> #}
+                <div class="figure-placeholder">
+                    [ LSTM MAE Distribution · Figure 2 ]
+                    <span class="fig-filename">static/report/fig_mae_distribution.png</span>
+                </div>
                 <figcaption>
-                    <strong>Figure 1.</strong> Caption describing what is shown,
-                    the time period, and any important context a reader needs to
-                    interpret it correctly.
+                    <strong>Figure 2.</strong> LSTM model MAE distribution over 30 independent trials compared
+                    to the VIX baseline MAE (red dashed line), in units of annualised volatility. The "limited"
+                    feature set (historical 5-day return and volatility) achieves the tightest distribution and
+                    beats the baseline for 20 of 21 ETFs.
                 </figcaption>
             </figure>
 
-            <!-- Detailed findings table -->
+            <h4 class="subsubsection-heading">Portfolio Generation</h4>
+            <div class="callout callout-pending">
+                <strong>Pending</strong>
+                Portfolio generation results — awaiting end-to-end pipeline evaluation.
+            </div>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════
+             IV. DISCUSSION
+             ══════════════════════════════════════════════════ -->
+        <section class="report-section" id="discussion">
+            <span class="section-number">§ 04</span>
+            <h2 class="section-heading">Discussion</h2>
+
+            <h3 class="subsection-heading" id="interpretation">4.1 Interpretation of Results</h3>
+            <p>
+                We found that an ensemble LSTM model using a limited feature set (historical 5-day return and
+                historical 5-day volatility) consistently matched or exceeded the performance of the VIX
+                baseline for 20 of 21 selected ETFs on the held-out testing set, across all four evaluation
+                criteria. Rather than a single model looking at the market broadly, we produced a set of 21
+                ensemble models — each consisting of 30 independent LSTM learners — where each ensemble
+                predicts a sector-specific, 30-day future volatility with accuracy on par with or superior to
+                the VIX.
+            </p>
+            <p>
+                The insight that a financial advisor would gain from confident sector-specific volatility
+                predictions provides genuine portfolio management agility: with reliable near-term forecasts,
+                allocation dollars can be systematically moved between assets based on predicted forward
+                volatility rather than historical averages. This sector-level granularity — as opposed to
+                broad market volatility — is part of the core value proposition of the pipeline.
+            </p>
+
+            <h3 class="subsection-heading" id="error-analysis">4.2 Error Analysis</h3>
+            <p>
+                During early model evaluation, we found that additional features in the "full" and "PCA"
+                feature sets tended to cause LSTM models to make more erratic predictions that were out of
+                sync with true realised volatility trends, reducing the Tracking score. While we did not have
+                direct insight into which features the LSTM relied on, Ridge and GBR models placed relatively
+                high weight on macroeconomic variables such as yields, change in real GDP, producer price
+                index change, and change in debt-to-interest ratio. We infer that these additional features
+                introduced noise, causing the LSTM to overfit spurious correlations in the training set.
+            </p>
+            <p>
+                This finding — that a parsimonious two-feature model outperforms a richly-featured one — is
+                consistent with the literature on financial time-series: recent volatility is so dominant a
+                predictor that additional features compete with it as a signal rather than complementing it.
+            </p>
+
+            <h3 class="subsection-heading" id="limitations">4.3 Limitations</h3>
+            <p>
+                The portfolio optimiser is dictated by the quality of its inputs. Any errors in volatility
+                forecasts or risk scores propagate directly into the resulting portfolio weights with no
+                correction mechanism downstream. Maximising the Sharpe ratio is also a non-convex
+                optimisation problem, meaning a globally optimal solution cannot be guaranteed. Multi-start
+                Dirichlet initialisation mitigates but does not eliminate this.
+            </p>
+            <p>
+                In the current implementation, if the trained Random Forest model artifact is unavailable at
+                inference time, the application silently falls back to a heuristic score based on age, income,
+                and savings behaviour. This condition should be surfaced explicitly to any user or evaluator
+                running the pipeline for the first time on a new machine.
+            </p>
+            <p>
+                The LSTM's limited feature set does not capture the credit spread dynamics that materially
+                drive high-yield bond volatility. To compensate, HYG annualised volatility is floored at 6%,
+                which is conservative relative to HYG's typical realised range of 8–12%. This is a
+                domain-knowledge correction applied post-prediction and is a documented, known limitation.
+            </p>
+            <p>
+                Finally, the pipeline as a whole has not been benchmarked against a real client cohort or
+                compared empirically to an existing robo-advisor. XLRE's December 2015 launch date sets the
+                common correlation history start, meaning the 2008 Global Financial Crisis is absent from
+                the covariance estimates — a stress period with substantially elevated correlations that the
+                model has never seen. End-to-end evaluation against real-world conditions remains the most
+                critical next step before any deployment could be considered.
+            </p>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════
+             V. CONCLUSION
+             ══════════════════════════════════════════════════ -->
+        <section class="report-section" id="conclusion">
+            <span class="section-number">§ 05</span>
+            <h2 class="section-heading">Conclusion</h2>
+
+            <h3 class="subsection-heading" id="benefits">5.1 Application and Benefits of the Portfolio Generator Tool</h3>
+            <p>
+                The primary value of this pipeline is delivering what most robo-advisors do not: a transparent
+                and personalised, forward-looking portfolio construction process. Every assumption is traceable
+                and surfaced through an interactive client dashboard rather than obscured behind a black box.
+                Clients with subtly different financial profiles receive meaningfully different portfolios —
+                not the same generic allocations.
+            </p>
+            <p>
+                The optimiser's use of near-term volatility forecasts rather than historical averages means
+                portfolio construction responds to current market conditions. Critically, the dashboard
+                communicates uncertainty through Monte Carlo simulation visualised as spaghetti plots, not a
+                single projected return line that implies false precision. This gives clients a realistic
+                picture of both upside potential and downside risk — the kind of transparency that should be
+                standard in financial advising but rarely is.
+            </p>
+
+            <h3 class="subsection-heading" id="ethics">5.2 Broader Impacts and Ethical Concerns</h3>
+            <p>
+                This is a proof-of-concept pipeline and should not be treated as a substitute for licensed
+                financial advice. A client acting on this output may be investing retirement savings or
+                educational funds, and could face material harm if models underperform, inputs are stale, or
+                risk classification is miscalibrated. The quantitative precision of the pipeline can imply a
+                certainty the underlying models do not warrant.
+            </p>
+            <p>
+                The SCF's representation deserves scrutiny. Although the Federal Reserve applies survey weights
+                to approximate the U.S. population, the survey oversamples high-wealth households and relies
+                on voluntary self-reporting. Risk scores derived from this data may systematically
+                underperform for demographics underrepresented in the survey, raising fairness concerns for
+                the very investors this tool aims to serve.
+            </p>
+            <p>
+                Responsible deployment would require clear disclaimers about model limitations, regular
+                revalidation as market conditions evolve, and a threshold of professional oversight before
+                any client acts on the pipeline's output. These concerns directly informed our decision to
+                deploy the dashboard as a local application rather than a publicly accessible web service.
+            </p>
+
+            <h3 class="subsection-heading" id="example-usage">5.3 Example Usage</h3>
+            <p>
+                The following video provides a five-minute walkthrough of the PortfolioIQ dashboard,
+                demonstrating the end-to-end pipeline from client input through risk scoring, portfolio
+                optimisation, and Monte Carlo simulation output.
+            </p>
+            <div class="video-container">
+                <span class="video-icon">▶</span>
+                <p>PortfolioIQ — End-to-End Pipeline Demonstration (5 min)</p>
+                {# Replace href below with the actual video URL #}
+                <a href="#" class="video-link">Watch Demonstration</a>
+            </div>
+
+            <h3 class="subsection-heading" id="sow">5.4 Statement of Work</h3>
+
             <div class="table-wrap">
-                <p class="table-caption">Table 2 — Detailed breakdown by category</p>
                 <table class="report-table">
                     <thead>
                         <tr>
-                            <th>Category</th>
-                            <th>Value A</th>
-                            <th>Value B</th>
-                            <th>Change</th>
-                            <th>Notes</th>
+                            <th>Team Member</th>
+                            <th>Contributions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Category 1</td>
-                            <td>—</td>
-                            <td>—</td>
-                            <td><span class="badge badge-green">+x%</span></td>
-                            <td>Note or qualifier</td>
+                            <td><strong>Peter King</strong></td>
+                            <td>Data Cleaning &amp; Transformation · Volatility Feature Selection / Extraction · Volatility Model Evaluation / Selection · Volatility Visualisations</td>
                         </tr>
                         <tr>
-                            <td>Category 2</td>
-                            <td>—</td>
-                            <td>—</td>
-                            <td><span class="badge badge-red">−x%</span></td>
-                            <td>Note or qualifier</td>
+                            <td><strong>Thomas MacPherson</strong></td>
+                            <td>Data Acquisition, Cleaning &amp; Transformation · Portfolio Optimisation Using Model Outputs · Flask Dashboard and UI · Video Demonstration</td>
                         </tr>
                         <tr>
-                            <td>Category 3</td>
-                            <td>—</td>
-                            <td>—</td>
-                            <td><span class="badge badge-yellow">~flat</span></td>
-                            <td>Note or qualifier</td>
+                            <td><strong>Ryan Peet</strong></td>
+                            <td><em class="text-muted">Pending — awaiting contribution</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kristine Zhou</strong></td>
+                            <td><em class="text-muted">Pending — awaiting contribution</em></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-
-            <!-- Second figure -->
-            <figure class="report-figure">
-                <div class="figure-placeholder">[ Chart · Figure 2 ]</div>
-                <figcaption>
-                    <strong>Figure 2.</strong> Caption for the second chart or
-                    image. Replace placeholder div with a real <code>&lt;img&gt;</code>
-                    tag or an embedded chart component.
-                </figcaption>
-            </figure>
         </section>
 
-        <!-- Section 4 -->
-        <section class="report-section" id="section-4">
-            <span class="section-number">§ 04</span>
-            <h2 class="section-heading">Discussion</h2>
-            <p>
-                Interpret the findings in context. Connect back to the research
-                question posed in the introduction. Address any surprising or
-                counterintuitive results, and explain them if possible.
-            </p>
-            <p>
-                Compare against benchmarks, prior periods, or external studies
-                where relevant. Be explicit about causality vs correlation.
-            </p>
-        </section>
 
-        <!-- Section 5 -->
-        <section class="report-section" id="section-5">
-            <span class="section-number">§ 05</span>
-            <h2 class="section-heading">Conclusions</h2>
-            <p>
-                Summarise the principal conclusions that follow logically from the
-                evidence presented. State recommendations clearly and, where possible,
-                link each recommendation to the specific finding that motivates it.
-            </p>
-            <p>
-                Flag any open questions or areas warranting further investigation.
-            </p>
-        </section>
-
-        <!-- References -->
+        <!-- ══════════════════════════════════════════════════
+             REFERENCES
+             ══════════════════════════════════════════════════ -->
         <section class="report-references" id="references">
             <h2>References</h2>
             <ol>
-                <li>Author, A. (Year). <em>Title of source.</em> Publisher / URL.</li>
-                <li>Author, B. &amp; Author, C. (Year). <em>Title of source.</em> Journal, Vol(Issue).</li>
-                <li>Add further references as needed.</li>
+                <li>
+                    Assaf, O., Di Fatta, G., &amp; Nicosia, G. (2022). Multivariate LSTM for Stock Market
+                    Volatility Prediction. In G. Nicosia et al. (Eds.), <em>Machine Learning, Optimization, and
+                    Data Science. LOD 2021. Lecture Notes in Computer Science, 13164</em>, 531–544.
+                    <a href="https://doi.org/10.1007/978-3-030-95470-3_40" target="_blank">https://doi.org/10.1007/978-3-030-95470-3_40</a>
+                </li>
+                <li>
+                    Engle, R. F. (1982). Autoregressive Conditional Heteroscedasticity with Estimates of the
+                    Variance of United Kingdom Inflation. <em>Econometrica, 50</em>(4), 987–1007.
+                    <a href="https://www.jstor.org/stable/1912773" target="_blank">https://www.jstor.org/stable/1912773</a>
+                </li>
+                <li>
+                    Markowitz, H. (1952). Portfolio Selection. <em>The Journal of Finance, 7</em>(1), 77–91.
+                    <a href="https://doi.org/10.1111/j.1540-6261.1952.tb01525.x" target="_blank">https://doi.org/10.1111/j.1540-6261.1952.tb01525.x</a>
+                </li>
+                <li>
+                    Michaud, R. O. (1989). The Markowitz Optimization Enigma: Is 'Optimized' Optimal?
+                    <em>Financial Analysts Journal, 45</em>(1), 31–42.
+                </li>
+                <li>
+                    Peter, M., Mirau, S., Sinkwembe, E., Kasumo, C., &amp; Guambe, C. (2026). A stacking model
+                    integrating GARCH and LSTM with feature interactions for time series volatility prediction.
+                    <em>Array, 29</em>, 100700.
+                    <a href="https://doi.org/10.1016/j.array.2026.100700" target="_blank">https://doi.org/10.1016/j.array.2026.100700</a>
+                </li>
+                <li>
+                    Sharpe, W. F. (1966). Mutual Fund Performance. <em>The Journal of Business, 39</em>(1),
+                    119–138. <a href="https://www.jstor.org/stable/2351741" target="_blank">https://www.jstor.org/stable/2351741</a>
+                </li>
+                <li>
+                    Trading the VIX. <em>Charles Schwab</em>, 21 November 2025.
+                    <a href="https://www.schwab.com/learn/story/trading-vix-strategies-fear-index" target="_blank">https://www.schwab.com/learn/story/trading-vix-strategies-fear-index</a>
+                </li>
+                <li>
+                    Zhang, Y., Zhang, T., &amp; Hu, J. (2025). Forecasting Stock Market Volatility Using
+                    CNN-BiLSTM-Attention Model with Mixed-Frequency Data. <em>Mathematics, 13</em>(11), 1889.
+                    <a href="https://doi.org/10.3390/math13111889" target="_blank">https://doi.org/10.3390/math13111889</a>
+                </li>
             </ol>
+        </section>
+
+
+        <!-- ══════════════════════════════════════════════════
+             APPENDIX
+             ══════════════════════════════════════════════════ -->
+        <hr class="appendix-divider" id="appendix">
+
+        <div style="margin-bottom: 2.5rem;">
+            <span class="appendix-eyebrow">Supplementary Material</span>
+            <h2 class="appendix-heading">Appendix</h2>
+        </div>
+
+        <!-- ── Appendix A: Literature Review ──────────────── -->
+        <section class="report-section" id="appendix-litreview">
+            <span class="section-number">§ A</span>
+            <h2 class="section-heading">Literature Review</h2>
+
+            <p>
+                Several teams have demonstrated success in recent years using LSTM models of various
+                architectures to forecast market volatility. Assaf et al. (2022) found that an LSTM model was
+                able to forecast overall market volatility with performance on par with modern econometric
+                models based on the ARCH process. Zhang et al. (2025) combined a hybrid deep-learning model
+                — consisting of a Convolutional Neural Network (CNN) layer, a bidirectional LSTM layer, and
+                an attention mechanism — with an ARCH-based econometric model to forecast volatility of the
+                Shanghai Composite Index (SSEC), claiming to outperform a variety of alternative models
+                including decision tree-based ensembles. Most recently, Peter et al. (2026) integrated a
+                generalised ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate
+                "consistent superiority" across a variety of metrics.
+            </p>
+        </section>
+
+        <!-- ── Appendix B: Datasets ────────────────────────── -->
+        <section class="report-section" id="appendix-datasets">
+            <span class="section-number">§ B</span>
+            <h2 class="section-heading">Datasets</h2>
+
+            <p>
+                From Yahoo Finance, we obtained time-series data consisting of daily closing prices for 21
+                ETFs, going back as far as January 1993. We also collected daily time-series data for a
+                variety of indices to provide additional context surrounding daily ETF price changes. These
+                contextual indices include the VIX and other volatility indices, currency indices,
+                commodities such as gold and crude oil, and foreign markets.
+            </p>
+            <p>
+                From the FRED database, we collected macroeconomic variables such as gross domestic product
+                (GDP), national debt, inflation, unemployment and jobless claims, and treasury yields. These
+                series came in different frequencies — typically quarterly, monthly, or weekly.
+            </p>
+            <p>
+                Raw data from both sources was generally very clean. A single erroneous value (a negative
+                price) was corrected by linear interpolation. Several non-ETF indices had missing values,
+                the highest being the Hang Seng Index (^HSI) at 9.7 percent. These were filled via linear
+                interpolation, with a buffer of 21 business days enforced between training, validation, and
+                test splits to guard against data leakage.
+            </p>
+        </section>
+
+        <!-- ── Appendix C: Volatility Modeling ────────────── -->
+        <section class="report-section" id="appendix-vol">
+            <span class="section-number">§ C</span>
+            <h2 class="section-heading">Volatility Modeling</h2>
+
+            <h3 class="subsection-heading">C.1 A Brief Introduction to Return and Volatility</h3>
+            <p>
+                Return reflects the change in an asset's price over a period of time. For a given asset, we
+                consider its return at time <em>t</em> to be a random variable R<sub>t</sub> of unknown
+                distribution with zero mean (μ = 0) and unknown variance (σ²). We used log return, computed
+                as:
+            </p>
+            <div class="equation">
+                R<sub>t</sub> = ln( S<sub>t</sub> / S<sub>t−1</sub> )
+            </div>
+            <p>
+                where S<sub>t</sub> is the closing price at time <em>t</em>. Volatility reflects the variance
+                in an asset's return over a period of time. We rely on <em>realised volatility</em> — simply
+                the standard deviation of return over a period — which, under the zero-mean assumption,
+                simplifies to:
+            </p>
+            <div class="equation">
+                σ = √( (1/<em>n</em>) &nbsp;Σ<sub>i</sub> R<sub>i</sub>² )
+            </div>
+            <p>
+                We forecast volatility over a 21 business day (≈ 30 calendar day) outlook, aligning our
+                predictions with the VIX forecast horizon and the business need of monthly portfolio
+                rebalancing.
+            </p>
+
+            <figure class="report-figure">
+                {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a1_spy_return.png') }}" alt="SPY daily return since 1993"> #}
+                <div class="figure-placeholder">
+                    [ SPY Daily Return · Figure A-1 ]
+                    <span class="fig-filename">static/report/fig_a1_spy_return.png</span>
+                </div>
+                <figcaption>
+                    <strong>Figure A-1.</strong> Daily return for the S&amp;P 500 ETF (SPY) since inception
+                    in 1993. Low baseline volatility (~1.2%) is punctuated by multi-month elevated volatility
+                    clusters, providing empirical support for the zero-mean assumption (mean daily return =
+                    0.0004) and motivating the use of ARCH-family and LSTM approaches over static models.
+                </figcaption>
+            </figure>
+
+            <h3 class="subsection-heading">C.2 Volatility Forecasting: Detailed Methodology</h3>
+
+            <h4 class="subsubsection-heading">Data Cleaning, Imputation, and Transformation</h4>
+            <p>
+                For each timestamp, we created a near-term realised volatility feature (computed over the
+                last 5 business days) and a future volatility label (computed over the next 21 business days)
+                from daily log return data. Macroeconomic variables were made more stationary by computing
+                first differences or percentage changes. All variables were resampled to weekly frequency —
+                upsampled values were forward-filled rather than interpolated, to prevent the model from
+                accessing future trends during training.
+            </p>
+            <p>
+                We held the final 61 weeks as a test set, 85 weeks as a validation set, and used 371 weekly
+                observations for training — with 21 business-day buffers between each split to guard against
+                label leakage. Features were standardised to (0, 1) with the scaler fitted only on training
+                data.
+            </p>
+
+            <h4 class="subsubsection-heading">Feature Selection and Extraction</h4>
+            <p>
+                EDA confirmed that historical 5-day volatility was highly correlated with future volatility
+                (correlation coefficient = 0.72 for SPY), and the 5-day return showed moderate negative
+                correlation (−0.37 for SPY). VIX and related volatility indices showed similar correlation to
+                future SPY volatility (VIX: 0.75). By contrast, no feature showed strong correlation with
+                future <em>return</em> — the highest being jobless claims at 0.14 — confirming that return
+                forecasting from these features is not viable.
+            </p>
+            <p>
+                To reduce multicollinearity, features with high inter-correlation were grouped and subjected
+                to PCA, retaining 12 principal components that collectively explain 80% of variance in the
+                original 87 features.
+            </p>
+
+            <h4 class="subsubsection-heading">Modeling</h4>
+            <p>
+                We compared nine model combinations (three model types × three feature sets). The
+                <strong>Ridge</strong> regressor applies L2-regularised linear regression, assuming a linear
+                relationship and independence of observations over time. The <strong>Gradient Boosting
+                regressor (GBR)</strong> relaxes the linearity assumption but still assumes observation
+                independence. The <strong>LSTM</strong> assumes neither a linear relationship nor
+                independence — it is specifically designed to learn both long and short-term temporal
+                dependencies.
+            </p>
+            <p>
+                We speculate that the additional layers in stacked LSTMs, often recommended in the
+                literature for language tasks, are less beneficial for financial volatility regression, where
+                the dominant dependency is simply autocorrelation in recent volatility — a simpler temporal
+                structure than the long-range semantic dependencies that motivate stacking in NLP.
+            </p>
+
+            <h3 class="subsection-heading">C.3 Correlation Analysis</h3>
+
+            <figure class="report-figure">
+                {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a2_corr_heatmap.png') }}" alt="Feature correlation heatmap"> #}
+                <div class="figure-placeholder">
+                    [ Correlation Heatmap · Figure A-2 ]
+                    <span class="fig-filename">static/report/fig_a2_corr_heatmap.png</span>
+                </div>
+                <figcaption>
+                    <strong>Figure A-2.</strong> Correlation matrix of features used in volatility forecasting.
+                    The top row reflects correlation with the target (SPY_vol_target). Near-term historical
+                    volatility features (XXX_vol-h) and volatility indices (VIX, VXN, MOVE) show high positive
+                    correlation; historical return features (XXX_ret-h) show moderate negative correlation;
+                    raw daily return (XXX_ret) shows near-zero correlation, motivating the engineered 5-day
+                    return feature.
+                </figcaption>
+            </figure>
+
+            <div class="figure-pair">
+                <figure class="report-figure">
+                    {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a3a_strong_corr.png') }}" alt="Strong correlation: vol vs future vol"> #}
+                    <div class="figure-placeholder" style="height: 200px;">
+                        [ Strong Correlation · A-3a ]
+                        <span class="fig-filename">static/report/fig_a3a_strong_corr.png</span>
+                    </div>
+                    <figcaption>
+                        <strong>Figure A-3a.</strong> Strong correlation between historical volatility and
+                        future realised volatility — making accurate near-term forecasting achievable.
+                    </figcaption>
+                </figure>
+                <figure class="report-figure">
+                    {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a3b_weak_corr.png') }}" alt="Weak correlation: return vs future return"> #}
+                    <div class="figure-placeholder" style="height: 200px;">
+                        [ Weak Correlation · A-3b ]
+                        <span class="fig-filename">static/report/fig_a3b_weak_corr.png</span>
+                    </div>
+                    <figcaption>
+                        <strong>Figure A-3b.</strong> Weak correlation between historical return and future
+                        return — confirming that return forecasting from these features is not viable.
+                    </figcaption>
+                </figure>
+            </div>
+
+            <h3 class="subsection-heading">C.4 Model Selection Criteria: Low vs. High Tracking Score</h3>
+            <p>
+                The Tracking criterion captures whether a model's predictions follow the general contour of
+                realised volatility over time — appropriately rising when volatility spikes and declining
+                when it recedes. A model that guesses an average value or produces erratic predictions
+                fails this criterion even if its mean error is acceptable.
+            </p>
+
+            <div class="figure-pair">
+                <figure class="report-figure">
+                    {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a4a_low_tracking.png') }}" alt="Low Tracking Score: GBR w/ PCA features"> #}
+                    <div class="figure-placeholder" style="height: 200px;">
+                        [ Low Tracking (5) · A-4a ]
+                        <span class="fig-filename">static/report/fig_a4a_low_tracking.png</span>
+                    </div>
+                    <figcaption>
+                        <strong>Figure A-4a.</strong> <em>Low Tracking (5): GBR model with PCA features.</em>
+                        Predictions jump between high and low volatility inappropriately, especially during
+                        the first 20 weeks of the forecast period.
+                    </figcaption>
+                </figure>
+                <figure class="report-figure">
+                    {# Replace placeholder with: <img src="{{ url_for('static', filename='report/fig_a4b_high_tracking.png') }}" alt="High Tracking Score: LSTM w/ limited features"> #}
+                    <div class="figure-placeholder" style="height: 200px;">
+                        [ High Tracking (8) · A-4b ]
+                        <span class="fig-filename">static/report/fig_a4b_high_tracking.png</span>
+                    </div>
+                    <figcaption>
+                        <strong>Figure A-4b.</strong> <em>High Tracking (8): LSTM model with limited features.</em>
+                        Predictions follow the general contour of realised volatility closely, albeit with a
+                        slight lag — a consistent behaviour across all model types.
+                    </figcaption>
+                </figure>
+            </div>
+
+            <h3 class="subsection-heading">C.5 Hyperparameter Tuning</h3>
+            <p>
+                Resampling frequency to weekly was a key decision for all models, striking a balance between
+                the granularity of daily closing prices and the lower-frequency macroeconomic inputs.
+                For LSTM models, key hyperparameters were hidden layer size, sequence length, and number of
+                training epochs. Stacked LSTMs (additional LSTM layers) were evaluated but caused more
+                erratic predictions without consistent improvement, consistent with our hypothesis that
+                financial volatility's temporal dependencies are simpler than those in language tasks.
+            </p>
+            <p>
+                For Ridge, the L2 regularisation coefficient ("alpha" in scikit-learn) was the primary
+                tuned parameter. For GBR, a grid search was conducted over learning rate, number of
+                estimators, max depth, and max features. Full hyperparameter configurations for all models
+                are documented in the Jupyter notebooks accompanying this report.
+            </p>
+
+            <div class="callout callout-warn">
+                <strong>Known Limitation — 2008 Crisis Absent from Covariance Estimates</strong>
+                The binding constraint on correlation history is the December 2015 launch of XLRE (Real
+                Estate ETF). The 2008 Global Financial Crisis — a period of dramatically elevated
+                cross-asset correlations — falls outside the estimation window. The resulting correlation
+                matrix may underestimate correlation spikes during stress regimes, producing a portfolio
+                that appears more diversified than it would prove to be in a true market crisis.
+            </div>
         </section>
 
     </main>
@@ -729,7 +1576,7 @@
 </div><!-- /.report-root -->
 
 <script>
-/* Highlight active TOC item on scroll */
+/* Highlight active TOC link on scroll */
 (function () {
     const sections = document.querySelectorAll('[id]');
     const links    = document.querySelectorAll('.toc-list a');
@@ -742,7 +1589,7 @@
                 if (active) active.classList.add('active');
             }
         });
-    }, { rootMargin: '-20% 0px -70% 0px' });
+    }, { rootMargin: '-15% 0px -70% 0px' });
 
     sections.forEach(s => observer.observe(s));
 })();
