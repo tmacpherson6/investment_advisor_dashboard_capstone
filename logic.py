@@ -1,5 +1,5 @@
 """
-logic.py - version 1.7
+logic.py - version 1.8
 ────────────────────────────────────────────────────────────────────────────────
 Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. We are still waiting on the SCF model data for the risk score but that will be added here when we do. We will then have to update the index.html in order to have the appropriate questions that line up to the model. It should be plug and play.
 
@@ -58,7 +58,9 @@ BASE_DIR = Path(__file__).resolve().parent
 #  RF RISK MODEL  (trained in notebooks/Ryan_SCF_Random_Forest_Risk_Pred.ipynb)
 # ─────────────────────────────────────────────────────────────────────────────
 RF_MODEL_PATH = BASE_DIR / "models" / "rf_risk_model.joblib"
-rf_model = None 
+RF_QT_PATH = BASE_DIR / "models" / "rf_quantile_transformer.joblib"
+rf_model = None
+rf_qt = None
 
 
 def get_rf_model():
@@ -66,6 +68,13 @@ def get_rf_model():
     if rf_model is None:
         rf_model = joblib.load(RF_MODEL_PATH)
     return rf_model
+
+
+def get_rf_qt():
+    global rf_qt
+    if rf_qt is None:
+        rf_qt = joblib.load(RF_QT_PATH)
+    return rf_qt
 
 
 RF_FEATURE_COLS = [
@@ -78,28 +87,35 @@ RF_FEATURE_COLS = [
 
 def rf_risk_score(form_data):
     """
-    Build the 15-feature vector from submitted form data and run the SCF
-    Random Forest pipeline to predict a 0–10 risk tolerance score.
+    Build the 15-feature vector from submitted form data, run the SCF
+    Random Forest pipeline, then apply a QuantileTransformer (fitted on
+    training predictions) to map the raw score to a near-normal distribution
+    on [1, 10].
 
-    Falls back to a simple heuristic if the model file is not yet available
-    (i.e. the notebook has not been run yet).
+    Falls back to a simple heuristic if the model or transformer file is not
+    yet available (i.e. the notebook has not been run yet).
     """
     row = {col: float(form_data.get(col, 0)) for col in RF_FEATURE_COLS}
     X = pd.DataFrame([row], columns=RF_FEATURE_COLS)
 
     try:
         raw_score = float(get_rf_model().predict(X)[0])
+        z = float(get_rf_qt().transform([[raw_score]])[0, 0])
+        # Map N(0,1) z-score to [1, 10] using ±3σ window:
+        #   z = -3 → score = 1.0  (lowest risk)
+        #   z =  0 → score = 5.5  (median)
+        #   z = +3 → score = 10.0 (highest risk)
+        score = float(np.clip(round((z + 3) / 6 * 9 + 1, 1), 1.0, 10.0))
     except Exception:
-        # Model not yet trained — fall back to a simple heuristic so the app
-        # stays runnable before the notebook is executed.
+        # Model/transformer not yet trained — fall back to a simple heuristic
+        # so the app stays runnable before the notebook is executed.
         age = row["age"]
         income = row["income"]
         wsaved = row["wsaved"]
-        raw_score = 5.0 + (3 - wsaved) * 1.5 + (income / 100_000 - 1) * 0.4 - (age - 45) / 30
+        raw_score = 5.5 + (3 - wsaved) * 1.5 + (income / 100_000 - 1) * 0.4 - (age - 45) / 30
+        score = float(np.clip(round(raw_score, 1), 1.0, 10.0))
 
-    score = float(np.clip(round(raw_score, 1), 0, 10))
-
-    # Vol-ceiling bands (we will need to recalibrate this after QuantileTransformer is added or we address the scaling)
+    # Vol-ceiling bands calibrated for the [1, 10] normal scale
     if score <= 2.0:
         vol_ceiling = 0.05
     elif score <= 4.0:
