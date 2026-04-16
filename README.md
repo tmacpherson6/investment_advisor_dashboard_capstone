@@ -8,7 +8,7 @@ The Investment Portfolio Generator is an integrated decision framework that conn
 
 ## Features
 
-- **Risk Tolerance Scoring** — Estimates investor risk tolerance from a questionnaire using a mock heuristic formula (stub), producing a numeric score on a 1–10 scale and a volatility ceiling that constrains portfolio construction. Planned replacement: ordered logistic regression trained on SCF 2022 microdata.
+- **Risk Tolerance Scoring** — Estimates investor risk tolerance from a questionnaire using a Random Forest classifier trained on SCF 2022 microdata, producing a numeric score on a 1–10 scale and a volatility ceiling that constrains portfolio construction. A QuantileTransformer is applied to normalise skewed input features prior to scoring.
 - **LSTM Volatility Forecasting** — Annualised forward-looking volatility predictions (`ANN_SIG`) are sourced from a PyTorch LSTM model (Pete's series, 30-trial average). Historical vol from yfinance is retained separately for visualisation comparison.
 - **Sharpe-Prior Expected Returns** — Expected returns (`ANN_MU`) are derived via a Sharpe-prior method: `μ_i = rf + sharpe_prior_i × σ_lstm_i`. This replaces naive historical mean returns, which were noisy and bull-market biased in the available window. Sharpe priors are anchored to Ilmanen (2011) and Erb & Harvey (2006).
 - **Real Correlation Matrix** — Pearson correlation is estimated from full-history log returns downloaded live via yfinance (common start: December 2015, binding on XLRE launch). Positive semi-definiteness is enforced via eigenvalue clipping (Higham 2002). Parameters are cached for the calendar day.
@@ -27,17 +27,17 @@ The Investment Portfolio Generator is an integrated decision framework that conn
 ```
 app.py          Flask application — routes, simulation, GIF generation
                 Consumes all market parameters from logic.py via get_market_params()
-                Owns mock_risk_score() stub (to be replaced by SCF model)
+                Calls rf_risk_score() from logic.py for live risk scoring
+                Contains legacy mock_risk_score() (unused — retained for reference)
 
-logic.py        Single source of truth for market parameters
+logic.py        Single source of truth for market parameters and risk scoring
+                REAL:  rf_risk_score() — Random Forest + QuantileTransformer on SCF 2022
                 REAL:  Correlation matrix — full-history log returns (yfinance)
                 REAL:  ANN_SIG — LSTM 30-trial average vol (annualized_volatility_predictions.csv)
                 REAL:  ANN_SIG_HIST — historical vol from yfinance (retained for viz)
                 REAL:  ANN_MU — Sharpe-prior method (rf + sharpe_prior_i * sigma_lstm_i)
-                Exposes: get_market_params(), optimize_portfolio(), compute_equity_ceiling()
+                Exposes: get_market_params(), optimize_portfolio(), compute_equity_ceiling(), rf_risk_score()
 ```
-
-When the SCF risk model is ready, it plugs into `app.py`'s `mock_risk_score()`. `logic.py` requires no changes.
 
 ---
 
@@ -76,10 +76,10 @@ The portfolio is constructed from 17 instruments spanning full GICS sector cover
 The maximum equity allocation is determined by:
 
 ```
-equity_ceiling = (100 - age) + (risk_score - 5) × 3
+equity_ceiling = (110 - age) + (risk_score - 5) × 3
 ```
 
-Capped at 90% for risk scores below 9 (fiduciary conservatism). Risk scores ≥9 allow the formula to run freely up to 100%. Floored at 10% to avoid degenerate all-cash portfolios.
+The `110 - age` baseline extends the classic "100 minus age" rule of thumb to account for increased longevity risk — the risk of outliving assets given modern life expectancy. Capped at 90% for risk scores below 7 (fiduciary conservatism). Risk scores ≥7 allow the formula to run freely up to 100%. Floored at 10% to avoid degenerate all-cash portfolios.
 
 ### Intra-Bucket Constraints
 
@@ -94,9 +94,10 @@ Capped at 90% for risk scores below 9 (fiduciary conservatism). Risk scores ≥9
 
 ```
 vol_floor = vol_ceiling × floor_pct
+floor_pct = 0.25 + (risk_score - 1) / 9 × 0.20
 ```
 
-Where `floor_pct` is 25% for scores ≤4, 35% for scores ≤7, and 45% for scores >7. The floor encodes the fiduciary obligation to *deliver* the risk/return profile the client was assessed for, not merely cap downside.
+`floor_pct` is linearly interpolated between 25% at score 1 and 45% at score 10, with score 5.5 yielding 35%. This continuous scale ensures every distinct risk score produces a unique vol floor, so small differences in assessed risk (e.g. 4.3 vs 5.7) result in meaningfully different portfolio tilts. The floor encodes the fiduciary obligation to *deliver* the risk/return profile the client was assessed for, not merely cap downside.
 
 ### HYG Vol Floor
 
@@ -112,7 +113,7 @@ Scipy SLSQP with 5 random Dirichlet restarts to mitigate local minima on the non
 
 | Component | Current state |
 |-----------|--------------|
-| Risk tolerance score | Mock heuristic formula in `app.py` — planned replacement: ordered logistic regression on SCF 2022 microdata |
+| Risk tolerance score | Random Forest (scikit-learn) trained on SCF 2022 microdata with QuantileTransformer feature normalisation |
 | Volatility (ANN_SIG) | LSTM 30-trial average predictions (`annualized_volatility_predictions.csv`) |
 | Expected returns (ANN_MU) | Sharpe-prior method: `rf + sharpe_prior_i × σ_lstm_i` |
 | Correlation matrix | Full-history Pearson from yfinance daily close prices |
@@ -177,7 +178,7 @@ Set the `DATABASE_URL` environment variable to a PostgreSQL connection string to
 ```
 project/
 ├── app.py                          Flask app — routes, simulation, visualisation
-├── logic.py                        Market parameters, LSTM vol loading, optimiser
+├── logic.py                        Market parameters, risk scoring, LSTM vol loading, optimiser
 ├── requirements.txt
 ├── README.md
 │
@@ -188,7 +189,8 @@ project/
 │   └── report.html                 Static technical report page
 │
 ├── models/
-│   └── rf_risk_model.joblib        Random Forest Model produced by Sklearn
+│   ├── rf_risk_model.joblib        Random Forest risk model (scikit-learn)
+│   └── rf_quantile_transformer.joblib  QuantileTransformer for feature normalisation
 │
 ├── data/
 │   ├── annualized_volatility_predictions.csv  LSTM vol output consumed by logic.py
@@ -199,19 +201,14 @@ project/
 │   ├── SCFP2022.csv                Survey of Consumer Finances 2022 microdata
 │   ├── volatility_results.csv      Volatility model evaluation results
 │   ├── volatility_baseline.json    Baseline metrics for vol model comparison
-│   ├── volatility_results.json     Full vol model results
-│   ├── train-val-test/             Train/val/test splits (Pete's B-series pipeline)
-│   └── downsample/
-│       ├── W/train-val-test/       Weekly downsampled splits (Pete's C-series pipeline)
-│       ├── 2W/train-val-test/      Bi-weekly downsampled splits
-│       └── BME/train-val-test/     Business month-end downsampled splits
+│   └── volatility_results.json     Full vol model results
 │
 └── notebooks/
     ├── Tom's Notebook 1–5          Data pipeline and SCF exploration (see table below)
     ├── Pete-A*/B*/C*/D*            LSTM volatility model pipeline (see table below)
-    ├── Ryan-SCF_*                  Random Forest risk tolerance prediction
+    ├── Ryan_SCF_Random_Forest_Risk_Pred  Random Forest risk tolerance prediction
     ├── Kristine_SCF_*              SCF regression analysis (R kernel)
-    ├── __init.py__
+    ├── __init__.py
     └── helpers/
         ├── data_prep.py                Data preparation utilities for model training
         ├── model_testing_volatility.py Volatility model evaluation and baseline comparison
@@ -243,7 +240,7 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 **Ryan's notebook**
 | Notebook | Purpose |
 |----------|---------|
-| Ryan-SCF_Random_Forest_Risk_Pred | Random Forest risk tolerance prediction on SCF data |
+| Ryan_SCF_Random_Forest_Risk_Pred | Random Forest risk tolerance prediction on SCF 2022 data — exports `rf_risk_model.joblib` and `rf_quantile_transformer.joblib` |
 
 **Kristine's notebooks**
 | Notebook | Purpose |
@@ -263,7 +260,7 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 - NumPy / Pandas
 - Matplotlib / Pillow (GIF generation) / Altair / seaborn
 - PyTorch (LSTM volatility model)
-- scikit-learn (Ridge, GBR, PCA, Random Forest)
+- scikit-learn (Ridge, GBR, PCA, Random Forest, QuantileTransformer)
 - SciPy (SLSQP optimisation)
 - Jupyter / JupyterLab
 
@@ -272,10 +269,10 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 ## Known Limitations
 
 - **Correlation history starts December 2015** due to XLRE launch date. The 2008 GFC and 2011 European debt crisis are not represented in covariance estimates.
-- **Risk score is a stub.** The mock heuristic in `mock_risk_score()` produces a score from age, income, net worth, education, and experience using a simple linear formula. Allocations are illustrative until the SCF-trained model is integrated.
 - **Normality assumption.** The Monte Carlo simulation uses multivariate normal shocks. Fat tails and skewness in actual sector returns are not captured.
 - **Static correlation matrix.** Full-history Pearson correlation is used rather than time-varying estimation. Regime shifts in correlation structure are not reflected.
 - **LSTM feature set.** The volatility model uses only ETF return and vol history, which may miss credit spread dynamics for HYG. A 6% vol floor compensates for this known blind spot.
+- **Risk score distribution.** The Random Forest model produces scores concentrated in the 4–7 range on SCF microdata. Optimizer constraints are calibrated for this realistic distribution — extreme scores (1–3, 8–10) are possible but uncommon in practice.
 
 ---
 
