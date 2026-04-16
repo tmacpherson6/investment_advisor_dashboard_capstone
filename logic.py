@@ -631,7 +631,8 @@ def optimize_portfolio(
       HYG ≤ (risk_score/10)² × 35% of FI bucket
 
     Vol floor scaling (fraction of vol_ceiling):
-      risk_score ≤ 4 → 25%  |  ≤ 7 → 35%  |  > 7 → 45%
+      Linear interpolation: score 1 → 25%  |  score 5.5 → 35%  |  score 10 → 45%
+      Formula: 0.25 + (risk_score - 1) / 9 * 0.20
     """
     N = len(ann_mu)
     cov = np.diag(ann_sig) @ corr @ np.diag(ann_sig)
@@ -647,12 +648,10 @@ def optimize_portfolio(
     fi_bucket = max(1.0 - eq_ceiling - gld_cap, 0.05)
 
     # ── Vol floor ─────────────────────────────────────────────────────────
-    if risk_score <= 4:
-        floor_pct = 0.25
-    elif risk_score <= 7:
-        floor_pct = 0.35
-    else:
-        floor_pct = 0.45
+    # Linear scale: score 1 → 25%, score 5.5 → 35%, score 10 → 45%
+    # Every score gets a unique floor so small differences (e.g. 4.3 vs 5.7)
+    # produce meaningfully different portfolios.
+    floor_pct = 0.25 + (risk_score - 1) / 9 * 0.20
     vol_floor = vol_ceiling * floor_pct
 
     # Once again log info for transparency and debugging purposes
