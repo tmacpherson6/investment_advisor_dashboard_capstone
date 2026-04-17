@@ -57,7 +57,7 @@
   /* ── Stat cards ── */
   .dist-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
     margin-top: 1rem;
   }
@@ -66,6 +66,7 @@
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 1.2rem 1.4rem;
+    text-align: center;
   }
   .dist-card .dc-label {
     font-family: var(--font-mono); font-size: 0.62rem;
@@ -481,7 +482,7 @@
         </div>
 
         <!-- Terminal Value — spans full width -->
-        <div class="dist-card" style="grid-column: 1 / -1;">
+        <div class="dist-card" style="grid-column: span 2;">
           <span class="dc-label">Terminal Portfolio Value &nbsp;·&nbsp; Starting: ${{ "{:,.0f}".format(form_data.investment_amount | float) }} &nbsp;·&nbsp; <span id="tv-horizon-label">{{ horizon_years }}-year horizon</span></span>
           <div class="tv-grid" id="dc-tv-grid">
             <div class="tv-cell">
@@ -599,7 +600,7 @@
       <p style="font-family:var(--font-mono); font-size:0.72rem; color:var(--muted); margin-bottom:1.2rem; line-height:1.7;">
         Comparing the LSTM's 30-trial average forward-looking volatility against the historical realised volatility
         from yfinance (post-2015 window). Divergence shows where the model sees a <em>regime shift</em> from the historical norm.
-        <span style="color:var(--gold-dim);">HYG is floored at 6% — see methodology.</span>
+        <span><a href="/report" target="_blank" style="color:var(--gold-dim);">HYG is floored at 6% — see methodology.</a></span>
       </p>
       <div class="chart-container" style="padding:1rem;">
         <canvas id="vol-chart" height="380"></canvas>
