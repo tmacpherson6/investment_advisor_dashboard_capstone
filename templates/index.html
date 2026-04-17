@@ -16,6 +16,102 @@
 {% block title %}PortfolioIQ — Client Assessment{% endblock %}
 
 {% block content %}
+
+<style>
+  /* ── Loading Overlay ─────────────────────────────────── */
+  #loading-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10, 14, 20, 0.97);
+    backdrop-filter: blur(4px);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lo-card {
+    background: #111720;
+    border: 1px solid var(--gold);
+    border-radius: 12px;
+    padding: 2.5rem 3rem;
+    width: min(420px, 90vw);
+    text-align: center;
+    box-shadow: 0 0 40px rgba(201, 168, 76, 0.12);
+    margin-bottom: 64px; /* clear of ticker bar */
+  }
+
+  .lo-brand {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.8rem;
+    opacity: 0.7;
+  }
+
+  /* Spinning arc ring */
+  .lo-spinner {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 5px solid transparent;
+    border-top-color: var(--gold);
+    border-right-color: var(--gold);
+    border-bottom-color: rgba(201, 168, 76, 0.2);
+    margin: 0 auto 1.8rem;
+    animation: lo-spin 1.1s linear infinite;
+  }
+  @keyframes lo-spin { to { transform: rotate(360deg); } }
+
+  .lo-status {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 2.5em;
+    transition: opacity 0.4s;
+  }
+
+  .lo-elapsed {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 1.2rem;
+    letter-spacing: 0.06em;
+  }
+
+  /* Scrolling ticker bar */
+  .lo-ticker-wrap {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #0d1119;
+    border-top: 1px solid var(--gold);
+    padding: 9px 0;
+    overflow: hidden;
+  }
+
+  .lo-ticker-inner {
+    display: inline-block;
+    white-space: nowrap;
+    animation: lo-ticker 30s linear infinite;
+  }
+  @keyframes lo-ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .lo-tick-item {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text);
+    margin: 0 2rem;
+  }
+  .lo-tick-item b { color: var(--gold); margin-right: 0.3em; }
+  .lo-up { color: #4ade80; }
+  .lo-dn { color: #f87171; }
+</style>
+
 <div class="container">
 
   <!-- Hero -->
@@ -221,4 +317,82 @@
   </div>
 
 </div>
+
+<!-- ── Loading Overlay ───────────────────────────────────── -->
+<div id="loading-overlay">
+  <div class="lo-card">
+    <div class="lo-brand">PortfolioIQ</div>
+    <div class="lo-spinner"></div>
+    <div class="lo-status" id="lo-status-text">Scoring your risk profile&hellip;</div>
+    <div class="lo-elapsed" id="lo-elapsed">Elapsed: 0:00</div>
+  </div>
+  <div class="lo-ticker-wrap">
+    <div class="lo-ticker-inner" id="lo-ticker-inner"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const MESSAGES = [
+      "Scoring your risk profile\u2026",
+      "Consulting the efficient frontier\u2026",
+      "Running 1,000 Monte Carlo paths\u2026",
+      "Stress-testing against historical drawdowns\u2026",
+      "Optimizing portfolio allocation\u2026",
+      "Calculating Sharpe ratios\u2026",
+      "Backtesting against market cycles\u2026",
+      "Building your personalized report\u2026"
+    ];
+
+    const TICKERS = [
+      { sym: "SPY",  chg: +1.23 }, { sym: "QQQ",  chg: +0.87 },
+      { sym: "VTI",  chg: +1.05 }, { sym: "BND",  chg: -0.14 },
+      { sym: "GLD",  chg: +0.62 }, { sym: "TLT",  chg: -0.91 },
+      { sym: "VXUS", chg: +0.44 }, { sym: "VNQ",  chg: -0.33 },
+      { sym: "IAU",  chg: +0.59 }, { sym: "SCHD", chg: +0.71 },
+      { sym: "IEF",  chg: -0.48 }, { sym: "AGG",  chg: -0.19 },
+      { sym: "VIG",  chg: +0.93 }, { sym: "USMV", chg: +0.55 },
+    ];
+
+    // Build ticker (doubled for seamless loop)
+    var tickerEl = document.getElementById("lo-ticker-inner");
+    var items = TICKERS.map(function (t) {
+      var arrow = t.chg >= 0 ? "\u25b2" : "\u25bc";
+      var cls   = t.chg >= 0 ? "lo-up" : "lo-dn";
+      return '<span class="lo-tick-item"><b>' + t.sym + '</b>'
+           + '<span class="' + cls + '">' + arrow + Math.abs(t.chg).toFixed(2) + '%</span></span>';
+    }).join("");
+    tickerEl.innerHTML = items + items;
+
+    // Show overlay on form submit
+    document.querySelector("form").addEventListener("submit", function () {
+      var overlay   = document.getElementById("loading-overlay");
+      var statusEl  = document.getElementById("lo-status-text");
+      var elapsedEl = document.getElementById("lo-elapsed");
+
+      overlay.style.display = "flex";
+
+      // Cycle messages every 6 s
+      var msgIdx = 0;
+      setInterval(function () {
+        msgIdx = (msgIdx + 1) % MESSAGES.length;
+        statusEl.style.opacity = "0";
+        setTimeout(function () {
+          statusEl.textContent = MESSAGES[msgIdx];
+          statusEl.style.opacity = "1";
+        }, 400);
+      }, 6000);
+
+      // Elapsed timer
+      var secs = 0;
+      setInterval(function () {
+        secs++;
+        var m = Math.floor(secs / 60);
+        var s = String(secs % 60).padStart(2, "0");
+        elapsedEl.textContent = "Elapsed: " + m + ":" + s;
+      }, 1000);
+    });
+  })();
+</script>
+
 {% endblock %}
