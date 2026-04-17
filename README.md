@@ -288,7 +288,7 @@ All notebooks live in the `notebooks/` directory. They are organised by contribu
 
 ## License
 
-[License to be selected]
+This project is licensed under the MIT License — see the LICENSE file for details.
 
 ## Generative AI Disclosure
 Claude (Anthropic, claude.ai) was used to assist in the generation of 
