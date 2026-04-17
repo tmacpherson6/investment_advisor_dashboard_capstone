@@ -568,7 +568,8 @@
       </div>
       <div class="ef-legend" style="margin-top:1rem;">
         <div class="ef-legend-item">
-          <div class="ef-legend-dot" style="background:#4CAF82;"></div><span>Equity sectors</span>
+          <div class="ef-legend-dot" style="background:rgba(201,168,76,0.3); border:2px solid #C9A84C; width:10px; height:10px; border-radius:2px;"></div>
+          <span>Portfolio (MC diversified vol) — dashed line shows diversification benefit</span>
         </div>
         <div class="ef-legend-item">
           <div class="ef-legend-dot" style="background:#5A8FD4;"></div><span>Fixed income</span>
@@ -668,6 +669,8 @@
   const HIST_VOL  = {{ hist_vol | tojson }};   // { ETF: pct }
   const ANN_MU    = {{ ann_mu   | tojson }};   // { ETF: pct }
   const WEIGHTS   = {{ weights  | tojson }};   // { ETF: decimal }
+  const MC_VOL_MEDIAN = {{ stats.vol_median }};   // diversified vol from Monte Carlo
+  const MC_RET_MEDIAN = {{ stats.ret_median }};   // for the y-position of the MC point
 
   // Asset class classification
   const ASSET_CLASS = {
@@ -789,64 +792,78 @@
 
   // ── VIZ 1: Return vs Volatility Scatter ──────────────────────────────
   (function buildEFChart() {
-    // Compute portfolio vol and mu for the star point
-    // Vol: weighted average (approximation for display)
     let portVol = 0, portMu = 0;
     for (const etf of ETF_UNIVERSE) {
       portVol += (WEIGHTS[etf] || 0) * LSTM_VOL[etf];
       portMu  += (WEIGHTS[etf] || 0) * ANN_MU[etf];
     }
-
-    // Group ETFs by asset class
+  
     const groups = { Equity: [], 'Fixed Income': [], 'Real Assets': [] };
     for (const etf of ETF_UNIVERSE) {
-      groups[ASSET_CLASS[etf]].push({
-        x: LSTM_VOL[etf],
-        y: ANN_MU[etf],
-        label: etf
-      });
+      groups[ASSET_CLASS[etf]].push({ x: LSTM_VOL[etf], y: ANN_MU[etf], label: etf });
     }
-
+  
     const datasets = [
       {
         label: 'Equity',
         data: groups['Equity'],
         backgroundColor: 'rgba(76,175,130,0.75)',
         borderColor: '#4CAF82',
-        borderWidth: 1,
-        pointRadius: 7,
-        pointHoverRadius: 9,
+        borderWidth: 1, pointRadius: 7, pointHoverRadius: 9,
       },
       {
         label: 'Fixed Income',
         data: groups['Fixed Income'],
         backgroundColor: 'rgba(90,143,212,0.75)',
         borderColor: '#5A8FD4',
-        borderWidth: 1,
-        pointRadius: 7,
-        pointHoverRadius: 9,
+        borderWidth: 1, pointRadius: 7, pointHoverRadius: 9,
       },
       {
         label: 'Real Assets',
         data: groups['Real Assets'],
         backgroundColor: 'rgba(201,168,76,0.75)',
         borderColor: '#C9A84C',
-        borderWidth: 1,
-        pointRadius: 7,
-        pointHoverRadius: 9,
+        borderWidth: 1, pointRadius: 7, pointHoverRadius: 9,
       },
+      // ── Dashed connector line between the two portfolio points ──
+      {
+        label: '_connector',
+        data: [
+          { x: portVol,      y: portMu },
+          { x: MC_VOL_MEDIAN, y: portMu },
+        ],
+        type: 'line',
+        borderColor: 'rgba(201,168,76,0.45)',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        pointHoverRadius: 0,
+        fill: false,
+        tension: 0,
+      },
+      // ── Weighted-average portfolio (existing diamond) ──
       {
         label: 'Portfolio ★',
-        data: [{ x: portVol, y: portMu, label: 'Portfolio ★' }],
+        data: [{ x: portVol, y: portMu, label: 'Portfolio ★ (weighted avg vol)' }],
         backgroundColor: 'rgba(255,255,255,0.9)',
         borderColor: '#C9A84C',
         borderWidth: 2,
-        pointRadius: 12,
-        pointHoverRadius: 14,
+        pointRadius: 12, pointHoverRadius: 14,
         pointStyle: 'rectRot',
-      }
+      },
+      // ── Monte Carlo diversified vol point ──
+      {
+        label: 'Portfolio (MC vol)',
+        data: [{ x: MC_VOL_MEDIAN, y: portMu, label: 'Portfolio ◆ (MC diversified vol)' }],
+        backgroundColor: 'rgba(201,168,76,0.3)',
+        borderColor: '#C9A84C',
+        borderWidth: 2,
+        borderDash: [4, 3],
+        pointRadius: 10, pointHoverRadius: 12,
+        pointStyle: 'rectRot',
+      },
     ];
-
+  
     new Chart(document.getElementById('ef-chart'), {
       type: 'scatter',
       data: { datasets },
@@ -861,15 +878,16 @@
             borderWidth: 1,
             titleFont: { family: "'DM Mono', monospace", size: 11 },
             bodyFont:  { family: "'DM Mono', monospace", size: 11 },
+            filter: ctx => ctx.dataset.label !== '_connector',
             callbacks: {
-              title: ctx => ctx[0].raw.label,
+              title: ctx => ctx[0].raw.label || ctx[0].dataset.label,
               label: ctx => [`Vol: ${ctx.raw.x.toFixed(2)}%`, `Exp. Return: ${ctx.raw.y.toFixed(2)}%`]
             }
           }
         },
         scales: {
           x: {
-            title: { display: true, text: 'LSTM Annualised Volatility (%)', color: '#5A6478', padding: { top: 8 } },
+            title: { display: true, text: 'Annualised Volatility (%)', color: '#5A6478', padding: { top: 8 } },
             grid: { color: 'rgba(30,40,54,0.8)' },
             ticks: { callback: v => v + '%' }
           },
