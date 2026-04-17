@@ -50,10 +50,11 @@ from helpers import data_prep as dp
 from helpers import models
 
 # Data folders
-DATA_DIR = Path.cwd().parent / 'data' / 'downsample' / 'W' / 'train-val-test'
-TRAIN_DATA_FILE = DATA_DIR / 'train_PCA_data.csv'
-VAL_DATA_FILE = DATA_DIR / 'val_PCA_data.csv'
-TEST_DATA_FILE = DATA_DIR / 'test_PCA_data.csv'
+DATA_DIR = Path.cwd().parent / 'data' 
+WEEKLY_DIR = DATA_DIR / 'downsample' / 'W' / 'train-val-test'
+TRAIN_DATA_FILE = WEEKLY_DIR / 'train_PCA_data.csv'
+VAL_DATA_FILE = WEEKLY_DIR / 'val_PCA_data.csv'
+TEST_DATA_FILE = WEEKLY_DIR / 'test_PCA_data.csv'
 # List of ETFs for volatility prediction
 ETFS = [
     'BIL', 'BND', 'GLD', 'HYG', 'IEF', 'IWM', 'LQD',
