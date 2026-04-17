@@ -619,8 +619,8 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.8rem;">
         <h2>Allocation Treemap</h2>
         <div class="chart-toggle-group" id="alloc-toggles">
-          <button class="chart-toggle active" onclick="setAllocView('etf')" data-view="etf">By ETF</button>
-          <button class="chart-toggle" onclick="setAllocView('class')" data-view="class">By asset class</button>
+          <button class="chart-toggle active" onclick="setAllocView('class')" data-view="class">By asset class</button>
+          <button class="chart-toggle" onclick="setAllocView('etf')" data-view="etf">By ETF</button>
         </div>
       </div>
       <hr class="divider">
@@ -1072,7 +1072,7 @@
     buildAllocChart(view);
   }
 
-  buildAllocChart('etf');
+  buildAllocChart('class');
 
   // ── Feedback panel ──
   let fbDirection = null;
