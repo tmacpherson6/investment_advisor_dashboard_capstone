@@ -1,4 +1,3 @@
-#123456789012345678901234567890123456789012345678901234567890123456789012345678
 """This module contains helper functions to prepare data for analysis.
 
 Author: Pete King

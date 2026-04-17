@@ -1,4 +1,3 @@
-#123456789012345678901234567890123456789012345678901234567890123456789012345678
 """This module tests model predictions of future market sector volatility.
 
 Author: Pete King
@@ -27,6 +26,7 @@ return to be zero.  This assumption generally holds in the very long run.
 When returns are much higher or lower than usual (i.e., expectation), we say
 that the asset is experiencing a period of high volatility.
 """
+from pathlib import Path
 import json
 import re
 import time
@@ -46,14 +46,15 @@ from sklearn.metrics import (
 )
 import torch
 
-import data_prep as dp
-import models
+from helpers import data_prep as dp
+from helpers import models
 
 # Data folders
-DATA_FOLDER = 'data/downsample/W/train-val-test/'
-TRAIN_DATA_FILE = DATA_FOLDER + 'train_pca_data.csv'
-VAL_DATA_FILE = DATA_FOLDER + 'val_pca_data.csv'
-TEST_DATA_FILE = DATA_FOLDER + 'test_pca_data.csv'
+DATA_DIR = Path.cwd().parent / 'data' 
+WEEKLY_DIR = DATA_DIR / 'downsample' / 'W' / 'train-val-test'
+TRAIN_DATA_FILE = WEEKLY_DIR / 'train_PCA_data.csv'
+VAL_DATA_FILE = WEEKLY_DIR / 'val_PCA_data.csv'
+TEST_DATA_FILE = WEEKLY_DIR / 'test_PCA_data.csv'
 # List of ETFs for volatility prediction
 ETFS = [
     'BIL', 'BND', 'GLD', 'HYG', 'IEF', 'IWM', 'LQD',
@@ -313,7 +314,7 @@ def test_model(model, model_type, feature_set, etf, split_df):
 
 
 def results_to_df(results):
-    """Converts a Python dictionary of results to a CSV file."""
+    """Converts a Python dictionary of results to a Pandas DataFrame."""
     columns = [
         'ETF', 'Model', 'Features', 'Split', 'Trial', 'y_pred', 'MAE', 'R2-OOS'
     ]
@@ -347,7 +348,9 @@ if __name__ == '__main__':
     }
     # Establish and record baseline performance
     baseline = get_baseline(splits, ETFS)
-    with open('volatility_baseline.json', 'w', encoding='utf-8') as f:
+    with open(
+        DATA_DIR / 'volatility_baseline.json', 'w', encoding='utf-8'
+    ) as f:
         json.dump(baseline, f)
     # Conduct a number of trials and record results
     trial_results = {}
@@ -359,9 +362,10 @@ if __name__ == '__main__':
         duration = (time.time() - t_start) / 60
         print(f'Trial {i + 1} took {duration} minutes.')
     # Save results as JSON and CSV files
-    with open('volatility_results.json', 'w', encoding='utf-8') as f:
+    with open(
+        DATA_DIR / 'volatility_results.json', 'w', encoding='utf-8'
+    ) as f:
         json.dump(trial_results, f)
     results_df = results_to_df(trial_results)
-    results_df.to_csv('volatility_results.csv', index=False)
+    results_df.to_csv(DATA_DIR / 'volatility_results.csv', index=False)
     print('---\nTrials complete, results recorded.')
-    
