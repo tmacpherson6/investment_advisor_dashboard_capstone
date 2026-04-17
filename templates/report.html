@@ -134,7 +134,7 @@
 
     .report-title {
         font-family: var(--font-serif);
-        font-size: 2.4rem;
+        font-size: 2.2rem;
         font-weight: 400;
         line-height: 1.2;
         margin: 0 0 0.5rem;
@@ -1296,6 +1296,19 @@
                 generalised ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate
                 "consistent superiority" across a variety of metrics.
             </p>
+            <p>
+            The foundation of modern portfolio construction is Harry Markowitz’s 1952 mean-variance framework. Markowitz demonstrated that a rational investor, given a set of assets with known expected returns and covariances, should select a portfolio that maximises their return for a given level of variance. Variance can be directly related to risk, so this can viewed equally as minimizing risk for a given expected return of the portfolio. In theory, he suggests that there is an "efficient frontier" of portfolios that minimize risk for all expected returns and any portfolio lying below this line is considered suboptimal because a better risk-return is achievable (Markowitz, 1952).
+            </p>
+            <p>
+            A key metric derived from this framework is the risk-adjusted return (Sharpe ratio), which normalizes excess return above the risk-free rate (i.e., return on a no-risk asset) by portfolio volatility (Sharpe, 1966). Maximizing the Sharpe ratio is a common objective in portfolio management because it selects the portfolio on the efficient frontier that offers the greatest return per unit of risk.
+            </p>
+            <p>
+            Unfortunately, the classical mean-variance framework carries well documented limitations. Estimated expected returns and covariances are sensitive to the historical window and sampling period used, and small variations in inputs can produce dramatically different optimal portfolios. Robust optimizations need to explicitly account for uncertainty in the parameter estimates so that they perform acceptably well across a range of scenarios as opposed to optimizing for a single point estimate. 
+            </p>
+            <p>
+            Practical construction also requires incorporating real-world constraints that the unconstrained efficient frontier ignores. These include upper and lower bounds on individual assets (to prevent extreme concentration in a single asset), sector-level exposure limits, and minimum diversification requirements. These constraints are now standard in applied portfolio management but the choice of constraint is not just technical, it encodes the investment philosophy and risk tolerance of the client. This is precisely the link our pipeline is attempting to formalize, by deriving portfolio constraints directly from an estimated risk score rather than a general risk bucket.
+            </p>
+
         </section>
 
         <!-- ── Appendix B: Datasets ────────────────────────── -->
