@@ -1,17 +1,7 @@
 """
 app.py - version 1.3
 ────────────────────────────────────────────────────────────────────────────────
-This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things simple and file-based for now. Currently, the app serves two main routes:
-
-1) The index route ("/") which renders the input form for user data and preferences. This is where users will enter their age, income, net worth, investment experience, and other relevant information that feeds into the risk assessment model.
-
-2) The analyze route ("/analyze") which processes the form submission, runs the risk assessment model (currently mocked), optimizes the portfolio based on the derived parameters, runs Monte Carlo simulations to generate return and risk statistics, and finally renders the results page with all this information.
-
-We do have an additonal route for recalculating the simulations on the fly ("/api/recalculate") which is called via AJAX from the results page when users adjust the risk constraint slider or the period of simulation. This allows for a more interactive experience without needing to resubmit the entire form.
-
-When the technical report is finished, we will be adding it to it's own route ("/report") and linking to it from the index page. This will be a static page that provides a detailed explanation of our methodology, data sources, model architecture, and results. It will also include visualizations and tables to help users understand how we derived our risk scores and portfolio recommendations.
-
-The app also includes an API endpoint ("/api/feedback") to collect user feedback on the risk assessment model's output, which can be stored in a PostgreSQL database if configured, or in a local JSONL file as a fallback. This feedback mechanism is crucial for iteratively improving our model based on real user input.
+This is the main Flask application for our stock portfolio dashboard. It is currently only going to be run locally, so we can keep things file-based for now. 
 """
 
 from flask import Flask, render_template, request, jsonify
@@ -32,7 +22,6 @@ from logic import (
     get_market_params,
     ETF_UNIVERSE,
     optimize_portfolio,
-    compute_equity_ceiling,  # We aren't using this yet but we may
     rf_risk_score,
 )
 
@@ -52,7 +41,7 @@ ANN_MU = mp["ann_mu"]  # rf + sharpe_prior * sigma_lstm
 with app.app_context():
     pass  # init_feedback_db() called below after routes are defined
 
-# Risk-free rate — update to match current BIL yield if desired for more dynamic modelling. Must be consistent with logic.py for ANN_MU derivation.
+# Risk-free rate — Must be consistent with logic.py for ANN_MU derivation.
 RF_ANN = 0.04
 
 # Calculate trading days for different horizon options (used in simulation). 252 trading days per year is standard.
@@ -64,41 +53,6 @@ HORIZON_OPTIONS = {
     "20": 5040,
     "30": 7560,
 }
-
-
-# ─────────────────────────────────────────────
-#  MOCK FUNCTIONS (Need To Repalce When SCF data is complete)
-# ─────────────────────────────────────────────
-
-
-def mock_risk_score(form_data):
-    """Replace with: model.predict(features)"""
-    age = int(form_data.get("age", 45))
-    income = float(form_data.get("income", 100000))
-    net_worth = float(form_data.get("net_worth", 300000))
-    education = int(form_data.get("education", 3))
-    experience = int(form_data.get("investment_experience", 2))
-
-    score = 5.0
-    score += 2 - (age - 30) / 20
-    score += (income / 100000 - 1) * 0.8
-    score += (experience - 2) * 0.5
-    score += (education - 3) * 0.3
-    score = float(np.clip(round(score, 1), 1, 10))
-
-    # Contiguous ranges using < on upper bound — prevents StopIteration on half-point scores
-    # Replace thresholds with calibrated values once real model is trained
-    if score <= 2.0:
-        vol_ceiling = 0.05
-    elif score <= 4.0:
-        vol_ceiling = 0.08
-    elif score <= 6.0:
-        vol_ceiling = 0.13
-    elif score <= 8.0:
-        vol_ceiling = 0.18
-    else:
-        vol_ceiling = 0.24
-    return {"score": score, "vol_ceiling": vol_ceiling}
 
 
 # ─────────────────────────────────────────────

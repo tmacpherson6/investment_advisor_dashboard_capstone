@@ -1,7 +1,7 @@
 """
 logic.py - version 1.8
 ────────────────────────────────────────────────────────────────────────────────
-Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. We are still waiting on the SCF model data for the risk score but that will be added here when we do. We will then have to update the index.html in order to have the appropriate questions that line up to the model. It should be plug and play.
+Source for market parameters that will be used by our dashboard 'app.py'. We have currently pulled in Volatility and Calculated expected returns from Pete's LSTM model predictions, and we are using yfinance to pull in the historical correlation matrix and historical volatility for comparison purposes. 
 
 Current state of parameters
 ───────────────────────────
@@ -62,14 +62,14 @@ RF_QT_PATH = BASE_DIR / "models" / "rf_quantile_transformer.joblib"
 rf_model = None
 rf_qt = None
 
-
+# Pull in Random Forest model
 def get_rf_model():
     global rf_model
     if rf_model is None:
         rf_model = joblib.load(RF_MODEL_PATH)
     return rf_model
 
-
+# Pull in QuantileTransformer model
 def get_rf_qt():
     global rf_qt
     if rf_qt is None:
@@ -107,8 +107,7 @@ def rf_risk_score(form_data):
         #   z = +3 → score = 10.0 (highest risk)
         score = float(np.clip(round((z + 3) / 6 * 9 + 1, 1), 1.0, 10.0))
     except Exception:
-        # Model/transformer not yet trained — fall back to a simple heuristic
-        # so the app stays runnable before the notebook is executed.
+        # fall back to a simple heuristic so the app stays runnable
         age = row["age"]
         income = row["income"]
         wsaved = row["wsaved"]
