@@ -653,10 +653,9 @@
             <h3 class="subsection-heading" id="subproblems">2.2 Sub-Problems</h3>
 
             <h4 class="subsubsection-heading" id="subproblem-risk">2.2.1 Estimating Client Risk Tolerance</h4>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
-                Sub-problem framing for risk tolerance estimation — awaiting team contribution.
-            </div>
+            <p>
+                For the first component of our portfolio generation pipeline, our goal was to predict an individual investor’s risk tolerance using household and demographic characteristics which were observed within the Survey for Consumer Finances (SCF). Understanding a client’s appetite for risk is important in the application of any portfolio recommendation system because it influences how a portfolio should be balanced between pursuing larger returns and limiting potential losses. Because the SCF contains many non-correlated variables which could affect how an individual perceives financial risk, but no direct measure of financial risk-taking, our goal with the risk tolerance estimation and model was to use surveyable household features to estimate how much investment risk an individual may be comfortable taking.
+            </p>
 
             <h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
             <p>
@@ -724,10 +723,12 @@
             <h3 class="subsection-heading" id="datasets">2.3 Datasets</h3>
 
             <h4 class="subsubsection-heading" id="datasets-scf">2.3.1 Survey of Consumer Finances (2022)</h4>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
-                SCF dataset description — awaiting team contribution.
-            </div>
+            <p>
+                The Survey for Consumer Finances (SCF) is a survey conducted every three years by the Board of Governors of the Federal Reserve System that provides granular information of the financial characteristics of households in the United States. The survey is designed to capture financial behavior of households and includes an oversampling of wealthier households to provide a better representation of segments of the population which hold a disproportionate share of financial assets. SCF contains a broad number of features related to household demographics, for example age, education, marital status, employment income, net worth, liquid assets, housing wealth, debt balances, and retirement savings. It also contains behavioral questions related to financial risk taking, saving habits, spending behavior, and household attitudes toward financial decision-making.
+            </p>
+            <p>
+                One of the most important features of the SCF is the weighted sampling methodology that it uses to oversample wealthier households, however, the weights are provided within each sample so that analyses can be adjusted to reflect the broader U.S. household population rather than the provided raw sample. Another distinguishing feature of the SCF is the use of five imputations to address missing survey responses. Each of the five implicates contains the same households, but missing values are filled in using statistically viable estimates in five different fashions. This better reflects the uncertainty by allowing researchers to analyze all five imputations separately or all at once, which can lead to more reliable results depending on the analysis method used in the research.
+            </p>
 
             <h4 class="subsubsection-heading" id="datasets-financial">2.3.2 Financial Data: Yahoo Finance &amp; FRED</h4>
             <p>
@@ -742,22 +743,40 @@
             <h4 class="subsubsection-heading" id="method-risk">2.4.1 Risk Tolerance Estimation</h4>
 
             <p><em>Data cleaning, imputation, and transformation</em></p>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
-                Data cleaning and transformation for risk model — awaiting team contribution.
-            </div>
+            <p>
+                Our final Python methodology encompassed the download of the SCF Stata data directly from the Federal Reserve website, which included the primary survey data, supplemental extract files, and replicate weight files used for survey analysis. Each dataset was then standardized to consistent lowercase column names and then validated to ensure row counts and identifiers were consistent across files.
+            </p>
+            <p>
+                One of the main preprocessing steps involved separating the SCF into each of its five implicates, where each implicate was extracted using the household identifier structure and then merged with the supplementary data using common keys. Once the data was verified, the five implicates were concatenated into a single modeling dataset to preserve the full range of imputed household responses in the survey.
+            </p>
+            <p>
+                Additional transformations were then applied to further prepare the data for modeling: directionality of selected variables was adjusted so that higher values aligned consistently with greater financial risk tolerance, specifically before conducting PCA on some of the variables to construct our target. Missing values were reviewed and handled within the preprocessing workflow, and numeric variables were structured specifically for supervised learning methods. Survey weights were preserved throughout the cleaning process so that they could be incorporated during model training and better reflect the broader population of U.S. households.
+            </p>
 
             <p><em>Feature selection and extraction</em></p>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
-                Feature selection and extraction — awaiting team contribution.
-            </div>
+            <p>
+                Because SCF contains thousands of variables, many of the fields were overly specific or not directly related to investor risk profiling. A more focused feature set was necessary to improve the interpretability and usability of our platform.
+            </p>
+            <p>
+                For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. Variables related to spending more than income, spending less than income, saving tendencies, and perceptions of household financial conditions were selected because they captured behavioral tendencies associated with financial risk tolerance or aversion. The feature selection combined with PCA provided a sound proxy target for supervised learning in the absence of a specific measure related to financial risk tolerance.
+            </p>
+            <p>
+                Separate feature selection was then conducted for the Random Forest model used to predict the PCA-derived risk score. For this method, emphasis was placed on variables that were meaningful from an economic perspective, explainable, and realistic to collect from future end users through a short advisory questionnaire. Inputs included age, education, marital status, number of children, income, net worth, total assets, debt, liquid assets, housing wealth, vehicle ownership, and savings-related measures. These variables were chosen because they reflect life stage and financial capacity, which are likely related to investment risk preferences, and are not likely highly technical or obscure to the end user.
+            </p>
 
             <p><em>Modeling</em></p>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
-                Risk model architecture and training details — awaiting team contribution.
-            </div>
+            <p>
+                To estimate the risk tolerance of investors, we implemented a Random Forest regression model using the features described in the previous section. The objective of this model was to learn the relationship between observable household characteristics and the latent risk tolerance score derived from the behavioral survey responses. Because of the continuous nature of the target variable, the problem was framed as a supervised regression task rather than a categorical classification.
+            </p>
+            <p>
+                Random Forest was selected because it is suited for tabular data and can capture non-linear relationships that are common in finance data. Random Forest models are also robust when handling outliers, less sensitive to feature scaling, and capable of handling correlated predictors, which were all factors that contributed to the success of the model.
+            </p>
+            <p>
+                The architecture consisted of multiple decision trees trained on samples of the training data. At each split, a random subset of predictors was considered, which helps reduce overfitting and improved generalization by diversifying the trees within the ensemble. Final predictions were generated by averaging the output across all trees in the forest.
+            </p>
+            <p>
+                Training was conducted using the combined SCF implicate dataset, with survey weights incorporated during model fitting so that observations contributed in proportion to their representation in the broader U.S. household population. The dataset was partitioned into training and testing subsets to evaluate out-of-sample predictive performance. Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
+            </p>
             <p>
                 The Random Forest output is further transformed via a QuantileTransformer to produce a
                 near-normal risk score distribution on a [1, 10] scale. The QuantileTransformer is fitted on

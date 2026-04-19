@@ -219,11 +219,12 @@ project/
     ├── Ryan_SCF_Random_Forest_Risk_Pred  Random Forest risk tolerance prediction
     ├── Kristine_SCF_*              SCF regression analysis (R kernel)
     ├── __init__.py
+    ├── model_testing_volatility.py Volatility model evaluation and baseline comparison
+    ├── README.md                   Instructions for reproducible research
     └── helpers/
-        ├── data_prep.py                Data preparation utilities for model training
-        ├── model_testing_volatility.py Volatility model evaluation and baseline comparison
-        ├── models.py                   Model definitions
-        └── viz.py                      Visualisation utilities
+        ├── data_prep.py            Data preparation utilities
+        ├── models.py               FinancialLSTM model class definition
+        └── viz.py                  Visualization utilities
 ```
 
 ### Notebooks
