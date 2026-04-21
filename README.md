@@ -28,7 +28,6 @@ The Investment Portfolio Generator is an integrated decision framework that conn
 app.py          Flask application — routes, simulation, GIF generation
                 Consumes all market parameters from logic.py via get_market_params()
                 Calls rf_risk_score() from logic.py for live risk scoring
-                Contains legacy mock_risk_score() (unused — retained for reference)
 
 logic.py        Single source of truth for market parameters and risk scoring
                 REAL:  rf_risk_score() — Random Forest + QuantileTransformer on SCF 2022
@@ -169,7 +168,7 @@ On startup, `logic.py` downloads historical price data from yfinance and compute
 
 ### Optional: Feedback Storage
 
-Set the `DATABASE_URL` environment variable to a PostgreSQL connection string to persist user feedback to a database. Without it, feedback falls back to `feedback_log.jsonl` in the repo root.
+Set the `DATABASE_URL` environment variable to a PostgreSQL connection string to persist user feedback to a database. Without it, feedback falls back to `data/feedback_log.jsonl`.
 
 ---
 
