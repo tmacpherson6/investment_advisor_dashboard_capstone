@@ -901,9 +901,9 @@
             <h3 class="subsection-heading" id="eval-strategy">3.1 Evaluation Strategy</h3>
 
             <h4 class="subsubsection-heading">Risk Tolerance</h4>
+            <p>
                 Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
-            </div>
-
+            </p>
             <h4 class="subsubsection-heading">Volatility Forecasting</h4>
             <p>
                 We conducted hyperparameter tuning for all models (details in Appendix C) and compared
@@ -935,11 +935,10 @@
             <h3 class="subsection-heading" id="results">3.2 Results</h3>
 
             <h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
+            <p>
                 We evaluated 2 approaches for predicting risk tolerance. The first used Random Forest regression to predict a latent financial risk tolerance score using PCA. The second used a generalized linear modeling (GLM) framework based on the approach used by Pessoa, Damico, and Jacob (2024) to predict survey respondents’ self-reported risk tolerance score. In the Pessoa et al. approach, we first applied LASSO to select features associated with the self-reported risk score, then fit a weighted linear regression model that accounted for the survey weights and multiple imputations. 
                 We ultimately selected the Random Forest regression model as it achieved a higher R-squared and lower root mean squared error (RMSE), explaining 73% of the variance in the PCA-based risk tolerance score. Although the GLM was not chosen as the final model, we used its most statistically significant predictors to inform the set of variables included in the PCA.
-
-            </div>
-
+            </p>
             <h4 class="subsubsection-heading">Volatility Forecasting — Model Selection</h4>
             <p>
                 Table 2 summarises model selection using the four-fold criteria of Accuracy, Tracking, Lag,
@@ -1227,11 +1226,11 @@
                         </tr>
                         <tr>
                             <td><strong>Ryan Peet</strong></td>
-                            <td>Cleaning &amp; Transformation · Feature Selection Using PCA · Random Forest Regressor Model
+                            <td>Cleaning &amp; Transformation · Feature Selection Using PCA · Random Forest Regressor Model</td>
                         </tr>
                         <tr>
                             <td><strong>Kristine Zhou</strong></td>
-                            <td>Cleaning &amp; Transformation · Feature Selection Using LASSO · Risk Tolerance Visualization
+                            <td>Cleaning &amp; Transformation · Feature Selection Using LASSO · Risk Tolerance Visualization</td>
                         </tr>
                     </tbody>
                 </table>
