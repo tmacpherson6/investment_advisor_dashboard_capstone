@@ -618,7 +618,7 @@
             <h4 class="subsubsection-heading" id="bg-risk">1.2.1 Risk Tolerance Estimation</h4>
             <div class="callout callout-pending">
                 <strong>Pending</strong>
-                Background literature on risk tolerance estimation — awaiting team contribution.
+                A risk tolerance score for each client was calculated using a combination of self-reported behavioral and financial factors, following the general approach used by Grable and Chatterjee (2026), which observed that stated-preference questions do reasonably well in describing a person’s willingness to take financial risks, along with several demographic and socioeconomic factors. Our project uses PCA and Lasso to reduce the dimensionality of the data needed to predict a client’s risk tolerance score.
             </div>
 
             <h4 class="subsubsection-heading" id="bg-volatility">1.2.2 Volatility Forecasting</h4>
@@ -654,7 +654,8 @@
 
             <h4 class="subsubsection-heading" id="subproblem-risk">2.2.1 Estimating Client Risk Tolerance</h4>
             <p>
-                For the first component of our portfolio generation pipeline, our goal was to predict an individual investor’s risk tolerance using household and demographic characteristics which were observed within the Survey for Consumer Finances (SCF). Understanding a client’s appetite for risk is important in the application of any portfolio recommendation system because it influences how a portfolio should be balanced between pursuing larger returns and limiting potential losses. Because the SCF contains many non-correlated variables which could affect how an individual perceives financial risk, but no direct measure of financial risk-taking, our goal with the risk tolerance estimation and model was to use surveyable household features to estimate how much investment risk an individual may be comfortable taking.
+                For the first component of our portfolio generation pipeline, our goal was to predict an individual investor’s risk tolerance using household and demographic characteristics which were observed within the Survey for Consumer Finances (SCF).
+                Understanding a client’s appetite for risk is important in the application of any portfolio recommendation system because it influences how a portfolio should be balanced between pursuing larger returns and limiting potential losses. Because the SCF contains many non-correlated variables which could affect how an individual perceives financial risk, but no direct measure of financial risk-taking, our goal with the risk tolerance estimation and model was to use surveyable household features to estimate how much investment risk an individual may be comfortable taking.
             </p>
 
             <h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
@@ -758,7 +759,7 @@
                 Because SCF contains thousands of variables, many of the fields were overly specific or not directly related to investor risk profiling. A more focused feature set was necessary to improve the interpretability and usability of our platform.
             </p>
             <p>
-                For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. Variables related to spending more than income, spending less than income, saving tendencies, and perceptions of household financial conditions were selected because they captured behavioral tendencies associated with financial risk tolerance or aversion. The feature selection combined with PCA provided a sound proxy target for supervised learning in the absence of a specific measure related to financial risk tolerance.
+                For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. Variables related to spending more than income, spending less than income, saving tendencies, and perceptions of household financial conditions were selected because they captured behavioral tendencies associated with financial risk tolerance or aversion. Before running PCA, we used LASSO regression to select variables most strongly associated with a self-reported risk tolerance score, ensuring that only relevant predictors informed the composite measure. The feature selection combined with PCA provided a sound proxy target for supervised learning in the absence of a specific measure related to financial risk tolerance.
             </p>
             <p>
                 Separate feature selection was then conducted for the Random Forest model used to predict the PCA-derived risk score. For this method, emphasis was placed on variables that were meaningful from an economic perspective, explainable, and realistic to collect from future end users through a short advisory questionnaire. Inputs included age, education, marital status, number of children, income, net worth, total assets, debt, liquid assets, housing wealth, vehicle ownership, and savings-related measures. These variables were chosen because they reflect life stage and financial capacity, which are likely related to investment risk preferences, and are not likely highly technical or obscure to the end user.
@@ -775,7 +776,7 @@
                 The architecture consisted of multiple decision trees trained on samples of the training data. At each split, a random subset of predictors was considered, which helps reduce overfitting and improved generalization by diversifying the trees within the ensemble. Final predictions were generated by averaging the output across all trees in the forest.
             </p>
             <p>
-                Training was conducted using the combined SCF implicate dataset, with survey weights incorporated during model fitting so that observations contributed in proportion to their representation in the broader U.S. household population. The dataset was partitioned into training and testing subsets to evaluate out-of-sample predictive performance. Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
+                Training was conducted using the combined SCF implicate dataset, with survey weights incorporated during model fitting so that observations contributed in proportion to their representation in the broader U.S. household population. The dataset was partitioned into training and testing subsets to evaluate out-of-sample predictive performance.
             </p>
             <p>
                 The Random Forest output is further transformed via a QuantileTransformer to produce a
@@ -903,7 +904,7 @@
             <h4 class="subsubsection-heading">Risk Tolerance</h4>
             <div class="callout callout-pending">
                 <strong>Pending</strong>
-                Evaluation strategy for risk tolerance model — awaiting team contribution.
+                Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
             </div>
 
             <h4 class="subsubsection-heading">Volatility Forecasting</h4>
@@ -939,7 +940,9 @@
             <h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
             <div class="callout callout-pending">
                 <strong>Pending</strong>
-                Risk tolerance model selection and performance results — awaiting team contribution.
+                We evaluated 2 approaches for predicting risk tolerance. The first used Random Forest regression to predict a latent financial risk tolerance score using PCA. The second used a generalized linear modeling (GLM) framework based on the approach used by Pessoa, Damico, and Jacob (2024) to predict survey respondents’ self-reported risk tolerance score. In the Pessoa et al. approach, we first applied LASSO to select features associated with the self-reported risk score, then fit a weighted linear regression model that accounted for the survey weights and multiple imputations. 
+                We ultimately selected the Random Forest regression model as it achieved a higher R-squared and lower root mean squared error (RMSE), explaining 73% of the variance in the PCA-based risk tolerance score. Although the GLM was not chosen as the final model, we used its most statistically significant predictors to inform the set of variables included in the PCA.
+
             </div>
 
             <h4 class="subsubsection-heading">Volatility Forecasting — Model Selection</h4>
