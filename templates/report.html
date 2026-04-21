@@ -616,8 +616,6 @@
             <h3 class="subsection-heading" id="intro-background">1.2 Background</h3>
 
             <h4 class="subsubsection-heading" id="bg-risk">1.2.1 Risk Tolerance Estimation</h4>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
                 A risk tolerance score for each client was calculated using a combination of self-reported behavioral and financial factors, following the general approach used by Grable and Chatterjee (2026), which observed that stated-preference questions do reasonably well in describing a person’s willingness to take financial risks, along with several demographic and socioeconomic factors. Our project uses PCA and Lasso to reduce the dimensionality of the data needed to predict a client’s risk tolerance score.
             </div>
 
@@ -902,8 +900,6 @@
             <h3 class="subsection-heading" id="eval-strategy">3.1 Evaluation Strategy</h3>
 
             <h4 class="subsubsection-heading">Risk Tolerance</h4>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
                 Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
             </div>
 
@@ -938,8 +934,6 @@
             <h3 class="subsection-heading" id="results">3.2 Results</h3>
 
             <h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
-            <div class="callout callout-pending">
-                <strong>Pending</strong>
                 We evaluated 2 approaches for predicting risk tolerance. The first used Random Forest regression to predict a latent financial risk tolerance score using PCA. The second used a generalized linear modeling (GLM) framework based on the approach used by Pessoa, Damico, and Jacob (2024) to predict survey respondents’ self-reported risk tolerance score. In the Pessoa et al. approach, we first applied LASSO to select features associated with the self-reported risk score, then fit a weighted linear regression model that accounted for the survey weights and multiple imputations. 
                 We ultimately selected the Random Forest regression model as it achieved a higher R-squared and lower root mean squared error (RMSE), explaining 73% of the variance in the PCA-based risk tolerance score. Although the GLM was not chosen as the final model, we used its most statistically significant predictors to inform the set of variables included in the PCA.
 
@@ -1232,11 +1226,11 @@
                         </tr>
                         <tr>
                             <td><strong>Ryan Peet</strong></td>
-                            <td><em class="text-muted">Pending — awaiting contribution</em></td>
+                            <td>Cleaning &amp; Transformation · Feature Selection Using PCA · Random Forest Regressor Model
                         </tr>
                         <tr>
                             <td><strong>Kristine Zhou</strong></td>
-                            <td><em class="text-muted">Pending — awaiting contribution</em></td>
+                            <td>Cleaning &amp; Transformation · Feature Selection Using LASSO · Risk Tolerance Visualization
                         </tr>
                     </tbody>
                 </table>
@@ -1255,12 +1249,20 @@
                     Volatility Prediction. In G. Nicosia et al. (Eds.), <em>Machine Learning, Optimization, and
                     Data Science. LOD 2021. Lecture Notes in Computer Science, 13164</em>, 531–544.
                     <a href="https://doi.org/10.1007/978-3-030-95470-3_40" target="_blank">https://doi.org/10.1007/978-3-030-95470-3_40</a>
-                    </dd>
+                </dd>
                 <dd style = "margin-bottom: 1rem;">
                     Engle, R. F. (1982). Autoregressive Conditional Heteroscedasticity with Estimates of the
                     Variance of United Kingdom Inflation. <em>Econometrica, 50</em>(4), 987–1007.
                     <a href="https://www.jstor.org/stable/1912773" target="_blank">https://www.jstor.org/stable/1912773</a>
                 </dd>
+                <dd style = "margin-bottom: 1rem;">
+                    Djalma Pessoa, Anthony Damico and Guilherme Jacob (2023). Convey: Income Concentration Analysis with Complex Survey Samples. R package version 1.0.0
+                    <a href="https://github.com/ajdamico/convey/" target="_blank">https://github.com/ajdamico/convey/</a>
+                    </dd>
+                <dd style = "margin-bottom: 1rem;">
+                    Grable, John, and Swarn Chatterjee. 2026. “From Risk Tolerance to Portfolio Choice: Insights from a Targeted High-Income Sample.” Journal of Financial Planning 39 (1): 60–79.
+                    <a href="https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN" target="_blank">https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN</a>
+                    </dd>
                 <dd style = "margin-bottom: 1rem;">
                     Markowitz, H. (1952). Portfolio Selection. <em>The Journal of Finance, 7</em>(1), 77–91.
                     <a href="https://doi.org/10.1111/j.1540-6261.1952.tb01525.x" target="_blank">https://doi.org/10.1111/j.1540-6261.1952.tb01525.x</a>
