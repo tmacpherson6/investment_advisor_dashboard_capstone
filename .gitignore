@@ -18,3 +18,4 @@ data/etf_transformed_log.csv
 .venv/
 venv/
 CLAUDE.md
+__pycache__/

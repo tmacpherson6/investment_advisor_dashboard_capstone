@@ -519,1027 +519,530 @@
 {% block content %}
 <div class="report-root">
 <div class="report-grid">
-
-    <!-- ══════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════════
          TABLE OF CONTENTS
          ══════════════════════════════════════════════════════ -->
-    <aside class="report-toc">
-        <div class="toc-label">Contents</div>
-        <ul class="toc-list">
-            <li><a href="#intro">I. Introduction</a></li>
-            <li><a href="#intro-overview"    class="toc-sub">1.1 Overview</a></li>
-            <li><a href="#intro-background"  class="toc-sub">1.2 Background</a></li>
-            <li><a href="#bg-risk"           class="toc-sub2">Risk Tolerance</a></li>
-            <li><a href="#bg-volatility"     class="toc-sub2">Volatility Forecasting</a></li>
-            <li><a href="#bg-portfolio"      class="toc-sub2">Portfolio Optimization</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#methodology">II. Problem &amp; Methodology</a></li>
-            <li><a href="#challenge"         class="toc-sub">2.1 The Challenge</a></li>
-            <li><a href="#subproblems"       class="toc-sub">2.2 Sub-Problems</a></li>
-            <li><a href="#subproblem-risk"   class="toc-sub2">Risk Tolerance</a></li>
-            <li><a href="#subproblem-vol"    class="toc-sub2">Volatility Forecasting</a></li>
-            <li><a href="#subproblem-port"   class="toc-sub2">Portfolio Optimization</a></li>
-            <li><a href="#datasets"          class="toc-sub">2.3 Datasets</a></li>
-            <li><a href="#method-detail"     class="toc-sub">2.4 Methodology</a></li>
-            <li><a href="#method-risk"       class="toc-sub2">Risk Tolerance</a></li>
-            <li><a href="#method-vol"        class="toc-sub2">Volatility Forecasting</a></li>
-            <li><a href="#method-port"       class="toc-sub2">Portfolio Optimization</a></li>
-            <li><a href="#architecture"      class="toc-sub">2.5 Architecture</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#evaluation">III. Experimental Evaluation</a></li>
-            <li><a href="#eval-strategy"     class="toc-sub">3.1 Evaluation Strategy</a></li>
-            <li><a href="#results"           class="toc-sub">3.2 Results</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#discussion">IV. Discussion</a></li>
-            <li><a href="#interpretation"    class="toc-sub">4.1 Interpretation</a></li>
-            <li><a href="#error-analysis"    class="toc-sub">4.2 Error Analysis</a></li>
-            <li><a href="#limitations"       class="toc-sub">4.3 Limitations</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#conclusion">V. Conclusion</a></li>
-            <li><a href="#benefits"          class="toc-sub">5.1 Application &amp; Benefits</a></li>
-            <li><a href="#ethics"            class="toc-sub">5.2 Ethical Concerns</a></li>
-            <li><a href="#example-usage"     class="toc-sub">5.3 Example Usage</a></li>
-            <li><a href="#sow"               class="toc-sub">5.4 Statement of Work</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#references">References</a></li>
-
-            <hr class="toc-break">
-
-            <li><a href="#appendix">Appendix</a></li>
-            <li><a href="#appendix-litreview" class="toc-sub">A. Literature Review</a></li>
-            <li><a href="#appendix-datasets"  class="toc-sub">B. Datasets</a></li>
-            <li><a href="#appendix-vol"       class="toc-sub">C. Volatility Modeling</a></li>
-        </ul>
-    </aside>
-
-    <!-- ══════════════════════════════════════════════════════
+<aside class="report-toc">
+<div class="toc-label">Contents</div>
+<ul class="toc-list">
+<li><a href="#intro">I. Introduction</a></li>
+<li><a class="toc-sub" href="#intro-overview">1.1 Overview</a></li>
+<li><a class="toc-sub" href="#intro-background">1.2 Background</a></li>
+<li><a class="toc-sub2" href="#bg-risk">Risk Tolerance</a></li>
+<li><a class="toc-sub2" href="#bg-volatility">Volatility Forecasting</a></li>
+<li><a class="toc-sub2" href="#bg-portfolio">Portfolio Optimization</a></li>
+<hr class="toc-break"/>
+<li><a href="#methodology">II. Problem &amp; Methodology</a></li>
+<li><a class="toc-sub" href="#challenge">2.1 The Challenge</a></li>
+<li><a class="toc-sub" href="#subproblems">2.2 Sub-Problems</a></li>
+<li><a class="toc-sub2" href="#subproblem-risk">Risk Tolerance</a></li>
+<li><a class="toc-sub2" href="#subproblem-vol">Volatility Forecasting</a></li>
+<li><a class="toc-sub2" href="#subproblem-port">Portfolio Optimization</a></li>
+<li><a class="toc-sub" href="#datasets">2.3 Datasets</a></li>
+<li><a class="toc-sub" href="#method-detail">2.4 Methodology</a></li>
+<li><a class="toc-sub2" href="#method-risk">Risk Tolerance</a></li>
+<li><a class="toc-sub2" href="#method-vol">Volatility Forecasting</a></li>
+<li><a class="toc-sub2" href="#method-port">Portfolio Optimization</a></li>
+<li><a class="toc-sub" href="#architecture">2.5 Architecture</a></li>
+<hr class="toc-break"/>
+<li><a href="#evaluation">III. Experimental Evaluation</a></li>
+<li><a class="toc-sub" href="#eval-strategy">3.1 Evaluation Strategy</a></li>
+<li><a class="toc-sub" href="#results">3.2 Results</a></li>
+<hr class="toc-break"/>
+<li><a href="#discussion">IV. Discussion</a></li>
+<li><a class="toc-sub" href="#interpretation">4.1 Interpretation</a></li>
+<li><a class="toc-sub" href="#error-analysis">4.2 Error Analysis</a></li>
+<li><a class="toc-sub" href="#limitations">4.3 Limitations</a></li>
+<hr class="toc-break"/>
+<li><a href="#conclusion">V. Conclusion</a></li>
+<li><a class="toc-sub" href="#benefits">5.1 Application &amp; Benefits</a></li>
+<li><a class="toc-sub" href="#ethics">5.2 Ethical Concerns</a></li>
+<li><a class="toc-sub" href="#example-usage">5.3 Example Usage</a></li>
+<li><a class="toc-sub" href="#sow">5.4 Statement of Work</a></li>
+<hr class="toc-break"/>
+<li><a href="#references">References</a></li>
+<hr class="toc-break"/>
+<li><a href="#appendix">Appendix</a></li>
+<li><a class="toc-sub" href="#appendix-litreview">A. Literature Review</a></li>
+<li><a class="toc-sub" href="#appendix-datasets">B. Datasets</a></li>
+<li><a class="toc-sub" href="#appendix-vol">C. Volatility Modeling</a></li>
+</ul>
+</aside>
+<!-- ══════════════════════════════════════════════════════
          REPORT BODY
          ══════════════════════════════════════════════════════ -->
-    <main class="report-body">
-
-        <!-- Header -->
-        <header class="report-header">
-            <div class="report-eyebrow">PortfolioIQ · SIADS 699 Capstone · Winter 2026</div>
-            <h1 class="report-title">The Risky Business of Financial Matchmaking:</h1>
-            <p class="report-subtitle">Optimizing Portfolio Return and Volatility Within Investor Risk Tolerance</p>
-            <div class="report-meta">
-                <span><strong>Authors</strong> Peter King, Ryan Peet, Kristine Zhou, Thomas MacPherson</span>
-                <span><strong>Course</strong> SIADS 699 - Capstone</span>
-                <span><strong>Status</strong> <span class="badge badge-yellow">Draft</span></span>
-            </div>
-        </header>
-
-
-        <!-- ══════════════════════════════════════════════════
+<main class="report-body">
+<!-- Header -->
+<header class="report-header">
+<div class="report-eyebrow">PortfolioIQ · SIADS 699 Capstone · Winter 2026</div>
+<h1 class="report-title">The Risky Business of Financial Matchmaking:</h1>
+<p class="report-subtitle">Optimizing Portfolio Return and Volatility Within Investor Risk Tolerance</p>
+<div class="report-meta">
+<span><strong>Authors</strong> Peter King, Ryan Peet, Kristine Zhou, Thomas MacPherson</span>
+<span><strong>Course</strong> SIADS 699 - Capstone</span>
+<span><strong>Status</strong> <span class="badge badge-yellow">Final</span></span>
+</div>
+</header>
+<!-- ══════════════════════════════════════════════════
              I. INTRODUCTION
              ══════════════════════════════════════════════════ -->
-        <section class="report-section" id="intro">
-            <span class="section-number">§ 01</span>
-            <h2 class="section-heading">Introduction</h2>
-
-            <h3 class="subsection-heading" id="intro-overview">1.1 Overview</h3>
-            <p>
-                Financial advising is traditionally expensive, inconsistent, and largely inaccessible to investors without significant wealth. While robo-advisors have begun to automate the process, most continue to operate as black boxes. Meaning, they rely on coarse risk categories and obscuring assumptions behind their recommendations. This project introduces a three-component pipeline to address this gap. First, a risk tolerance classifier that produces a continuous client risk score from nationally representative survey data. Secondly, a volatility forecasting model whose predictions serve as inputs to a Sharpe-prior return estimation method, together producing forward-looking expected returns for each instrument. Finally a constrained mean-variance optimizer that combines these inputs into an individualized, risk-calibrated portfolio. The central contribution is not any single model but the end-to-end integration of all three, with results presented through an interactive client dashboard. 
-            </p>
-            
-
-            <h3 class="subsection-heading" id="intro-background">1.2 Background</h3>
-
-            <h4 class="subsubsection-heading" id="bg-risk">1.2.1 Risk Tolerance Estimation</h4>
-            <p>
-                A risk tolerance score for each client was calculated using a combination of self-reported behavioral and financial factors, following the general approach used by Grable and Chatterjee (2026), which observed that stated-preference questions do reasonably well in describing a person’s willingness to take financial risks, along with several demographic and socioeconomic factors. Our project uses PCA and Lasso to reduce the dimensionality of the data needed to predict a client’s risk tolerance score.
-            </p>
-          
-            <h4 class="subsubsection-heading" id="bg-volatility">1.2.2 Volatility Forecasting</h4>
-            <p>
-               Prior to Engle (1982) and his introduction of the autoregressive conditional heteroscedastic (ARCH) class of stochastic processes, econometric models assumed a "constant one-period forecast variance."  Engle's observation that the future variance of a stochastic process depends on recent past values paved the way for new approaches in volatility forecasting.  Many recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to estimate future volatility, exploiting such models' ability to learn dependencies and relationships between variables over time (Assaf, et al. (2022), Zhang, et al. (2025), and Peter, et al. (2026)).
-            </p>
-            <p>
-                Our study takes a novel approach by focusing on volatility for specific market sectors in the U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall market volatility.  Furthermore, we establish a practical benchmark by comparing our model's performance to the Cboe Volatility Index (ticker: ^VIX) -- widely considered the "the most popular gauge" of future (30-day) market volatility (Schwab, 2025).
-            </p>
-
-            <h4 class="subsubsection-heading" id="bg-portfolio">1.2.3 Portfolio Optimization</h4>
-            <p>
-                Portfolio construction in this project is grounded in Markowitz’s (1952) mean variance framework, which states that a rational investor should try to maximize their return for a given level of risk. A common metric derived from this is the Sharpe ratio, which measures return per unit of risk above a risk-free baseline (Sharpe, 1966). In practice, classic mean-variance optimization is highly sensitive to input estimates, often producing unstable portfolios (Michaud, 1989), and requires boundaries on individual assets and specific diversification requirements to prevent extreme concentration in a single asset. In this pipeline, those constraints are driven directly from a modelled client risk score.
-            </p>
-          
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<section class="report-section" id="intro">
+<span class="section-number">§ 01</span>
+<h2 class="section-heading">Introduction</h2>
+<h3 class="subsection-heading" id="intro-overview">1.1 Overview</h3>
+<p>Financial advising is traditionally expensive, inconsistent, and largely inaccessible to investors without significant wealth. While robo-advisors have begun to automate the process, most continue to operate as black boxes. They rely on coarse risk categories and obscure assumptions behind their recommendations. This project introduces a three-component pipeline to address this gap. First, a risk tolerance classifier that produces a continuous client risk score from nationally representative survey data. Secondly, a volatility forecasting model whose predictions are used to derive forward-looking expected returns by a Sharpe-ratio-based estimation approach for each instrument. Finally a constrained mean-variance optimizer that combines these inputs into an individualized, risk-calibrated portfolio. The central contribution is not any single model but the end-to-end integration of all three, with results presented through an interactive client dashboard.</p>
+<h3 class="subsection-heading" id="intro-background">1.2 Background</h3>
+<h4 class="subsubsection-heading" id="bg-risk">1.2.1 Risk Tolerance Estimation</h4>
+<p>A risk tolerance score for each client was calculated using a combination of self-reported behavioral and financial factors, following the general approach used by Grable and Chatterjee (2026), which observed that stated-preference questions do reasonably well in describing a person’s willingness to take financial risks, along with several demographic and socioeconomic factors. Our project uses PCA and Lasso to reduce the dimensionality of the data needed to predict a client’s risk tolerance score.</p>
+<h4 class="subsubsection-heading" id="bg-volatility">1.2.2 Volatility Forecasting</h4>
+<p>Many recent studies have successfully employed Long Short-Term Memory (LSTM) deep-learning models to estimate market volatility (Assaf, et al. (2022), Zhang, et al. (2025), and Peter, et al. (2026)). Our study takes a novel approach by forecasting volatility for specific sectors in the U.S. economy, represented by a selection of exchange traded funds (ETFs), rather than overall market volatility. Furthermore, we establish a practical benchmark by comparing our model's performance to the Cboe Volatility Index (ticker: ^VIX) -- widely considered the "the most popular gauge" of future (30-day) market volatility for the S&amp;P 500 (Schwab, 2025).</p>
+<h4 class="subsubsection-heading" id="bg-portfolio">1.2.3 Portfolio Optimization</h4>
+<p>Portfolio construction in this project is grounded in Markowitz’s (1952) mean variance framework, which states that a rational investor should try to maximize their return for a given level of risk. A common metric derived from this is the Sharpe ratio, which measures return per unit of risk above a risk-free baseline (Sharpe, 1966). In practice, classic mean-variance optimization is highly sensitive to input estimates, often producing unstable portfolios (Michaud, 1989), and requires boundaries on individual assets and specific diversification requirements to prevent extreme concentration in a single asset. In this pipeline, those constraints are driven directly from a modelled client risk score.</p>
+</section>
+<!-- ══════════════════════════════════════════════════
              II. PROBLEM DEFINITION, APPROACH & METHODOLOGY
              ══════════════════════════════════════════════════ -->
-        <section class="report-section" id="methodology">
-            <span class="section-number">§ 02</span>
-            <h2 class="section-heading">Problem Definition, Approach, and Methodology</h2>
-
-            <h3 class="subsection-heading" id="challenge">2.1 The Challenge</h3>
-            <p>
-              The challenge was to build an integrated data science pipeline that translates individualized investor profiles into a personalized investment strategy through risk scoring, volatility forecasting, and constrained portfolio optimization. 
-
-            </p>
-
-            <h3 class="subsection-heading" id="subproblems">2.2 Sub-Problems</h3>
-
-            <h4 class="subsubsection-heading" id="subproblem-risk">2.2.1 Estimating Client Risk Tolerance</h4>
-            <p>
-                For the first component of our portfolio generation pipeline, our goal was to predict an individual investor’s risk tolerance using household and demographic characteristics which were observed within the Survey for Consumer Finances (SCF).
-                Understanding a client’s appetite for risk is important in the application of any portfolio recommendation system because it influences how a portfolio should be balanced between pursuing larger returns and limiting potential losses. Because the SCF contains many non-correlated variables which could affect how an individual perceives financial risk, but no direct measure of financial risk-taking, our goal with the risk tolerance estimation and model was to use surveyable household features to estimate how much investment risk an individual may be comfortable taking.
-            </p>
-
-            <h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
-            <p>
-               For the second component of our portfolio generation pipeline, our goal was to forecast realized volatility (also referred to as historical volatility) for a collection of sector-representative ETFs over a 21 business day (30 calendar day) outlook.  A brief discussion of return and volatility is included in the appendix to this report.  Our goals were to achieve forecast accuracy on par or superior to the VIX for the S&P 500 ETF (ticker: SPY) and to create sector-specific forecasts with comparable accuracy to what the VIX achieves for the S&P 500.
-            </p>
-
-            <h4 class="subsubsection-heading" id="subproblem-port">2.2.3 Maximising Return while Limiting Portfolio Volatility</h4>
-            <p>
-                Given a client's estimated risk score and a set of sector-level volatility forecasts, the
-                third component constructs a portfolio designed to maximise risk-adjusted return within
-                constraints calibrated to that individual. The risk score regulates the full constraint
-                architecture through a two-tier system.
-            </p>
-
-            <div class="constraint-grid">
-                <div class="constraint-tier">
-                    <h5>Tier 1 — Asset-Class Level</h5>
-                    <ul>
-                        <li>Age-adjusted equity ceiling (110 − age baseline, modified by risk score)</li>
-                        <li>Gold cap inverse-scaled with risk score (15% at score 1 → 5% at score 10)</li>
-                        <li>Volatility band: floor and ceiling both scale linearly with risk score</li>
-                    </ul>
-                </div>
-                <div class="constraint-tier">
-                    <h5>Tier 2 — Intra-Bucket Level</h5>
-                    <ul>
-                        <li>Any single equity sector ≤ 30% of total equity bucket</li>
-                        <li>Any IG fixed-income instrument ≤ 50% of fixed-income allocation</li>
-                        <li>HYG ≤ (risk score / 10)² × 35% of FI bucket <em>(quadratic scaling)</em></li>
-                    </ul>
-                </div>
-            </div>
-
-            <p>
-                The quadratic HYG cap reflects the fiduciary view that high-yield credit exposure should be
-                strictly proportional to demonstrated risk tolerance. More conservative profiles receive
-                tighter volatility ceilings and greater diversification requirements; more aggressive profiles
-                are permitted higher concentrations and volatility in exchange for greater return potential.
-            </p>
-            <p>
-                The optimiser is designed to maximise the Sharpe ratio of the resulting portfolio. For a
-                portfolio with weight vector <strong><i>w</i></strong>, expected return vector <strong><i>μ</i></strong>,
-                and covariance matrix <strong><i>Σ</i></strong>, the objective is:
-            </p>
-
-            <div class="equation">
-                maximise &nbsp;&nbsp; (<strong>w</strong><sup>T</sup><strong>μ</strong> − r<sub>f</sub>) &nbsp;/&nbsp; √(<strong>w</strong><sup>T</sup><strong>Σw</strong>)
-            </div>
-
-            <p>
-                This is subject to constraints on total portfolio volatility, individual weight bounds, sector
-                exposure limits, and a full investment constraint (weights sum to one; no short positions). The
-                output is a set of portfolio weights per ETF representing the recommended allocation — not the
-                universally optimal portfolio, but the portfolio that theoretically maximises risk-adjusted
-                return given the specific client's risk profile and current volatility forecasts.
-            </p>
-            <p>
-                A client reclassified from moderate to more conservative — whether due to different survey
-                responses or a model misclassification — will receive a meaningfully different portfolio with a
-                lower volatility ceiling and greater diversification requirements under the same volatility
-                environment. The sensitivity of the portfolio output to risk classification is substantial, as
-                this is what drives individual portfolio construction.
-            </p>
-
-            <h3 class="subsection-heading" id="datasets">2.3 Datasets</h3>
-
-            <h4 class="subsubsection-heading" id="datasets-scf">2.3.1 Survey of Consumer Finances (2022)</h4>
-            <p>
-                The Survey for Consumer Finances (SCF) is a survey conducted every three years by the Board of Governors of the Federal Reserve System that provides granular information of the financial characteristics of households in the United States. The survey is designed to capture financial behavior of households and includes an oversampling of wealthier households to provide a better representation of segments of the population which hold a disproportionate share of financial assets. SCF contains a broad number of features related to household demographics, for example age, education, marital status, employment income, net worth, liquid assets, housing wealth, debt balances, and retirement savings. It also contains behavioral questions related to financial risk taking, saving habits, spending behavior, and household attitudes toward financial decision-making.
-            </p>
-            <p>
-                One of the most important features of the SCF is the weighted sampling methodology that it uses to oversample wealthier households, however, the weights are provided within each sample so that analyses can be adjusted to reflect the broader U.S. household population rather than the provided raw sample. Another distinguishing feature of the SCF is the use of five imputations to address missing survey responses. Each of the five implicates contains the same households, but missing values are filled in using statistically viable estimates in five different fashions. This better reflects the uncertainty by allowing researchers to analyze all five imputations separately or all at once, which can lead to more reliable results depending on the analysis method used in the research.
-            </p>
-
-            <h4 class="subsubsection-heading" id="datasets-financial">2.3.2 Financial Data: Yahoo Finance &amp; FRED</h4>
-            <p>
-                Our financial data came from two sources: Yahoo Finance (via the <code>yfinance</code> Python
-                library) and the Federal Reserve Economic Data (FRED) database (via the <code>fredapi</code>
-                Python library). For a detailed description of these datasets, including date ranges, frequency,
-                and quality, refer to Appendix B.
-            </p>
-
-            <h3 class="subsection-heading" id="method-detail">2.4 Methodology</h3>
-
-            <h4 class="subsubsection-heading" id="method-risk">2.4.1 Risk Tolerance Estimation</h4>
-
-            <p><em>Data cleaning, imputation, and transformation</em></p>
-            <p>
-                Our final Python methodology encompassed the download of the SCF Stata data directly from the Federal Reserve website, which included the primary survey data, supplemental extract files, and replicate weight files used for survey analysis. Each dataset was then standardized to consistent lowercase column names and then validated to ensure row counts and identifiers were consistent across files.
-            </p>
-            <p>
-                One of the main preprocessing steps involved separating the SCF into each of its five implicates, where each implicate was extracted using the household identifier structure and then merged with the supplementary data using common keys. Once the data was verified, the five implicates were concatenated into a single modeling dataset to preserve the full range of imputed household responses in the survey.
-            </p>
-            <p>
-                Additional transformations were then applied to further prepare the data for modeling: directionality of selected variables was adjusted so that higher values aligned consistently with greater financial risk tolerance, specifically before conducting PCA on some of the variables to construct our target. Missing values were reviewed and handled within the preprocessing workflow, and numeric variables were structured specifically for supervised learning methods. Survey weights were preserved throughout the cleaning process so that they could be incorporated during model training and better reflect the broader population of U.S. households.
-            </p>
-
-            <p><em>Feature selection and extraction</em></p>
-            <p>
-                Because SCF contains thousands of variables, many of the fields were overly specific or not directly related to investor risk profiling. A more focused feature set was necessary to improve the interpretability and usability of our platform.
-            </p>
-            <p>
-                For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. Variables related to spending more than income, spending less than income, saving tendencies, and perceptions of household financial conditions were selected because they captured behavioral tendencies associated with financial risk tolerance or aversion. Before running PCA, we used LASSO regression to select variables most strongly associated with a self-reported risk tolerance score, ensuring that only relevant predictors informed the composite measure. The feature selection combined with PCA provided a sound proxy target for supervised learning in the absence of a specific measure related to financial risk tolerance.
-            </p>
-            <p>
-                Separate feature selection was then conducted for the Random Forest model used to predict the PCA-derived risk score. For this method, emphasis was placed on variables that were meaningful from an economic perspective, explainable, and realistic to collect from future end users through a short advisory questionnaire. Inputs included age, education, marital status, number of children, income, net worth, total assets, debt, liquid assets, housing wealth, vehicle ownership, and savings-related measures. These variables were chosen because they reflect life stage and financial capacity, which are likely related to investment risk preferences, and are not likely highly technical or obscure to the end user.
-            </p>
-
-            <p><em>Modeling</em></p>
-            <p>
-                To estimate the risk tolerance of investors, we implemented a Random Forest regression model using the features described in the previous section. The objective of this model was to learn the relationship between observable household characteristics and the latent risk tolerance score derived from the behavioral survey responses. Because of the continuous nature of the target variable, the problem was framed as a supervised regression task rather than a categorical classification.
-            </p>
-            <p>
-                Random Forest was selected because it is suited for tabular data and can capture non-linear relationships that are common in finance data. Random Forest models are also robust when handling outliers, less sensitive to feature scaling, and capable of handling correlated predictors, which were all factors that contributed to the success of the model.
-            </p>
-            <p>
-                The architecture consisted of multiple decision trees trained on samples of the training data. At each split, a random subset of predictors was considered, which helps reduce overfitting and improved generalization by diversifying the trees within the ensemble. Final predictions were generated by averaging the output across all trees in the forest.
-            </p>
-            <p>
-                Training was conducted using the combined SCF implicate dataset, with survey weights incorporated during model fitting so that observations contributed in proportion to their representation in the broader U.S. household population. The dataset was partitioned into training and testing subsets to evaluate out-of-sample predictive performance.
-            </p>
-            <p>
-                The Random Forest output is further transformed via a QuantileTransformer to produce a
-                near-normal risk score distribution on a [1, 10] scale. The QuantileTransformer is fitted on
-                training-set predictions rather than ground-truth labels, ensuring the transformation reflects
-                the model's actual output range and avoids leakage from the test distribution.
-            </p>
-
-            <h4 class="subsubsection-heading" id="method-vol">2.4.2 Volatility Forecasting</h4>
-            <p>
-                We began our approach to volatility forecasting with data cleaning, imputation of missing or
-                erroneous values, transformation from raw data to useful features, and time-series resampling.
-                Overall, financial data was very clean, with at most 9.7 percent missing values for one index.
-                We filled missing values using linear interpolation for daily-frequency indices; for missing
-                values resulting from upsampling lower-frequency data, we used forward-fill to guard against
-                data leakage.
-            </p>
-            <p>
-                Feature selection was informed by the literature and our own correlation analysis (details in
-                Appendix C). The two features that consistently ranked highest in importance and correlation
-                with the target variable were:
-            </p>
-            <ul>
-                <li>Historical (5-day) volatility for the target ETF — by far the most important predictor</li>
-                <li>Historical (5-day) return for the target ETF</li>
-            </ul>
-            <p>
-                To incorporate lower-frequency macroeconomic data, all time-series features were resampled to
-                weekly frequency. Feature extraction via Principal Component Analysis (PCA) was then applied,
-                retaining 80 percent of the variation in the original 87 features in just 12 principal
-                components. Full details are in Appendix C.
-            </p>
-            <p>
-                We evaluated three model types against three feature subsets — nine combinations in total:
-            </p>
-            <ul>
-                <li><strong>Ridge regressor</strong> — linear regression with L2 norm penalty</li>
-                <li><strong>Gradient Boosting regressor (GBR)</strong> — decision tree ensemble of weak learners</li>
-                <li><strong>LSTM deep-learning model</strong> — capable of learning non-linear temporal relationships</li>
-            </ul>
-            <p>
-                Feature subsets were: a <em>limited</em> set (5-day return and 5-day volatility only), the
-                <em>full</em> set (all 87 features), and a <em>PCA</em> set (return, volatility, and 12 PCA
-                components). For a detailed discussion of methodology, refer to Appendix C.
-            </p>
-
-            <h4 class="subsubsection-heading" id="method-port">2.4.3 Portfolio Optimisation</h4>
-            <p>
-                Note that the LSTM volatility forecasting component was trained and evaluated on a universe of
-                21 ETFs, including broad market ETFs. The portfolio optimiser uses a subset of 17 instruments,
-                selected to span equities, fixed income, and real assets while maintaining a consistent price
-                history from December 2015 onward — constrained by the launch date of XLRE (Real Estate).
-            </p>
-
-            <div class="table-wrap">
-                <p class="table-caption">Table 1 — ETF universe used in portfolio optimisation (17 instruments)</p>
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Ticker</th>
-                            <th>Name</th>
-                            <th>Asset Class</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Equities -->
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLF</code></td><td >Financials</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLK</code></td><td>Technology</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLU</code></td><td>Utilities</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLV</code></td><td>Health Care</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLE</code></td><td>Energy</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLI</code></td><td>Industrials</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLB</code></td><td>Materials</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLP</code></td><td>Consumer Staples</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLY</code></td><td>Consumer Discretionary</td><td>Equity — Sector</td></tr>
-                        <tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLRE</code></td><td>Real Estate <em>(binding constraint: launched Dec 2015)</em></td><td>Equity — Sector</td></tr>
-                        
-                        <!-- Fixed Income -->
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>BIL</code></td><td>1–3 Month T-Bills</td><td>Fixed Income</td></tr>
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>IEF</code></td><td>7–10yr Treasuries</td><td>Fixed Income</td></tr>
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>TLT</code></td><td>20yr+ Treasuries</td><td>Fixed Income</td></tr>
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>LQD</code></td><td>IG Corporate Credit</td><td>Fixed Income</td></tr>
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>HYG</code></td><td>High-Yield Credit</td><td>Fixed Income</td></tr>
-                        <tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>TIP</code></td><td>TIPS (Inflation-Linked)</td><td>Fixed Income</td></tr>
-
-                        <!-- Real Assets -->
-                        <tr><td style="border-left:2px solid rgba(196, 124, 17, 0.589); rgba(34,197,94,0.14);"><code>GLD</code></td><td>Gold</td><td>Real Assets</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <p>
-                For portfolio construction, we implemented a constrained mean-variance optimiser grounded in
-                the Markowitz framework. This choice is deliberate despite the well-documented sensitivity to
-                input estimates: Markowitz optimisation remains the industry standard for systematic portfolio
-                construction, offers strong interpretability, and provides a principled mechanism for
-                incorporating hard constraints on both volatility and asset weights. In future research, more
-                sophisticated alternatives like the Black-Litterman model or robust optimisation variants may
-                be considered; these were judged above-and-beyond the scope of this proof-of-concept pipeline.
-                The optimiser is implemented using <code>scipy.optimize.minimize</code> (SLSQP method), with
-                constraints and objective functions parameterised by the client's risk assessment.
-            </p>
-
-            <h3 class="subsection-heading" id="architecture">2.5 Three-Component Pipeline Architecture</h3>
-
-            <figure class="report-figure">
-                <img src="{{ url_for('static', filename='fig_pipeline_architecture.png') }}" alt="Three-component pipeline architecture diagram">
-                <figcaption>
-                    <strong>Figure 1.</strong> Three-component pipeline architecture: SCF risk scoring →
-                    LSTM volatility forecasting → constrained Markowitz optimisation → PortfolioIQ dashboard.
-                </figcaption>
-            </figure>
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<section class="report-section" id="methodology">
+<span class="section-number">§ 02</span>
+<h2 class="section-heading">Problem Definition, Approach, and Methodology</h2>
+<h3 class="subsection-heading" id="challenge">2.1 The Challenge</h3>
+<p>The challenge was to build an integrated data science pipeline that translates individualized investor profiles into a personalized investment strategy through risk scoring, volatility forecasting, and constrained portfolio optimization.</p>
+<h3 class="subsection-heading" id="subproblems">2.2 Sub-Problems</h3>
+<h4 class="subsubsection-heading" id="subproblem-risk">2.2.1 Estimating Client Risk Tolerance</h4>
+<p>For the first component of our portfolio generation pipeline, our goal was to predict an individual investor’s risk tolerance using household and demographic characteristics which were observed within the Survey for Consumer Finances (SCF). Understanding a client’s appetite for risk is important in the application of any portfolio recommendation system because it influences how a portfolio should be balanced between pursuing larger returns and limiting potential losses. Because the SCF contains many non-correlated variables which could affect how an individual perceives financial risk, but no direct measure of financial risk-taking, our goal with the risk tolerance estimation and model was to use surveyable household features to estimate how much investment risk an individual may be comfortable taking.</p>
+<h4 class="subsubsection-heading" id="subproblem-vol">2.2.2 Forecasting Sector Volatility</h4>
+<p>For the second component of our portfolio generation pipeline, our goal was to forecast realized volatility (also referred to as historical volatility) for a collection of sector-representative ETFs over a 21 business day (30 calendar day) outlook. A brief discussion of return and volatility is included in the appendix to this report. Our goals were to achieve forecast accuracy for the S&amp;P ETF (ticker: SPY) on par or superior to the VIX and to create dedicated forecasts for other market sectors that would provide a more accurate estimation of those sectors' volatility than could be obtained by simply referencing the VIX.</p>
+<h4 class="subsubsection-heading" id="subproblem-port">2.2.3 Maximizing Return while Limiting Portfolio Volatility</h4>
+<p>Given a client’s estimated risk score and a set of sector-level volatility forecasts, the third component of our pipeline constructs a portfolio designed to maximize the risk-adjusted return within constraints calibrated to the client by maximizing the Sharpe ratio of the resulting portfolio. Refer to the appendix for a detailed discussion of the portfolio optimization problem.</p>
+<div class="constraint-grid">
+<div class="constraint-tier">
+<h5>Tier 1 — Asset-Class Level</h5>
+<ul>
+<li>Age-adjusted equity ceiling (110 − age baseline, modified by risk score)</li>
+<li>Gold cap inverse-scaled with risk score (15% at score 1 → 5% at score 10)</li>
+<li>Volatility band: floor and ceiling both scale linearly with risk score</li>
+</ul>
+</div>
+<div class="constraint-tier">
+<h5>Tier 2 — Intra-Bucket Level</h5>
+<ul>
+<li>Any single equity sector ≤ 30% of total equity bucket</li>
+<li>Any IG fixed-income instrument ≤ 50% of fixed-income allocation</li>
+<li>HYG ≤ (risk score / 10)² × 35% of FI bucket <em>(quadratic scaling)</em></li>
+</ul>
+</div>
+</div>
+<h3 class="subsection-heading" id="datasets">2.3 Datasets</h3>
+<h4 class="subsubsection-heading" id="datasets-scf">2.3.1 Survey of Consumer Finances (2022)</h4>
+<p>Data for client risk tolerance estimation came from the Survey for Consumer Finances (SCF), a survey conducted every three years by the Board of Governors of the Federal Reserve System.</p>
+<h4 class="subsubsection-heading" id="datasets-financial">2.3.2 Financial Data: Yahoo Finance &amp; FRED</h4>
+<p>Our financial data came from two sources: Yahoo Finance (via the "yfinance" Python API) and the Federal Reserve Economic Data (FRED) database (via the "fredapi" Python API). For a detailed description of these datasets, refer to the appendix.</p>
+<h3 class="subsection-heading" id="method-detail">2.4 Methodology</h3>
+<h4 class="subsubsection-heading" id="method-risk">2.4.1 Risk Tolerance Estimation</h4>
+<p><em>Data cleaning, imputation, and transformation</em></p>
+<p>Our final Python methodology encompassed the download of the SCF Stata data directly from the Federal Reserve website, which included the primary survey data, supplemental extract files, and replicate weight files used for survey analysis. Each dataset was then standardized to consistent lowercase column names and then validated to ensure row counts and identifiers were consistent across files.</p>
+<p>One of the main preprocessing steps involved separating the SCF into each of its five implicates, where each implicate was extracted using the household identifier structure and then merged with the supplementary data using common keys. Once the data was verified, the five implicates were concatenated into a single modeling dataset to preserve the full range of imputed household responses in the survey.</p>
+<p><em>Feature selection, Feature extraction</em></p>
+<p>Because SCF contains thousands of variables, many of the fields were overly specific or not directly related to investor risk profiling. A more focused feature set was necessary to improve the interpretability and usability of our platform.</p>
+<p>For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. This feature selection combined with PCA provided a sound proxy target for supervised learning in the absence of a specific measure related to financial risk tolerance.</p>
+<p>Separate feature selection was then conducted for the Random Forest model used to predict the PCA-derived risk score. For this method, emphasis was placed on variables that were meaningful from an economic perspective, explainable, and realistic to collect from future end users through a short advisory questionnaire.</p>
+<p><em>Modeling</em></p>
+<p>To estimate the risk tolerance of investors, we implemented a Random Forest regression model using the features described in the previous section. Because of the continuous nature of the target variable, the problem was framed as a supervised regression task rather than a categorical classification.</p>
+<p>Training was conducted using the combined SCF implicate dataset, with survey weights incorporated during model fitting so that observations contributed in proportion to their representation in the broader U.S. household population. The dataset was partitioned into training and testing subsets to evaluate out-of-sample predictive performance.</p>
+<p>The Random Forest output is further transformed via a QuantileTransformer to produce a near-normal risk score distribution on a [1, 10] scale. The QuantileTransformer is fitted on training-set predictions rather than ground-truth labels, ensuring the transformation reflects the model's actual output range and avoids leakage from the test distribution.</p>
+<h4 class="subsubsection-heading" id="method-vol">2.4.2 Volatility Forecasting</h4>
+<p>We began our approach to volatility forecasting with data cleaning, imputation of missing or erroneous values, transformation from raw data to useful features, and time-series resampling. We then performed feature selection based on suggestions from the literature and our own correlation analysis. The curious reader can find details of these steps in the appendix. Two features consistently ranked high in feature importance or correlation with future volatility:</p>
+<ul>
+<li>historical (past 5-day) volatility for the target ETF -- by far the most important feature</li>
+<li>historical (past 5-day) return for the target ETF</li>
+</ul>
+<p>We then resampled all features to a weekly frequency in order to incorporate macroeconomic other lower frequency financial data. To reduce multicollinearity and noise among the expanded feature set, we performed feature extraction using Principal Component Analysis (PCA), capturing 80 percent of the variation in the original set of 87 features in 12 principal features.</p>
+<p>We then selected three types of models for comparison which rely on different regression assumptions and methods:</p>
+<ul>
+<li>a Ridge regressor -- linear regression with L2 norm penalty term</li>
+<li>a Gradient Boosting regressor (GBR) -- decision tree based ensemble of many weak learners</li>
+<li>a LSTM deep-learning model -- adept at learning non-linear relationships over time</li>
+</ul>
+<p>We paired these three types of models with three different subsets of features, with the idea that the different model types might perform better or worse depending on the subset of input features provided:</p>
+<ul>
+<li>a "limited" subset consisting of historical (5-day) return and historical (5-day) volatility</li>
+<li>the "full" feature set, consisting of all 87 features</li>
+<li>a "PCA" subset, consisting of 12 extracted features</li>
+</ul>
+<p>Overall we compared the performance of nine different models. For a more detailed discussion of our methodology and approach to volatility forecasting, refer to the appendix.</p>
+<h4 class="subsubsection-heading" id="method-port">2.4.3 Portfolio Optimization</h4>
+<p>Note that the LSTM volatility forecasting component was trained and evaluated on a universe of 21 ETFs, including broad market ETFs. The portfolio optimizer uses a subset of 17 instruments selected to span equities, fixed income, and real assets while using a consistent price history from December 2015 onward.</p>
+<div class="table-wrap">
+<p class="table-caption">Table 1 — ETF universe used in portfolio optimisation (17 instruments)</p>
+<table class="report-table">
+<thead>
+<tr>
+<th>Ticker</th>
+<th>Name</th>
+<th>Asset Class</th>
+</tr>
+</thead>
+<tbody>
+<!-- Equities -->
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLF</code></td><td>Financials</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLK</code></td><td>Technology</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLU</code></td><td>Utilities</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLV</code></td><td>Health Care</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLE</code></td><td>Energy</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLI</code></td><td>Industrials</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLB</code></td><td>Materials</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLP</code></td><td>Consumer Staples</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLY</code></td><td>Consumer Discretionary</td><td>Equity — Sector</td></tr>
+<tr><td style="border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14);"><code>XLRE</code></td><td>Real Estate <em>(binding constraint: launched Dec 2015)</em></td><td>Equity — Sector</td></tr>
+<!-- Fixed Income -->
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>BIL</code></td><td>1–3 Month T-Bills</td><td>Fixed Income</td></tr>
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>IEF</code></td><td>7–10yr Treasuries</td><td>Fixed Income</td></tr>
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>TLT</code></td><td>20yr+ Treasuries</td><td>Fixed Income</td></tr>
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>LQD</code></td><td>IG Corporate Credit</td><td>Fixed Income</td></tr>
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>HYG</code></td><td>High-Yield Credit</td><td>Fixed Income</td></tr>
+<tr><td style="border-left:2px solid rgba(24, 55, 159, 0.589); rgba(34,197,94,0.14);"><code>TIP</code></td><td>TIPS (Inflation-Linked)</td><td>Fixed Income</td></tr>
+<!-- Real Assets -->
+<tr><td style="border-left:2px solid rgba(196, 124, 17, 0.589); rgba(34,197,94,0.14);"><code>GLD</code></td><td>Gold</td><td>Real Assets</td></tr>
+</tbody>
+</table>
+</div>
+<p>For portfolio construction, we implemented a constrained mean-variance optimizer grounded in the Markowitz framework mentioned in the Literature review. This choice is deliberate despite well documented sensitivity to input estimates. Markowitz optimization remains the industry standard for systematic portfolio construction with strong interpretability and it provides a principled mechanism for incorporating hard constraints on both volatility and asset weights. In future research, we may consider more sophisticated alternatives like the Black-Litterman model or more robust optimization. That seemed above-and-beyond the scope of this proof of concept project with end-to-end integration. Expected returns on each instrument are estimated via a Sharpe-prior method where the LSTM volatility forecast scales a Sharpe ratio assumption back out to a forward-looking return estimate rather than relying on historical returns alone. The optimizer is implemented using the Python package scipy, with constraints and objective functions parameterized by risk assessment.</p>
+<h3 class="subsection-heading" id="architecture">2.5 3-Component Model Architecture</h3>
+<figure class="report-figure">
+<img alt="Three-component pipeline architecture diagram" src="{{ url_for('static', filename='fig_pipeline_architecture.png') }}"/>
+<figcaption><strong>Figure (1).</strong> Three component pipeline architecture. SCF 2022 survey data feeds Component 1 risk scoring, which applies a Random Forest Regressor followed by a QuantileTransformer to produce a continuous client risk score on a 1-10 scale. Financial market data (ETF price and macroeconomic variables) were used to create Component 2, which uses an LSTM model to predict 21-day realized volatility, from which expected returns are derived. The first two components jointly parameterize component 3, portfolio optimization. This is a constrained Markowitz mean-variance optimizer across 17 ETFs using a two-tier constraint architecture calibrated to the client. The resulting portfolio weights and Monte Carlo simulation outputs are surfaced through an interactive local dashboard.</figcaption>
+</figure>
+</section>
+<!-- ══════════════════════════════════════════════════
              III. EXPERIMENTAL EVALUATION
              ══════════════════════════════════════════════════ -->
-        <section class="report-section" id="evaluation">
-            <span class="section-number">§ 03</span>
-            <h2 class="section-heading">Experimental Evaluation</h2>
-
-            <h3 class="subsection-heading" id="eval-strategy">3.1 Evaluation Strategy</h3>
-
-            <h4 class="subsubsection-heading">Risk Tolerance</h4>
-            <p>
-                Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.
-            </p>
-            <h4 class="subsubsection-heading">Volatility Forecasting</h4>
-            <p>
-                We conducted hyperparameter tuning for all models (details in Appendix C) and compared
-                performance against the validation set for model selection. Mean absolute error (MAE) served
-                as the primary accuracy metric. We also developed three additional criteria to ensure the
-                final model met the business requirements of a financial advisor:
-            </p>
-            <ul>
-                <li><strong>Accuracy</strong> — R²<sub>OOS</sub> above zero (smaller MAE than baseline)</li>
-                <li><strong>Tracking</strong> — predictions should follow the general volatility profile over time, appropriately anticipating spikes and declines</li>
-                <li><strong>Lag</strong> — predictions should not trail realised volatility excessively</li>
-                <li><strong>Estimation</strong> — the model should not systematically over- or under-estimate; over-estimation preferred to under-estimation</li>
-            </ul>
-            <p>
-                We compared each model to the VIX as a baseline for predicting the SPY ETF. Out-of-sample
-                R-squared was computed as:
-            </p>
-            <div class="equation">
-                R²<sub>OOS</sub> = 1 − MAE<sub>m</sub> / MAE<sub>b</sub>
-            </div>
-            <p>
-                where MAE<sub>m</sub> is model MAE and MAE<sub>b</sub> is baseline (VIX) MAE. Based on these
-                criteria, we selected a model type and feature set for robust statistical testing: training 30
-                independent learners per ETF over 30 independent trials, comparing the median MAE distribution
-                against the baseline. This ensemble approach guards against lucky initialisation from
-                stochastic training and produces more reliable predictions than any single model.
-            </p>
-
-            <h3 class="subsection-heading" id="results">3.2 Results</h3>
-
-            <h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
-            <p>
-                We evaluated 2 approaches for predicting risk tolerance. The first used Random Forest regression to predict a latent financial risk tolerance score using PCA. The second used a generalized linear modeling (GLM) framework based on the approach used by Pessoa, Damico, and Jacob (2024) to predict survey respondents’ self-reported risk tolerance score. In the Pessoa et al. approach, we first applied LASSO to select features associated with the self-reported risk score, then fit a weighted linear regression model that accounted for the survey weights and multiple imputations. 
-                We ultimately selected the Random Forest regression model as it achieved a higher R-squared and lower root mean squared error (RMSE), explaining 73% of the variance in the PCA-based risk tolerance score. Although the GLM was not chosen as the final model, we used its most statistically significant predictors to inform the set of variables included in the PCA.
-            </p>
-            <h4 class="subsubsection-heading">Volatility Forecasting — Model Selection</h4>
-            <p>
-                Table 2 summarises model selection using the four-fold criteria of Accuracy, Tracking, Lag,
-                and Estimation on the validation set, benchmarked against the VIX for SPY. An LSTM model
-                using the "limited" or "PCA" feature set achieved performance on par with or better than the
-                baseline. The GBR, despite performing well on some criteria, was eliminated primarily because
-                of its critically low Tracking score. See Appendix C for illustrated examples of high vs. low
-                Tracking scores.
-            </p>
-
+<section class="report-section" id="evaluation">
+<span class="section-number">§ 03</span>
+<h2 class="section-heading">Experimental Evaluation</h2>
+<h3 class="subsection-heading" id="eval-strategy">3.1 Evaluation Strategy</h3>
+<h4 class="subsubsection-heading">Risk Tolerance</h4>
+<p>Model performance was assessed using regression metrics such as R-squared and root mean squared error (RMSE), allowing us to evaluate both explanatory power and prediction accuracy.</p>
+<h4 class="subsubsection-heading">Volatility Forecasting</h4>
+<p>We conducted hyperparameter tuning for all models (details in the appendix) and compared performance against the validation set for model selection. We used mean absolute error (MAE) as the primary metric to gauge the model's accuracy, but also developed three other criteria (Tracking, Lag, and Estimation -- see appendix for details) to ensure the final model performed according to the business-case requirements of a financial advisor. Based on these criteria, we would select a combination of model type (Ridge, GBR, or LSTM) and feature set ("limited," "full," or "PCA") for a more robust statistical analysis using an ensemble of 30 models for each ETF, details of which are provided in the appendix.</p>
+<h3 class="subsection-heading" id="results">3.2 Results</h3>
+<h4 class="subsubsection-heading">Risk Tolerance Estimation</h4>
+<h4 class="subsubsection-heading">Model Selection</h4>
+<p>We evaluated 2 approaches for predicting risk tolerance. The first used Random Forest regression to predict a latent financial risk tolerance score using PCA. The second used a generalized linear modeling (GLM) framework based on the approach used by Pessoa, Damico, and Jacob (2024) to predict survey respondents’ self-reported risk tolerance score. In the Pessoa et al. approach, we first applied LASSO to select features associated with the self-reported risk score, then fit a weighted linear regression model that accounted for the survey weights and multiple imputations.</p>
+<p>We ultimately selected the Random Forest regression model as it achieved a higher R-squared and lower root mean squared error (RMSE), explaining 73% of the variance in the PCA-based risk tolerance score. Although the GLM was not chosen as the final model, we used its most statistically significant predictors to inform the set of variables included in the PCA.</p>
+<h4 class="subsubsection-heading">Observations</h4>
+<figure class="report-figure">
+<img alt="Survey weighted risk score distributions by feature" src="{{ url_for('static', filename='fig_surv_weigh_dist.png') }}"/>
+<figcaption><strong>Figure (2).</strong> Survey-weighted distribution of quantile-transformed risk tolerance scores across binned household characteristics.</figcaption>
+</figure>
+<p>Figure (2) displays survey-weighted violin plots of the quantile-transformed risk tolerance scores predicted by the Random Forest regression model across each household characteristic. Continuous factors were binned into weighted quantile ranges, while categorical factors were shown as discrete groups, with categories ordered from lower to highest values from left to right within each factor. This facilitates comparison of how the predicted risk tolerance distribution shifts across subgroups. The distributions indicate that married respondents, highest net-worth households, and respondents who report spending less than their income tend to have higher predicted risk tolerance scores, as shown by a rightward shift in the score distribution relative to their comparison groups.</p>
+<h4 class="subsubsection-heading">Volatility Forecasting</h4>
+<h4 class="subsubsection-heading">Model Selection</h4>
+<p>Table (2) summarizes the results of preliminary model selection using the four-fold criteria of Accuracy (reflected as either MAE or out-of-sample R-squared), Tracking, Lag, and Estimation. Performance was judged against 30-day future volatility predictions of the baseline model (VIX) for the S&amp;P 500 ETF on the validation set. An LSTM model using the "limited" or "PCA" feature set achieved performance nearly on par or better than the baseline model. Based on this preliminary analysis, we chose to move forward with more robust statistical testing of all LSTM models over 30 independent trials.</p>
 <div class="table-wrap">
-    <p class="table-caption">Table 2 — Model selection results on validation set (SPY ETF, four-fold criteria). Green cells meet or exceed threshold; red cell indicates the criterion that eliminated GBR; bold rows were shortlisted for 30-trial ensemble testing.</p>
-    <table class="report-table">
-        <thead>
-            <tr>
-                <th>ETF</th>
-                <th>Model</th>
-                <th>Feature set</th>
-                <th>MAE</th>
-                <th>R²<sub>OOS</sub></th>
-                <th>Tracking</th>
-                <th>Lag</th>
-                <th>Estimation</th>
-            </tr>
-        </thead>
-        <tbody>
-
-            <!-- VIX baseline (reference row) -->
-            <tr style="font-style:italic; background:rgba(245, 250, 96, 0.283); border-left:2px solid rgba(214, 250, 96, 0.792);">
-                <td>SPY</td>
-                <td>VIX</td>
-                <td>NA</td>
-                <td>4.03</td>
-                <td>—</td>
-                <td>8</td>
-                <td>6</td>
-                <td>6</td>
-            </tr>
-
-            <!-- Ridge / Full -->
-            <tr>
-                <td>SPY</td>
-                <td>Ridge</td>
-                <td>Full</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">5.24</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">−0.30</td>
-                <td>8</td>
-                <td>6</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
-            </tr>
-
-            <!-- GBR / PCA — eliminated on tracking -->
-            <tr>
-                <td>SPY</td>
-                <td>GBR</td>
-                <td>PCA</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">2.97</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">0.27</td>
-                <td style="background:rgba(239,68,68,0.15);color:var(--red)">5</td>
-                <td>6</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">9</td>
-            </tr>
-
-            <!-- LSTM / Limited — SELECTED -->
-            <tr style="font-weight:600; border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14)">
-                <td>SPY</td>
-                <td>LSTM</td>
-                <td>Limited</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">2.67</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">0.34</td>
-                <td>8</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">8</td>
-            </tr>
-
-            <!-- LSTM / Full -->
-            <tr>
-                <td>SPY</td>
-                <td>LSTM</td>
-                <td>Full</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">4.21</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">−0.04</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">7</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">7</td>
-            </tr>
-
-            <!-- LSTM / PCA — finalist -->
-            <tr style="font-weight:600; border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14)">
-                <td>SPY</td>
-                <td>LSTM</td>
-                <td>PCA</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">3.48</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">0.14</td>
-                <td style="background:rgba(245,158,11,0.13);color:var(--amber)">7</td>
-                <td>6</td>
-                <td style="background:rgba(34,197,94,0.14);color:var(--green)">8</td>
-            </tr>
-
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="8">MAE in units of annualised volatility (%). R²<sub>OOS</sub> > 0 indicates the model beats the VIX baseline. Tracking, Lag, and Estimation scored 1–10 by visual evaluation against validation-set predictions. Rows shown are the representative result per model type; full results across all ETFs available in the accompanying notebooks.</td>
-            </tr>
-        </tfoot>
-    </table>
+<p class="table-caption">Table 2 — Model selection results on validation set (SPY ETF, four-fold criteria). Green cells meet or exceed threshold; red cell indicates the criterion that eliminated GBR; bold rows were shortlisted for 30-trial ensemble testing.</p>
+<table class="report-table">
+<thead>
+<tr>
+<th>ETF</th>
+<th>Model</th>
+<th>Feature set</th>
+<th>MAE</th>
+<th>R²<sub>OOS</sub></th>
+<th>Tracking</th>
+<th>Lag</th>
+<th>Estimation</th>
+</tr>
+</thead>
+<tbody>
+<!-- VIX baseline (reference row) -->
+<tr style="font-style:italic; background:rgba(245, 250, 96, 0.283); border-left:2px solid rgba(214, 250, 96, 0.792);">
+<td>SPY</td>
+<td>VIX</td>
+<td>NA</td>
+<td>4.03</td>
+<td>—</td>
+<td>8</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<!-- Ridge / Full -->
+<tr>
+<td>SPY</td>
+<td>Ridge</td>
+<td>Full</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">5.24</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">−0.30</td>
+<td>8</td>
+<td>6</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
+</tr>
+<!-- GBR / PCA — eliminated on tracking -->
+<tr>
+<td>SPY</td>
+<td>GBR</td>
+<td>PCA</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">2.97</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">0.27</td>
+<td style="background:rgba(239,68,68,0.15);color:var(--red)">5</td>
+<td>6</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">9</td>
+</tr>
+<!-- LSTM / Limited — SELECTED -->
+<tr style="font-weight:600; border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14)">
+<td>SPY</td>
+<td>LSTM</td>
+<td>Limited</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">2.67</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">0.34</td>
+<td>8</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">8</td>
+</tr>
+<!-- LSTM / Full -->
+<tr>
+<td>SPY</td>
+<td>LSTM</td>
+<td>Full</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">4.21</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">−0.04</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">7</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">5</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">7</td>
+</tr>
+<!-- LSTM / PCA — finalist -->
+<tr style="font-weight:600; border-left:2px solid rgba(0, 108, 38, 0.589); rgba(34,197,94,0.14)">
+<td>SPY</td>
+<td>LSTM</td>
+<td>PCA</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">3.48</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">0.14</td>
+<td style="background:rgba(245,158,11,0.13);color:var(--amber)">7</td>
+<td>6</td>
+<td style="background:rgba(34,197,94,0.14);color:var(--green)">8</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td colspan="8">MAE in units of annualised volatility (%). R²<sub>OOS</sub> &gt; 0 indicates the model beats the VIX baseline. Tracking, Lag, and Estimation scored 1–10 by visual evaluation against validation-set predictions. Rows shown are the representative result per model type; full results across all ETFs available in the accompanying notebooks.</td>
+</tr>
+</tfoot>
+</table>
 </div>
-
-            <h4 class="subsubsection-heading">Volatility Forecasting — Statistical Measures of Performance</h4>
-            <p>
-                As shown in Figure 2, the LSTM model using the "limited" feature set consistently achieved a
-                lower MAE than the baseline (VIX) on the held-out testing set for 20 of 21
-                sector-representative ETFs — all except the 1–3 month T-Bill ETF (BIL). While LSTM models
-                using the "PCA" feature set achieved slightly lower median MAE over 30 trials for 11 of 21
-                ETFs, the "limited" feature set produced a tighter distribution, reflecting lower prediction
-                variance and improved model consistency. LSTM models using the "full" feature set showed
-                substantially wider MAE distributions, reflecting high variance and instability.
-            </p>
-
-            <figure class="report-figure">
-                <img src="{{ url_for('static', filename='fig_mae_distribution.png') }}" alt="LSTM MAE distribution over 30 trials vs VIX baseline">
-                <figcaption>
-                    <strong>Figure 2.</strong> LSTM model MAE distribution over 30 independent trials compared
-                    to the VIX baseline MAE (red dashed line), in units of annualised volatility. The "limited"
-                    feature set (historical 5-day return and volatility) achieves the tightest distribution and
-                    beats the baseline for 20 of 21 ETFs.
-                </figcaption>
-            </figure>
-
-            <h4 class="subsubsection-heading">Portfolio Generation</h4>
-            <p>
-                A limitation in our project is that the portfolio optimizer cannot be evaluated against a held-out test set in the conventional sense. It’s performance by nature is measurable only through live deployment and longitudinal backtesting on actual performance.What can be assessed at this stage are the structural properties of its outputs. Across ten synthetic client profiles spanning radically different ranges, the optimizer consistently produced feasible, constraint-satisfying portfolios without triggering the volatility fallback. Age remains the dominant allocation driver, with the risk score introducing a calibrated range above and below that driver. Conservative profiles received heavier fixed-income and aggressive profiles permitted greater equity concentration. The optimizer successfully produced differentiated portfolios across the risk spectrum, demonstrating that the constraint architecture is functioning as intended.
-            </p>
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<p>Even though the GBR performed well according to many of the selection criteria, we decided not to analyze GBR model performance more thoroughly, primarily because the Tracking score was so low. See the appendix for a comparison of high vs. low tracking scores.</p>
+<h4 class="subsubsection-heading">Statistical Measures of Performance</h4>
+<p>As shown in Figure (3), the LSTM model using a "limited" feature set consistently achieved a lower MAE than the baseline model (VIX) on the testing set for 20 of 21 sector-representative ETFs (all except the 1-3 month treasury bill ETF, ticker: BIL). While LSTM models using the "PCA" feature set achieved a slightly lower median MAE over 30 trials for 11 of 21 ETFs (compared to a LSTM model using "limited" features), in general the "limited" feature set resulted in a tighter distribution, reflecting lower variance in predictions and improved model consistency. By contrast, MAE for a LSTM model using the "full" feature set resulted in a much wider distribution, reflecting higher variance in predictions.</p>
+<figure class="report-figure">
+<img alt="LSTM MAE distribution over 30 trials vs VIX baseline" src="{{ url_for('static', filename='fig_mae_distribution.png') }}"/>
+<figcaption><strong>Figure (3).</strong> LSTM model MAE distribution compared to baseline MAE (red dashed line), in units of annualized volatility.</figcaption>
+</figure>
+<h4 class="subsubsection-heading">Portfolio Generation</h4>
+<p>A limitation in our project is that the portfolio optimizer cannot be evaluated against a held-out test set in the conventional sense. Its performance by nature is measurable only through live deployment and longitudinal backtesting on actual performance.What can be assessed at this stage are the structural properties of its outputs. Across ten synthetic client profiles spanning radically different ranges, the optimizer consistently produced feasible, constraint-satisfying portfolios without triggering the volatility fallback. Age remains the dominant allocation driver, with the risk score introducing a calibrated range above and below that driver. Conservative profiles received heavier fixed-income and aggressive profiles permitted greater equity concentration. With this, the optimizer successfully produced risk-adjusted portfolios demonstrating that the constraint architecture is functioning as intended.</p>
+</section>
+<!-- ══════════════════════════════════════════════════
              IV. DISCUSSION
              ══════════════════════════════════════════════════ -->
-        <section class="report-section" id="discussion">
-            <span class="section-number">§ 04</span>
-            <h2 class="section-heading">Discussion</h2>
-
-            <h3 class="subsection-heading" id="interpretation">4.1 Interpretation of Results</h3>
-            <p>
-                We found that an ensemble LSTM model using a limited feature set (historical 5-day return and
-                historical 5-day volatility) consistently matched or exceeded the performance of the VIX
-                baseline for 20 of 21 selected ETFs on the held-out testing set, across all four evaluation
-                criteria. Rather than a single model looking at the market broadly, we produced a set of 21
-                ensemble models — each consisting of 30 independent LSTM learners — where each ensemble
-                predicts a sector-specific, 30-day future volatility with accuracy on par with or superior to
-                the VIX.
-            </p>
-            <p>
-                The insight that a financial advisor would gain from confident sector-specific volatility
-                predictions provides genuine portfolio management agility: with reliable near-term forecasts,
-                allocation dollars can be systematically moved between assets based on predicted forward
-                volatility rather than historical averages. This sector-level granularity — as opposed to
-                broad market volatility — is part of the core value proposition of the pipeline.
-            </p>
-
-            <h3 class="subsection-heading" id="error-analysis">4.2 Error Analysis</h3>
-            <p>
-                During early model evaluation, we found that additional features in the "full" and "PCA"
-                feature sets tended to cause LSTM models to make more erratic predictions that were out of
-                sync with true realised volatility trends, reducing the Tracking score. While we did not have
-                direct insight into which features the LSTM relied on, Ridge and GBR models placed relatively
-                high weight on macroeconomic variables such as yields, change in real GDP, producer price
-                index change, and change in debt-to-interest ratio. We infer that these additional features
-                introduced noise, causing the LSTM to overfit spurious correlations in the training set.
-            </p>
-            <p>
-                This finding — that a parsimonious two-feature model outperforms a richly-featured one — is
-                consistent with the literature on financial time-series: recent volatility is so dominant a
-                predictor that additional features compete with it as a signal rather than complementing it.
-            </p>
-
-            <h3 class="subsection-heading" id="limitations">4.3 Limitations</h3>
-            <p>
-                The portfolio optimiser is dictated by the quality of its inputs. Any errors in volatility
-                forecasts or risk scores propagate directly into the resulting portfolio weights with no
-                correction mechanism downstream. Maximising the Sharpe ratio is also a non-convex
-                optimisation problem, meaning a globally optimal solution cannot be guaranteed. Multi-start
-                Dirichlet initialisation mitigates but does not eliminate this.
-            </p>
-            <p>
-                In the current implementation, if the trained Random Forest model artifact is unavailable at
-                inference time, the application silently falls back to a heuristic score based on age, income,
-                and savings behaviour. This condition should be surfaced explicitly to any user or evaluator
-                running the pipeline for the first time on a new machine.
-            </p>
-            <p>
-                The LSTM's limited feature set does not capture the credit spread dynamics that materially
-                drive high-yield bond volatility. To compensate, HYG annualised volatility is floored at 6%,
-                which is conservative relative to HYG's typical realised range of 8–12%. This is a
-                domain-knowledge correction applied post-prediction and is a documented, known limitation.
-            </p>
-            <p>
-                Finally, the pipeline as a whole has not been benchmarked against a real client cohort or
-                compared empirically to an existing robo-advisor. XLRE's December 2015 launch date sets the
-                common correlation history start, meaning the 2008 Global Financial Crisis is absent from
-                the covariance estimates — a stress period with substantially elevated correlations that the
-                model has never seen. End-to-end evaluation against real-world conditions remains the most
-                critical next step before any deployment could be considered.
-            </p>
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<section class="report-section" id="discussion">
+<span class="section-number">§ 04</span>
+<h2 class="section-heading">Discussion</h2>
+<h3 class="subsection-heading" id="interpretation">4.1 Interpretation of results</h3>
+<p>We found that an ensemble LSTM model using a limited feature set (historical return and historical volatility) consistently matched or exceeded the performance of our baseline model (VIX) for 20 of 21 selected ETFs on the held-out testing set, based on our four-fold criteria of Accuracy, Tracking, Lag, and Estimation. Rather than a single model that looks at the market broadly, we created a set of 21 ensemble models (each ensemble consisting of 30 individual LSTM models), where each ensemble model predicts a sector-specific, 30-day future volatility for a representative ETF with accuracy on par with or superior to the baseline model (VIX). The insight that a financial advisor would gain from confident predictions of individual market sectors provides agility in portfolio management: with the insight gained, a financial advisor can confidently move investment dollars between assets depending on their predicted future volatility. This agility is part of the value proposition for our portfolio generation tool.</p>
+<h3 class="subsection-heading" id="error-analysis">4.2 Error Analysis</h3>
+<p>In predicting volatility, during the early model evaluation stage, we found that additional features in the "full" and "PCA" feature sets tended to cause the LSTM models to make more erratic predictions that were out of sync with the true realized volatility trend, reducing the "tracking" score for those models. While we did not have direct insight into which features the LSTM relied on, we found that Ridge and GBR models placed relatively high weight on macroeconomic variables such as yields, change in real GDP, the producer price index change, and change in debt-to-interest ratio. We might infer that the additional features essentially created additional noise, causing the LSTM to overfit to spurious correlations in the training set.</p>
+<h3 class="subsection-heading" id="limitations">4.3 Limitations</h3>
+<p>Ultimately, the portfolio optimizer is dictated by the quality of its inputs. Any errors in volatility forecasts or risk scores propagate directly into the resulting portfolio weights with no mechanism for correction downstream. Maximizing the Sharpe ratio is also a non-convex optimization problem, which means that we cannot guarantee a globally optimal solution. Multi-start Dirichlet initialization mitigates this but does not eliminate it. Finally, the pipeline as a whole has not been benchmarked against a real client cohort or compared empirically to an existing robo-advisor. End-to-end evaluation remains the most critical next step before any real-world deployment could be considered.</p>
+<p>In the current implementation, if the Random Forest model is unavailable for any reason, the application falls back to a general score based on age, income, and savings behavior that should be surfaced explicitly to any user running the pipeline. The LSTM does not capture macroeconomic dynamics that drive high-yield bond volatility. To compensate, we set a floor at 6% volatility which is quite conservative to the typical realized range of 8-12%. This is a domain-knowledge correction applied post-predication and is a documented and known limitation of our model.</p>
+</section>
+<!-- ══════════════════════════════════════════════════
              V. CONCLUSION
              ══════════════════════════════════════════════════ -->
-        <section class="report-section" id="conclusion">
-            <span class="section-number">§ 05</span>
-            <h2 class="section-heading">Conclusion</h2>
-
-            <h3 class="subsection-heading" id="benefits">5.1 Application and Benefits of the Portfolio Generator Tool</h3>
-            <p>
-                The primary value of this pipeline is delivering what most robo-advisors do not: a transparent
-                and personalised, forward-looking portfolio construction process. Every assumption is traceable
-                and surfaced through an interactive client dashboard rather than obscured behind a black box.
-                Clients with subtly different financial profiles receive meaningfully different portfolios —
-                not the same generic allocations.
-            </p>
-            <p>
-                The optimiser's use of near-term volatility forecasts rather than historical averages means
-                portfolio construction responds to current market conditions. Critically, the dashboard
-                communicates uncertainty through Monte Carlo simulation visualised as spaghetti plots, not a
-                single projected return line that implies false precision. This gives clients a realistic
-                picture of both upside potential and downside risk — the kind of transparency that should be
-                standard in financial advising but rarely is.
-            </p>
-
-            <h3 class="subsection-heading" id="ethics">5.2 Broader Impacts and Ethical Concerns</h3>
-            <p>
-                This is a proof-of-concept pipeline and should not be treated as a substitute for licensed
-                financial advice. A client acting on this output may be investing retirement savings or
-                educational funds, and could face material harm if models underperform, inputs are stale, or
-                risk classification is miscalibrated. The quantitative precision of the pipeline can imply a
-                certainty the underlying models do not warrant.
-            </p>
-            <p>
-                The SCF's representation deserves scrutiny. Although the Federal Reserve applies survey weights
-                to approximate the U.S. population, the survey oversamples high-wealth households and relies
-                on voluntary self-reporting. Risk scores derived from this data may systematically
-                underperform for demographics underrepresented in the survey, raising fairness concerns for
-                the very investors this tool aims to serve.
-            </p>
-            <p>
-                Responsible deployment requires clear disclaimers about model limitations, regular
-                revalidation as market conditions evolve, and a threshold of professional oversight before
-                any client acts on the pipeline's output. <strong><i>These concerns directly informed our decision to
-                deploy the dashboard as a local application rather than a publicly accessible web service.</i></strong>
-            </p>
-
-            <h3 class="subsection-heading" id="example-usage">5.3 Example Usage</h3>
-            <p>
-                The following video provides a five-minute walkthrough of the PortfolioIQ dashboard,
-                demonstrating the end-to-end pipeline from client input through risk scoring, portfolio
-                optimisation, and Monte Carlo simulation output.
-            </p>
-            <div class="video-container">
-                <span class="video-icon">▶</span>
-                <p>PortfolioIQ — End-to-End Pipeline Demonstration (5 min)</p>
-                <a href="https://drive.google.com/file/d/1FXDNS4_cP9eqjxmIjOLFUvzrxYZGzuMt/view?usp=sharing" class="video-link">Watch Demonstration</a>
-            </div>
-
-            <h3 class="subsection-heading" id="sow">5.4 Statement of Work</h3>
-
-            <div class="table-wrap">
-                <table class="report-table">
-                    <thead>
-                        <tr>
-                            <th>Team Member</th>
-                            <th>Contributions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Peter King</strong></td>
-                            <td>Data Cleaning &amp; Transformation · Volatility Feature Selection / Extraction · Volatility Model Evaluation / Selection · Volatility Visualisations</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Thomas MacPherson</strong></td>
-                            <td>Data Acquisition, Cleaning &amp; Transformation · Portfolio Optimisation Using Model Outputs · Flask Dashboard and UI · Video Demonstration</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Ryan Peet</strong></td>
-                            <td>Cleaning &amp; Transformation · Feature Selection Using PCA · Random Forest Regressor Model</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Kristine Zhou</strong></td>
-                            <td>Cleaning &amp; Transformation · Feature Selection Using LASSO · Risk Tolerance Visualization</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<section class="report-section" id="conclusion">
+<span class="section-number">§ 05</span>
+<h2 class="section-heading">Conclusion</h2>
+<h3 class="subsection-heading" id="benefits">5.1 Application and Benefits of the Portfolio Generator Tool</h3>
+<p>The primary value of our pipeline is delivering what most robo-advisors do not, a transparent and personalized forward looking portfolio construction process. Every assumption is traceable and surfaced through an interactive client dashboard rather than obscured behind a black box. Because the pipeline produces clients with subtly different financial profiles receive meaningfully different portfolios, not the same generic allocations.</p>
+<p>The optimizer’s use of near-term volatility forecasts rather than historical averages means portfolio construction responds to current market conditions. Critically, the dashboard communicates uncertainty honestly with Monte Carlo simulations visualized using spaghetti plots and not just a single projected return line that implies false precision. This gives clients a realistic picture of both the upside potential and downside risk of their recommended portfolio, which is the kind of transparency that should be standard in financial advising but rarely is.</p>
+<h3 class="subsection-heading" id="ethics">5.2 Broader Impacts and Ethical Concerns</h3>
+<p>This is a proof of concept pipeline and should not be treated as a substitute for licensed financial advice. A client acting on this data may be investing retirement savings or educational funds and could face material harm if the models underperform, inputs are stale, or risk classification is miscalibrated. The nature of the pipelines quantitative precision can also imply a certainty the underlying models do not warrant.</p>
+<p>The SCF’s representation also deserves scrutiny. Although the Federal Reserve applies survey weights to approximate the US population, the survey oversamples high-wealth households and relies on voluntary self-reporting. Risk scores derived from this data may systematically underperform for demographics underrepresented in the survey, raising fairness concerns for the very investors this tool aims to serve.</p>
+<p>Responsible deployment would require clear disclaimers about model limitations, regular revalidation as market conditions evolve, and a recommended threshold of professional oversight before any client acts on the pipeline’s output. These concerns directly informed our decision to deploy the dashboard as a local application rather than a publicly accessible web service.</p>
+<h3 class="subsection-heading" id="example-usage">5.3 Example Usage</h3>
+<p>The following video provides a five-minute walkthrough of the ‘PortfolioIQ’ dashboard, demonstrating the end-to-end pipeline from client input through risk scoring, portfolio optimization, and Monte Carlo simulation.</p>
+<div class="video-container">
+<span class="video-icon">▶</span>
+<p>PortfolioIQ — End-to-End Pipeline Demonstration (5 min)</p>
+<a class="video-link" href="https://drive.google.com/file/d/1FXDNS4_cP9eqjxmIjOLFUvzrxYZGzuMt/view?usp=sharing">Watch Demonstration</a>
+</div>
+<h3 class="subsection-heading" id="sow">5.4 Statement of Work</h3>
+<div class="table-wrap">
+<table class="report-table">
+<thead>
+<tr>
+<th>Team Member</th>
+<th>Contributions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Peter King</strong></td>
+<td>Data Cleaning and Transformation · Volatility Feature Selection / Extraction · Volatility Model Evaluation / Selection · Volatility Visualizations</td>
+</tr>
+<tr>
+<td><strong>Thomas MacPherson</strong></td>
+<td>Data Acquisition, Cleaning, &amp; Transformation · Portfolio optimization using model outputs · Flask Dashboard and UI · Video demonstration</td>
+</tr>
+<tr>
+<td><strong>Ryan Peet</strong></td>
+<td>Data Cleaning and Transformation · Feature Selection using LASSO · Random Forest Regressor Model</td>
+</tr>
+<tr>
+<td><strong>Kristine Zhou</strong></td>
+<td>Data Cleaning and Transformation · Dimensionality Reduction using PCA · Risk Prediction Visualization</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- ══════════════════════════════════════════════════
              REFERENCES
              ══════════════════════════════════════════════════ -->
-        <section class="report-references" id="references">
-            <h2>References</h2>
-            <dl>
-                <dd style = "margin-bottom: 1rem;">
-                    Assaf, O., Di Fatta, G., &amp; Nicosia, G. (2022). Multivariate LSTM for Stock Market
-                    Volatility Prediction. In G. Nicosia et al. (Eds.), <em>Machine Learning, Optimization, and
-                    Data Science. LOD 2021. Lecture Notes in Computer Science, 13164</em>, 531–544.
-                    <a href="https://doi.org/10.1007/978-3-030-95470-3_40" target="_blank">https://doi.org/10.1007/978-3-030-95470-3_40</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Engle, R. F. (1982). Autoregressive Conditional Heteroscedasticity with Estimates of the
-                    Variance of United Kingdom Inflation. <em>Econometrica, 50</em>(4), 987–1007.
-                    <a href="https://www.jstor.org/stable/1912773" target="_blank">https://www.jstor.org/stable/1912773</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Djalma Pessoa, Anthony Damico and Guilherme Jacob (2023). Convey: Income Concentration Analysis with Complex Survey Samples. R package version 1.0.0
-                    <a href="https://github.com/ajdamico/convey/" target="_blank">https://github.com/ajdamico/convey/</a>
-                    </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Grable, John, and Swarn Chatterjee. 2026. “From Risk Tolerance to Portfolio Choice: Insights from a Targeted High-Income Sample.” Journal of Financial Planning 39 (1): 60–79.
-                    <a href="https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN" target="_blank">https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN</a>
-                    </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Markowitz, H. (1952). Portfolio Selection. <em>The Journal of Finance, 7</em>(1), 77–91.
-                    <a href="https://doi.org/10.1111/j.1540-6261.1952.tb01525.x" target="_blank">https://doi.org/10.1111/j.1540-6261.1952.tb01525.x</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Michaud, R. O. (1989). The Markowitz Optimization Enigma: Is 'Optimized' Optimal?
-                    <em>Financial Analysts Journal, 45</em>(1), 31–42.
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Peter, M., Mirau, S., Sinkwembe, E., Kasumo, C., &amp; Guambe, C. (2026). A stacking model
-                    integrating GARCH and LSTM with feature interactions for time series volatility prediction.
-                    <em>Array, 29</em>, 100700.
-                    <a href="https://doi.org/10.1016/j.array.2026.100700" target="_blank">https://doi.org/10.1016/j.array.2026.100700</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Sharpe, W. F. (1966). Mutual Fund Performance. <em>The Journal of Business, 39</em>(1),
-                    119–138. <a href="https://www.jstor.org/stable/2351741" target="_blank">https://www.jstor.org/stable/2351741</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Trading the VIX. <em>Charles Schwab</em>, 21 November 2025.
-                    <a href="https://www.schwab.com/learn/story/trading-vix-strategies-fear-index" target="_blank">https://www.schwab.com/learn/story/trading-vix-strategies-fear-index</a>
-                </dd>
-                <dd style = "margin-bottom: 1rem;">
-                    Zhang, Y., Zhang, T., &amp; Hu, J. (2025). Forecasting Stock Market Volatility Using
-                    CNN-BiLSTM-Attention Model with Mixed-Frequency Data. <em>Mathematics, 13</em>(11), 1889.
-                    <a href="https://doi.org/10.3390/math13111889" target="_blank">https://doi.org/10.3390/math13111889</a>
-                </dd>
-            </dl>
-        </section>
-
-
-        <!-- ══════════════════════════════════════════════════
+<section class="report-references" id="references">
+<h2>References</h2>
+<dl>
+<dd style="margin-bottom: 1rem;">Assaf, O., Di Fatta, G., &amp; Nicosia, G. (2022). Multivariate LSTM for Stock Market Volatility Prediction. In: Nicosia, G., et al. <em>Machine Learning, Optimization, and Data Science. LOD 2021. Lecture Notes in Computer Science, 13164</em>, 531-544. <a href="https://doi.org/10.1007/978-3-030-95470-3_40" target="_blank">https://doi.org/10.1007/978-3-030-95470-3_40</a></dd>
+<dd style="margin-bottom: 1rem;">Engle, R.F. (1982). Autoregressive Conditional Heteroscedasticity with Estimates of the Variance of United Kingdom Inflation. <em>LOD, 50</em>(4), 987-1007. <a href="https://www.jstor.org/stable/1912773" target="_blank">https://www.jstor.org/stable/1912773</a></dd>
+<dd style="margin-bottom: 1rem;">Djalma Pessoa, Anthony Damico and Guilherme Jacob (2023). Convey: Income Concentration Analysis with Complex Survey Samples. R package version 1.0.0 <a href="https://github.com/ajdamico/convey/" target="_blank">https://github.com/ajdamico/convey/</a></dd>
+<dd style="margin-bottom: 1rem;">Grable, John, and Swarn Chatterjee. 2026. “From Risk Tolerance to Portfolio Choice: Insights from a Targeted High-Income Sample.” <em>Journal of Financial Planning 39</em> (1): 60–79. <a href="https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN" target="_blank">https://www.financialplanningassociation.org/learning/publications/journal/JAN26-risk-tolerance-portfolio-choice-insights-targeted-high-income-sample-OPEN</a></dd>
+<dd style="margin-bottom: 1rem;">Hochreiter, S. &amp; Schmidhuber, J. (1997). Long Short-Term Memory. <em>Neural Computation 9</em>(8), 1735–1780. <a href="https://doi.org/10.1162/neco.1997.9.8.1735" target="_blank">https://doi.org/10.1162/neco.1997.9.8.1735</a></dd>
+<dd style="margin-bottom: 1rem;">Markowitz, H. (1952). Portfolio Selection. <em>The Journal of Finance, 7</em>(1), 77-91. <a href="https://doi.org/10.1111/j.1540-6261.1952.tb01525.x" target="_blank">https://doi.org/10.1111/j.1540-6261.1952.tb01525.x</a></dd>
+<dd style="margin-bottom: 1rem;">Peter, M., Mirau, S., Sinkwembe, E., Kasumo, C., &amp; Guambe, C. (2026). A stacking model integrating GARCH and LSTM with feature interactions for time series volatility prediction. <em>Array, 29</em>, 100700. <a href="https://doi.org/10.1016/j.array.2026.100700" target="_blank">https://doi.org/10.1016/j.array.2026.100700</a></dd>
+<dd style="margin-bottom: 1rem;">Sharpe, W.F. (1966). Mutual Fund Performance. <em>The Journal of Business, 39</em>(1), 119-138. <a href="https://www.jstor.org/stable/2351741" target="_blank">https://www.jstor.org/stable/2351741</a></dd>
+<dd style="margin-bottom: 1rem;">"Trading the VIX." <em>Charles Schwab</em>, 21 November 2025. <a href="https://www.schwab.com/learn/story/trading-vix-strategies-fear-index" target="_blank">https://www.schwab.com/learn/story/trading-vix-strategies-fear-index</a></dd>
+<dd style="margin-bottom: 1rem;">Zhang, Y., Zhang, T., Hu, J. (2025). Forecasting Stock Market Volatility Using CNN-BiLSTM-Attention Model with Mixed-Frequency Data. <em>Mathematics, 13</em>(11), 1889. <a href="https://doi.org/10.3390/math13111889" target="_blank">https://doi.org/10.3390/math13111889</a></dd>
+</dl>
+</section>
+<!-- ══════════════════════════════════════════════════
              APPENDIX
              ══════════════════════════════════════════════════ -->
-        <hr class="appendix-divider" id="appendix">
-
-        <div style="margin-bottom: 2.5rem;">
-            <span class="appendix-eyebrow">Supplementary Material</span>
-            <h2 class="appendix-heading">Appendix</h2>
-        </div>
-
-        <!-- ── Appendix A: Literature Review ──────────────── -->
-        <section class="report-section" id="appendix-litreview">
-            <span class="section-number">§ A</span>
-            <h2 class="section-heading">Literature Review</h2>
-
-            <p>
-                Several teams have demonstrated success in recent years using LSTM models of various
-                architectures to forecast market volatility. Assaf et al. (2022) found that an LSTM model was
-                able to forecast overall market volatility with performance on par with modern econometric
-                models based on the ARCH process. Zhang et al. (2025) combined a hybrid deep-learning model
-                — consisting of a Convolutional Neural Network (CNN) layer, a bidirectional LSTM layer, and
-                an attention mechanism — with an ARCH-based econometric model to forecast volatility of the
-                Shanghai Composite Index (SSEC), claiming to outperform a variety of alternative models
-                including decision tree-based ensembles. Most recently, Peter et al. (2026) integrated a
-                generalised ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate
-                "consistent superiority" across a variety of metrics.
-            </p>
-            <p>
-            The foundation of modern portfolio construction is Harry Markowitz’s 1952 mean-variance framework. Markowitz demonstrated that a rational investor, given a set of assets with known expected returns and covariances, should select a portfolio that maximises their return for a given level of variance. Variance can be directly related to risk, so this can viewed equally as minimizing risk for a given expected return of the portfolio. In theory, he suggests that there is an "efficient frontier" of portfolios that minimize risk for all expected returns and any portfolio lying below this line is considered suboptimal because a better risk-return is achievable (Markowitz, 1952).
-            </p>
-            <p>
-            A key metric derived from this framework is the risk-adjusted return (Sharpe ratio), which normalizes excess return above the risk-free rate (i.e., return on a no-risk asset) by portfolio volatility (Sharpe, 1966). Maximizing the Sharpe ratio is a common objective in portfolio management because it selects the portfolio on the efficient frontier that offers the greatest return per unit of risk.
-            </p>
-            <p>
-            Unfortunately, the classical mean-variance framework carries well documented limitations. Estimated expected returns and covariances are sensitive to the historical window and sampling period used, and small variations in inputs can produce dramatically different optimal portfolios. Robust optimizations need to explicitly account for uncertainty in the parameter estimates so that they perform acceptably well across a range of scenarios as opposed to optimizing for a single point estimate. 
-            </p>
-            <p>
-            Practical construction also requires incorporating real-world constraints that the unconstrained efficient frontier ignores. These include upper and lower bounds on individual assets (to prevent extreme concentration in a single asset), sector-level exposure limits, and minimum diversification requirements. These constraints are now standard in applied portfolio management but the choice of constraint is not just technical, it encodes the investment philosophy and risk tolerance of the client. This is precisely the link our pipeline is attempting to formalize, by deriving portfolio constraints directly from an estimated risk score rather than a general risk bucket.
-            </p>
-
-        </section>
-
-        <!-- ── Appendix B: Datasets ────────────────────────── -->
-        <section class="report-section" id="appendix-datasets">
-            <span class="section-number">§ B</span>
-            <h2 class="section-heading">Datasets</h2>
-
-            <p>
-                From Yahoo Finance, we obtained time-series data consisting of daily closing prices for 21
-                ETFs, going back as far as January 1993. We also collected daily time-series data for a
-                variety of indices to provide additional context surrounding daily ETF price changes. These
-                contextual indices include the VIX and other volatility indices, currency indices,
-                commodities such as gold and crude oil, and foreign markets.
-            </p>
-            <p>
-                From the FRED database, we collected macroeconomic variables such as gross domestic product
-                (GDP), national debt, inflation, unemployment and jobless claims, and treasury yields. These
-                series came in different frequencies — typically quarterly, monthly, or weekly.
-            </p>
-            <p>
-                Raw data from both sources was generally very clean. A single erroneous value (a negative
-                price) was corrected by linear interpolation. Several non-ETF indices had missing values,
-                the highest being the Hang Seng Index (^HSI) at 9.7 percent. These were filled via linear
-                interpolation, with a buffer of 21 business days enforced between training, validation, and
-                test splits to guard against data leakage.
-            </p>
-        </section>
-
-        <!-- ── Appendix C: Volatility Modeling ────────────── -->
-        <section class="report-section" id="appendix-vol">
-            <span class="section-number">§ C</span>
-            <h2 class="section-heading">Volatility Modeling</h2>
-
-            <h3 class="subsection-heading">C.1 A Brief Introduction to Return and Volatility</h3>
-            <p>
-                Return reflects the change in an asset's price over a period of time. For a given asset, we
-                consider its return at time <em>t</em> to be a random variable R<sub>t</sub> of unknown
-                distribution with zero mean (μ = 0) and unknown variance (σ²). We used log return, computed
-                as:
-            </p>
-            <div class="equation">
+<hr class="appendix-divider" id="appendix"/>
+<div style="margin-bottom: 2.5rem;">
+<span class="appendix-eyebrow">Supplementary Material</span>
+<h2 class="appendix-heading">Appendix</h2>
+</div>
+<!-- ── Appendix A: Literature Review ──────────────── -->
+<section class="report-section" id="appendix-litreview">
+<span class="section-number">§ A</span>
+<h2 class="section-heading">Literature Review</h2>
+<p>As part of the work for which he received the Nobel Prize in Economics in 2003, Engle (1982) showed that market volatility is not constant but changes over time. Since then, many studies have demonstrated successful estimation of market volatility using LSTM deep-learning models, which Hochreiter and Schmidhuber (1997) designed to learn long-range relationships in time-series or sequential data. Several teams have demonstrated success in the past few years using LSTM models of various architectures to forecast market volatility. Assaf, et al. (2022) found that an LSTM model was able to forecast overall market volatility with performance on par with modern econometric models based on the ARCH process. Zhang, et al. (2025) combined a hybrid deep-learning model (consisting of a Convolutional Neural Network (CNN) layer, a bidirectional LSTM layer, and an attention mechanism) with an ARCH-based econometric model to forecast volatility of the Shanghai Composite Index (SSEC), claiming to outperform a variety of alternative models including decision tree based ensembles. Most recently, Peter, et al. (2026) integrated a generalized ARCH model with an LSTM model in a stacked ensemble, claiming to demonstrate "consistent superiority" across a variety of metrics.</p>
+<p>The foundation of modern portfolio construction is Harry Markowitz’s 1952 mean-variance framework. Markowitz demonstrated that a rational investor, given a set of assets with known expected returns and covariances, should select a portfolio that maximises their return for a given level of variance. Variance can be directly related to risk, so this can viewed equally as minimizing risk for a given expected return of the portfolio. In theory, he suggests that there is an "efficient frontier" of portfolios that minimize risk for all expected returns and any portfolio lying below this line is considered suboptimal because a better risk-return is achievable (Markowitz, 1952).</p>
+<p>A key metric derived from this framework is the risk-adjusted return (Sharpe ratio), which normalizes excess return above the risk-free rate (i.e., return on a no-risk asset) by portfolio volatility (Sharpe, 1966). Maximizing the Sharpe ratio is a common objective in portfolio management because it selects the portfolio on the efficient frontier that offers the greatest return per unit of risk.</p>
+<p>Unfortunately, the classical mean-variance framework carries well documented limitations. Estimated expected returns and covariances are sensitive to the historical window and sampling period used, and small variations in inputs can produce dramatically different optimal portfolios. Robust optimizations need to explicitly account for uncertainty in the parameter estimates so that they perform acceptably well across a range of scenarios as opposed to optimizing for a single point estimate.</p>
+<p>Practical construction also requires incorporating real-world constraints that the unconstrained efficient frontier ignores. These include upper and lower bounds on individual assets (to prevent extreme concentration in a single asset), sector-level exposure limits, and minimum diversification requirements. These constraints are now standard in applied portfolio management but the choice of constraint is not just technical, it encodes the investment philosophy and risk tolerance of the client. This is precisely the link our pipeline is attempting to formalize, by deriving portfolio constraints directly from an estimated risk score rather than a general risk bucket.</p>
+</section>
+<!-- ── Appendix B: Datasets ────────────────────────── -->
+<section class="report-section" id="appendix-datasets">
+<span class="section-number">§ B</span>
+<h2 class="section-heading">Datasets</h2>
+<p>The Survey for Consumer Finances that provides granular information of the financial characteristics of households in the United States. The survey is designed to capture financial behavior of households and includes an oversampling of wealthier households to provide a better representation of segments of the population which hold a disproportionate share of financial assets. SCF contains a broad number of features related to household demographics, for example age, education, marital status, employment income, net worth, liquid assets, housing wealth, debt balances, and retirement savings. It also contains behavioral questions related to financial risk taking, saving habits, spending behavior, and household attitudes toward financial decision-making.</p>
+<p>One of the most important features of the SCF is the weighted sampling methodology that it uses to oversample wealthier households, however, the weights are provided within each sample so that analyses can be adjusted to reflect the broader U.S. household population rather than the provided raw sample. Another distinguishing feature of the SCF is the use of five imputations to address missing survey responses. Each of the five implicates contains the same households, but missing values are filled in using statistically viable estimates in five different fashions.</p>
+<p>From Yahoo Finance we obtained time series data consisting of daily closing prices for 21 ETFs going back as far as January 1993 to the present day. We also collected daily time series data for a variety of indices to provide additional context surrounding daily ETF price changes. These contextual indices include the VIX and other volatility indices, currency indices, commodities such as gold and crude oil, and foreign markets.</p>
+<p>From the FRED database, we collected macroeconomic variables such as gross domestic product (GDP), national debt, inflation, unemployment and jobless claims, and treasury yields (ranging from one month to 30 years). These series came in different frequencies -- typically quarterly, monthly, or weekly.</p>
+<p>Raw data from Yahoo Finance and the FRED were generally clean, with only a single erroneous value (a negative price), which we corrected by linear interpolation. Several non-ETF indices had missing values, the highest being the Hang Seng Index (^HSI) at 9.7 percent. These missing values were filled using linear interpolation.</p>
+<p><strong>Risk Tolerance Estimation</strong></p>
+<p>Additional transformations to the SCF data were applied to further prepare the data for modeling: directionality of selected variables was adjusted so that higher values aligned consistently with greater financial risk tolerance, specifically before conducting PCA on some of the variables to construct our target. Missing values were reviewed and handled within the preprocessing workflow, and numeric variables were structured specifically for supervised learning methods. Survey weights were preserved throughout the cleaning process so that they could be incorporated during model training and better reflect the broader population of U.S. households.</p>
+<p>Because SCF contains thousands of variables, many of the fields were overly specific or not directly related to investor risk profiling. A more focused feature set was necessary to improve the interpretability and usability of our platform.</p>
+<p>For the target variable, PCA was used as a feature extraction method to combine multiple behavioral variables into a latent measure of financial risk tolerance. Variables related to spending more than income, spending less than income, saving tendencies, and perceptions of household financial conditions were selected because they captured behavioral tendencies associated with financial risk tolerance or aversion. Before running PCA, we used LASSO regression to select variables most strongly associated with a self-reported risk tolerance score, ensuring that only relevant predictors informed the composite measure.</p>
+<p>Separate feature selection was then conducted for the Random Forest model used to predict the PCA-derived risk score. For this method, emphasis was placed on variables that were meaningful from an economic perspective, explainable, and realistic to collect from future end users through a short advisory questionnaire.</p>
+<p>The objective of the Random Forest model was to learn the relationship between observable household characteristics and the latent risk tolerance score derived from the behavioral survey responses.</p>
+<p>Random Forest was selected because it is suited for tabular data and can capture non-linear relationships that are common in finance data. Random Forest models are also robust when handling outliers, less sensitive to feature scaling, and capable of handling correlated predictors, which were all factors that contributed to the success of the model.</p>
+<p>The architecture consisted of multiple decision trees trained on samples of the training data. At each split, a random subset of predictors was considered, which helps reduce overfitting and improved generalization by diversifying the trees within the ensemble.</p>
+<p>The Random Forest output is further transformed via a QuantileTransformer to produce a near-normal risk score distribution on a [1, 10] scale. The QuantileTransformer is fitted on training-set predictions rather than ground-truth labels, ensuring the transformation reflects the model's actual output range and avoids leakage from the test distribution.</p>
+</section>
+<!-- ── Appendix C: Volatility Modeling ────────────── -->
+<section class="report-section" id="appendix-vol">
+<span class="section-number">§ C</span>
+<h2 class="section-heading">Volatility Modeling</h2>
+<h3 class="subsection-heading">C.1 A Brief Introduction to Return and Volatility</h3>
+<p>Return reflects the change in an asset's price over a period of time. For a given asset, we consider its return at time <em>t</em> to be a random variable of unknown distribution, with zero mean and unknown variance. We used log return, computed as:</p>
+<div class="equation">
                 R<sub>t</sub> = ln( S<sub>t</sub> / S<sub>t−1</sub> )
             </div>
-            <p>
-                where S<sub>t</sub> is the closing price at time <em>t</em>. Volatility reflects the variance
-                in an asset's return over a period of time. We rely on <em>realised volatility</em> — simply
-                the standard deviation of return over a period — which, under the zero-mean assumption,
-                simplifies to:
-            </p>
-            <div class="equation">
-                σ = √( (1/<em>n</em>) &nbsp;Σ<sub>i</sub> R<sub>i</sub>² )
+<p>where <em>S<sub>t</sub></em> is the price of the asset at time <em>t</em>.</p>
+<p>Volatility reflects the variance in an asset's return over a period of time, and while there are also several methods available for estimating volatility, we rely on realized volatility:</p>
+<div class="equation">
+                σ = √( (1/<em>n</em>)  Σ<sub>i</sub> R<sub>i</sub>² )
             </div>
-            <p>
-                We forecast volatility over a 21 business day (≈ 30 calendar day) outlook, aligning our
-                predictions with the VIX forecast horizon and the business need of monthly portfolio
-                rebalancing.
-            </p>
-
-            <figure class="report-figure">
-                <img src="{{ url_for('static', filename='fig_a1_spy_return.png') }}" alt="SPY daily return since 1993">                 
-                <figcaption>
-                    <strong>Figure A-1.</strong> Daily return for the S&amp;P 500 ETF (SPY) since inception
-                    in 1993. Low baseline volatility (~1.2%) is punctuated by multi-month elevated volatility
-                    clusters, providing empirical support for the zero-mean assumption (mean daily return =
-                    0.0004) and motivating the use of ARCH-family and LSTM approaches over static models.
-                </figcaption>
-            </figure>
-
-            <h3 class="subsection-heading">C.2 Volatility Forecasting: Detailed Methodology</h3>
-
-            <h4 class="subsubsection-heading">Data Cleaning, Imputation, and Transformation</h4>
-            <p>
-                For each timestamp, we created a near-term realised volatility feature (computed over the
-                last 5 business days) and a future volatility label (computed over the next 21 business days)
-                from daily log return data. Macroeconomic variables were made more stationary by computing
-                first differences or percentage changes. All variables were resampled to weekly frequency —
-                upsampled values were forward-filled rather than interpolated, to prevent the model from
-                accessing future trends during training.
-            </p>
-            <p>
-                We held the final 61 weeks as a test set, 85 weeks as a validation set, and used 371 weekly
-                observations for training — with 21 business-day buffers between each split to guard against
-                label leakage. Features were standardised to (0, 1) with the scaler fitted only on training
-                data.
-            </p>
-
-            <h4 class="subsubsection-heading">Feature Selection and Extraction</h4>
-            <p>
-                EDA confirmed that historical 5-day volatility was highly correlated with future volatility
-                (correlation coefficient = 0.72 for SPY), and the 5-day return showed moderate negative
-                correlation (−0.37 for SPY). VIX and related volatility indices showed similar correlation to
-                future SPY volatility (VIX: 0.75). By contrast, no feature showed strong correlation with
-                future <em>return</em> — the highest being jobless claims at 0.14 — confirming that return
-                forecasting from these features is not viable.
-            </p>
-            <p>
-                To reduce multicollinearity, features with high inter-correlation were grouped and subjected
-                to PCA, retaining 12 principal components that collectively explain 80% of variance in the
-                original 87 features.
-            </p>
-
-            <h4 class="subsubsection-heading">Modeling</h4>
-            <p>
-                We compared nine model combinations (three model types × three feature sets). The
-                <strong>Ridge</strong> regressor applies L2-regularised linear regression, assuming a linear
-                relationship and independence of observations over time. The <strong>Gradient Boosting
-                regressor (GBR)</strong> relaxes the linearity assumption but still assumes observation
-                independence. The <strong>LSTM</strong> assumes neither a linear relationship nor
-                independence — it is specifically designed to learn both long and short-term temporal
-                dependencies.
-            </p>
-            <p>
-                We speculate that the additional layers in stacked LSTMs, often recommended in the
-                literature for language tasks, are less beneficial for financial volatility regression, where
-                the dominant dependency is simply autocorrelation in recent volatility — a simpler temporal
-                structure than the long-range semantic dependencies that motivate stacking in NLP.
-            </p>
-
-            <h3 class="subsection-heading">C.3 Correlation Analysis</h3>
-
-            <figure class="report-figure">
-                <img src="{{ url_for('static', filename='fig_a2_corr_heatmap.png') }}" alt="Feature correlation heatmap">
-                <figcaption>
-                    <strong>Figure A-2.</strong> Correlation matrix of features used in volatility forecasting.
-                    The top row reflects correlation with the target (SPY_vol_target). Near-term historical
-                    volatility features (XXX_vol-h) and volatility indices (VIX, VXN, MOVE) show high positive
-                    correlation; historical return features (XXX_ret-h) show moderate negative correlation;
-                    raw daily return (XXX_ret) shows near-zero correlation, motivating the engineered 5-day
-                    return feature.
-                </figcaption>
-            </figure>
-
-            <div class="figure-pair">
-                <figure class="report-figure">
-                    <img src="{{ url_for('static', filename='fig_a3a_strong_corr.png') }}" alt="Strong correlation: vol vs future vol">
-                    <figcaption>
-                        <strong>Figure A-3a.</strong> Strong correlation between historical volatility and
+<p>In order to evaluate our models against an appropriate benchmark, we chose to forecast volatility over a 21 business day outlook, which aligns with the forecast period for the VIX, and with the business need of a monthly portfolio rebalancing horizon.</p>
+<figure class="report-figure">
+<img alt="SPY daily return since 1993" src="{{ url_for('static', filename='fig_a1_spy_return.png') }}"/>
+<figcaption><strong>Figure (A-1).</strong> Daily return for the S&amp;P 500 ETF (ticker: SPY) since 1993.</figcaption>
+</figure>
+<p>Figure (A-1) shows the daily return of the S&amp;P 500 ETF (ticker: SPY) since its inception in 1993. From this plot, we can see a general trend of low baseline volatility punctuated by multi-month elevated-volatility clusters.</p>
+<h3 class="subsection-heading">C.2 Volatility Forecasting: Detailed Methodology</h3>
+<h4 class="subsubsection-heading">Data Cleaning, Imputation, and Transformation</h4>
+<p>Overall we found financial data to be very clean, with at most 9.7 percent missing values for one of the indices. We chose to fill missing values using linear interpolation for indices with daily frequency, while for missing values resulting from upsampling lower-frequency data we used forward fill to guard against data leakage.</p>
+<p>The literature widely suggests that recent returns and recent volatility (most notably over the last 5 days) have high correlation with near-term future volatility. Since neither volatility nor future return can be directly observed at the current timestamp, we computed these features from daily log return data.</p>
+<p>To make macroeconomic variables such as gross domestic product (GDP) and other contextual data more stationary, we computed either first differences or percentage changes between observations.</p>
+<p>We held the final 61 weeks of data in reserve as a testing set, as well as a separate validation set with 85 weeks of data for model tuning and selection. The training set consisted of 371 weekly observations.</p>
+<h4 class="subsubsection-heading">Feature Selection and Extraction</h4>
+<p>With raw data transformed to more useful features, we conducted exploratory data analysis (EDA) to evaluate which features might be most useful in creating an accurate volatility forecast.</p>
+<p>In order to reduce the multicollinearity in our data and improve the overall signal-to-noise ratio of our input features, we grouped features that displayed high correlation with each other and then applied PCA.</p>
+<h4 class="subsubsection-heading">Modeling</h4>
+<p>We selected three types of models for analysis (a Ridge regressor, a Gradient Boosting regressor, and a LSTM deep learning model) and compared their performance using three different subsets of features.</p>
+<p>A Ridge model applies a linear regression with an L2 norm penalty term to predict the endogenous variable. The Gradient Boosting regressor relaxes the linearity assumption by relying on decision-tree based weak learners. The LSTM assumes neither a linear relationship nor independence and is specifically designed for time-series dependencies.</p>
+<h3 class="subsection-heading">C.3 Correlation Analysis</h3>
+<p>We provide a few examples from the correlation analysis conducted as part of EDA for volatility features.</p>
+<figure class="report-figure">
+<img alt="Feature correlation heatmap" src="{{ url_for('static', filename='fig_a2_corr_heatmap.png') }}"/>
+<figcaption><strong>Figure (A-2).</strong> Correlation matrix of features used in volatility forecasting.</figcaption>
+</figure>
+<p>Figure (A-2) shows a heatmap of correlation values for different features used to forecast realized volatility. Correlation with the target variable is reflected in the first row.</p>
+<div class="figure-pair">
+<figure class="report-figure">
+<img alt="Strong correlation: vol vs future vol" src="{{ url_for('static', filename='fig_a3a_strong_corr.png') }}"/>
+<figcaption>
+<strong>Figure A-3a.</strong> Strong correlation between historical volatility and
                         future realised volatility — making accurate near-term forecasting achievable.
                     </figcaption>
-                </figure>
-                <figure class="report-figure">
-                    <img src="{{ url_for('static', filename='fig_a3b_weak_corr.png') }}" alt="Weak correlation: return vs future return"> 
-                    <figcaption>
-                        <strong>Figure A-3b.</strong> Weak correlation between historical return and future
+</figure>
+<figure class="report-figure">
+<img alt="Weak correlation: return vs future return" src="{{ url_for('static', filename='fig_a3b_weak_corr.png') }}"/>
+<figcaption>
+<strong>Figure A-3b.</strong> Weak correlation between historical return and future
                         return — confirming that return forecasting from these features is not viable.
                     </figcaption>
-                </figure>
-            </div>
-
-            <h3 class="subsection-heading">C.4 Model Selection Criteria: Low vs. High Tracking Score</h3>
-            <p>
-                The Tracking criterion captures whether a model's predictions follow the general contour of
-                realised volatility over time — appropriately rising when volatility spikes and declining
-                when it recedes. A model that guesses an average value or produces erratic predictions
-                fails this criterion even if its mean error is acceptable.
-            </p>
-
-            <div class="figure-pair">
-                <figure class="report-figure">
-                    <img src="{{ url_for('static', filename='fig_a4a_low_tracking.png') }}" alt="Low Tracking Score: GBR w/ PCA features">
-                    <figcaption>
-                        <strong>Figure A-4a.</strong> <em>Low Tracking (5): GBR model with PCA features.</em>
+</figure>
+</div><div class="figure-pair">
+<figure class="report-figure">
+<img alt="Low Tracking Score: GBR w/ PCA features" src="{{ url_for('static', filename='fig_a4a_low_tracking.png') }}"/>
+<figcaption>
+<strong>Figure A-4a.</strong> <em>Low Tracking (5): GBR model with PCA features.</em>
                         Predictions jump between high and low volatility inappropriately, especially during
                         the first 20 weeks of the forecast period.
                     </figcaption>
-                </figure>
-                <figure class="report-figure">
-                    <img src="{{ url_for('static', filename='fig_a4b_high_tracking.png') }}" alt="High Tracking Score: LSTM w/ limited features">
-                    <figcaption>
-                        <strong>Figure A-4b.</strong> <em>High Tracking (8): LSTM model with limited features.</em>
+</figure>
+<figure class="report-figure">
+<img alt="High Tracking Score: LSTM w/ limited features" src="{{ url_for('static', filename='fig_a4b_high_tracking.png') }}"/>
+<figcaption>
+<strong>Figure A-4b.</strong> <em>High Tracking (8): LSTM model with limited features.</em>
                         Predictions follow the general contour of realised volatility closely, albeit with a
                         slight lag — a consistent behaviour across all model types.
                     </figcaption>
-                </figure>
-            </div>
-
-            <h3 class="subsection-heading">C.5 Hyperparameter Tuning</h3>
-            <p>
-                Resampling frequency to weekly was a key decision for all models, striking a balance between
-                the granularity of daily closing prices and the lower-frequency macroeconomic inputs.
-                For LSTM models, key hyperparameters were hidden layer size, sequence length, and number of
-                training epochs. Stacked LSTMs (additional LSTM layers) were evaluated but caused more
-                erratic predictions without consistent improvement, consistent with our hypothesis that
-                financial volatility's temporal dependencies are simpler than those in language tasks.
-            </p>
-            <p>
-                For Ridge, the L2 regularisation coefficient ("alpha" in scikit-learn) was the primary
-                tuned parameter. For GBR, a grid search was conducted over learning rate, number of
-                estimators, max depth, and max features. Full hyperparameter configurations for all models
-                are documented in the Jupyter notebooks accompanying this report.
-            </p>
-
-            <div class="callout callout-warn">
-                <strong>Known Limitation — 2008 Crisis Absent from Covariance Estimates</strong>
-                The binding constraint on correlation history is the December 2015 launch of XLRE (Real
-                Estate ETF). The 2008 Global Financial Crisis — a period of dramatically elevated
-                cross-asset correlations — falls outside the estimation window. The resulting correlation
-                matrix may underestimate correlation spikes during stress regimes, producing a portfolio
-                that appears more diversified than it would prove to be in a true market crisis.
-            </div>
-        </section>
-
-    </main>
+</figure>
+</div>
+<h3 class="subsection-heading">C.4 Model Selection Criteria: Low vs. High Tracking Score</h3>
+<p>We developed a four-fold model selection criteria based on the business-case for a financial advisor. Only the first criterion (Accuracy) is completely objective.</p>
+<p>Accuracy. The final model should achieve R2OOS above zero (i.e., a smaller MAE than the baseline model).</p>
+<p>Tracking. The model's predictions should generally track with realized volatility, showing a similar profile when plotted over time, such that the model appropriately predicts a spike or decline in volatility.</p>
+<p>Lag. The model's predictions should not lag excessively behind realized volatility.</p>
+<p>Estimation. The model should neither consistently over-estimate nor under-estimate future volatility, although over-estimation is preferred to under-estimation.</p>
+<h3 class="subsection-heading">C.5 Hyperparameter Tuning</h3>
+<p>Sampling frequency of time-series variables was a key hyperparameter for all models. After experimenting with several options, we chose to resample all variables to a weekly frequency.</p>
+<p>For the LSTM models, hidden layer size, sequence length, and number of training epochs were key hyperparameters. We evaluated performance of stacked LSTMs as well.</p>
+<p>For the Ridge regressor the main hyperparameter was alpha in scikit-learn. For the GBR we ran a grid search over learning rate, number of estimators, and tree depth.</p>
+</section>
+</main>
 </div><!-- /.report-grid -->
 </div><!-- /.report-root -->
-
 <script>
 /* Highlight active TOC link on scroll */
 (function () {
